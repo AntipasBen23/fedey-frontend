@@ -10,8 +10,29 @@ export type StrategySnapshot = {
   recommendations: StrategyRecommendation[];
 };
 
-// This keeps the app functional before backend integration is wired.
 export async function getStrategySnapshot(): Promise<StrategySnapshot> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+
+  if (!apiBaseUrl) {
+    return fallbackSnapshot();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/strategy/snapshot`, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      return fallbackSnapshot();
+    }
+
+    return (await response.json()) as StrategySnapshot;
+  } catch {
+    return fallbackSnapshot();
+  }
+}
+
+function fallbackSnapshot(): StrategySnapshot {
   return {
     hypotheses: [
       {

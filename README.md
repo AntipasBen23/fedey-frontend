@@ -22,4 +22,6 @@ npm install
 npm run dev
 ```
 
+Copy `.env.example` to `.env.local` and set `FEDEY_API_URL` to your backend URL.
+
 The current theme uses a light-blue primary color system.
