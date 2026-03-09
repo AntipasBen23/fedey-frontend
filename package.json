@@ -1,0 +1,12 @@
+{
+  "name": "fedey-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Dashboard for AI social growth engine",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
