@@ -14,3 +14,12 @@ Frontend dashboard for strategy-first AI social growth engine.
 ## Product Principle
 
 The UI prioritizes learning velocity over content generation volume.
+
+## Local Run
+
+```bash
+npm install
+npm run dev
+```
+
+The current theme uses a light-blue primary color system.

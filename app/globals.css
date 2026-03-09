@@ -1,0 +1,145 @@
+:root {
+  --background: #f4f9ff;
+  --surface: #ffffff;
+  --surface-strong: #eaf4ff;
+  --primary: #5ab2ff;
+  --primary-strong: #2498ff;
+  --text: #12324d;
+  --muted: #53718d;
+  --border: #cfe6ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top, #dff0ff 0%, var(--background) 45%);
+}
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.hero {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(140deg, var(--surface), var(--surface-strong));
+}
+
+.hero h1 {
+  margin: 0.5rem 0;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+.badge {
+  display: inline-flex;
+  margin: 0;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: #064a7a;
+  background: #d6edff;
+}
+
+.grid {
+  margin-top: 1.2rem;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.section-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.section-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+.stack-list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.list-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: #f8fcff;
+  border: 1px solid #e2f1ff;
+}
+
+.item-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.item-subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.confidence,
+.impact,
+.status {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: #dff0ff;
+  color: #0b5589;
+  font-size: 0.82rem;
+}
+
+.impact {
+  background: #cfeaff;
+  font-weight: 600;
+}
+
+.status-draft {
+  background: #e7f4ff;
+}
+
+.status-running {
+  background: #d6edff;
+}
+
+.status-completed {
+  background: #bde0ff;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
