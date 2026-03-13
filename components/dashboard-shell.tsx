@@ -1,13 +1,20 @@
 import type { StrategySnapshot } from "@/lib/api/client";
+import type { ExperimentSnapshot } from "@/lib/contracts/strategy";
 import { ExperimentsPanel } from "@/features/experiments/experiments-panel";
 import { RecommendationsPanel } from "@/features/recommendations/recommendations-panel";
 import { StrategyPanel } from "@/features/strategy/strategy-panel";
 
 type DashboardShellProps = {
   snapshot: StrategySnapshot;
+  experiments: ExperimentSnapshot[];
+  onCreateExperiment: (formData: FormData) => Promise<void>;
 };
 
-export function DashboardShell({ snapshot }: DashboardShellProps) {
+export function DashboardShell({
+  snapshot,
+  experiments,
+  onCreateExperiment
+}: DashboardShellProps) {
   return (
     <main className="page">
       <section className="hero">
@@ -21,7 +28,10 @@ export function DashboardShell({ snapshot }: DashboardShellProps) {
 
       <section className="grid">
         <StrategyPanel hypotheses={snapshot.hypotheses} />
-        <ExperimentsPanel experiments={snapshot.experiments} />
+        <ExperimentsPanel
+          experiments={experiments}
+          onCreateExperiment={onCreateExperiment}
+        />
         <RecommendationsPanel recommendations={snapshot.recommendations} />
       </section>
     </main>

@@ -23,5 +23,6 @@ npm run dev
 ```
 
 Copy `.env.example` to `.env.local` and set `FEDEY_API_URL` to your backend URL.
+The Experiment Lab form posts to backend `POST /v1/experiments`.
 
 The current theme uses a light-blue primary color system.

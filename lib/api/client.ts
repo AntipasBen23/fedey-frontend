@@ -6,7 +6,6 @@ import type {
 
 export type StrategySnapshot = {
   hypotheses: Hypothesis[];
-  experiments: ExperimentSnapshot[];
   recommendations: StrategyRecommendation[];
 };
 
@@ -48,20 +47,6 @@ function fallbackSnapshot(): StrategySnapshot {
         confidence: 0.71
       }
     ],
-    experiments: [
-      {
-        id: "exp-11",
-        hypothesisId: "hyp-01",
-        metric: "engagement_rate",
-        status: "running"
-      },
-      {
-        id: "exp-12",
-        hypothesisId: "hyp-02",
-        metric: "save_rate",
-        status: "draft"
-      }
-    ],
     recommendations: [
       {
         id: "rec-4",
@@ -77,4 +62,79 @@ function fallbackSnapshot(): StrategySnapshot {
       }
     ]
   };
+}
+
+type ListExperimentsResponse = {
+  items: Array<{
+    id: string;
+    hypothesisId: string;
+    metric: string;
+    status: ExperimentSnapshot["status"];
+  }>;
+};
+
+export async function getExperiments(): Promise<ExperimentSnapshot[]> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackExperiments();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/experiments`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackExperiments();
+    }
+
+    const payload = (await response.json()) as ListExperimentsResponse;
+    return payload.items.map((item) => ({
+      id: item.id,
+      hypothesisId: item.hypothesisId,
+      metric: item.metric,
+      status: item.status
+    }));
+  } catch {
+    return fallbackExperiments();
+  }
+}
+
+export async function createExperiment(input: {
+  hypothesisId: string;
+  metric: string;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/experiments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to create experiment");
+  }
+}
+
+function fallbackExperiments(): ExperimentSnapshot[] {
+  return [
+    {
+      id: "exp-11",
+      hypothesisId: "hyp-01",
+      metric: "engagement_rate",
+      status: "running"
+    },
+    {
+      id: "exp-12",
+      hypothesisId: "hyp-02",
+      metric: "save_rate",
+      status: "draft"
+    }
+  ];
 }
