@@ -80,6 +80,12 @@ body {
     radial-gradient(circle at top right, rgba(36, 152, 255, 0.12), transparent 45%);
 }
 
+.content-card {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(236, 247, 255, 0.98)),
+    radial-gradient(circle at bottom left, rgba(90, 178, 255, 0.12), transparent 40%);
+}
+
 .brand-form {
   margin-top: 1rem;
   display: grid;
@@ -90,6 +96,17 @@ body {
   margin-top: 1rem;
   display: grid;
   gap: 0.65rem;
+}
+
+.content-button {
+  margin-top: 1rem;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.72rem 0.88rem;
+  color: #05345a;
+  font-weight: 700;
+  background: linear-gradient(180deg, #d1ecff, #7ec7ff);
+  cursor: pointer;
 }
 
 .brand-form label {
@@ -242,11 +259,29 @@ body {
   width: 100%;
 }
 
+.draft-copy {
+  width: 100%;
+}
+
 .trend-angle {
   margin: 0.5rem 0 0;
   color: #23516f;
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.draft-body {
+  margin: 0.65rem 0 0;
+  white-space: pre-line;
+  color: #1e4c6a;
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.draft-rationale {
+  margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
 }
 
 .variant-list {

@@ -1,7 +1,9 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import {
   createExperiment,
+  generateContentDrafts,
   getBrandMemory,
+  getContentDrafts,
   getExperiments,
   getStrategySnapshot,
   getTrends,
@@ -12,9 +14,10 @@ import {
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
-  const [brandMemory, trends, snapshot, experiments] = await Promise.all([
+  const [brandMemory, trends, drafts, snapshot, experiments] = await Promise.all([
     getBrandMemory(),
     getTrends(),
+    getContentDrafts(),
     getStrategySnapshot(),
     getExperiments()
   ]);
@@ -105,14 +108,23 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleGenerateDrafts() {
+    "use server";
+
+    await generateContentDrafts();
+    revalidatePath("/");
+  }
+
   return (
     <DashboardShell
       brandMemory={brandMemory}
       trends={trends}
+      drafts={drafts}
       snapshot={snapshot}
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}
       onCreateTrend={handleCreateTrend}
+      onGenerateDrafts={handleGenerateDrafts}
       onCreateExperiment={handleCreateExperiment}
       onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
     />

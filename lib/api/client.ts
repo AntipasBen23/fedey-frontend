@@ -1,4 +1,5 @@
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
+import type { ContentDraft } from "@/lib/contracts/content";
 import type {
   ExperimentSnapshot,
   Hypothesis,
@@ -57,6 +58,10 @@ type ListTrendsResponse = {
   items: TrendSignal[];
 };
 
+type ListDraftsResponse = {
+  items: ContentDraft[];
+};
+
 export async function getTrends(): Promise<TrendSignal[]> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
   if (!apiBaseUrl) {
@@ -101,6 +106,43 @@ export async function createTrend(input: {
 
   if (!response.ok) {
     throw new Error("failed to create trend");
+  }
+}
+
+export async function getContentDrafts(): Promise<ContentDraft[]> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackContentDrafts();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/content/drafts`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackContentDrafts();
+    }
+
+    const payload = (await response.json()) as ListDraftsResponse;
+    return payload.items;
+  } catch {
+    return fallbackContentDrafts();
+  }
+}
+
+export async function generateContentDrafts(): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/content/drafts/generate`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to generate content drafts");
   }
 }
 
@@ -194,6 +236,21 @@ function fallbackTrends(): TrendSignal[] {
       velocity: 67,
       relevance: 0.81,
       observedAt: new Date().toISOString()
+    }
+  ];
+}
+
+function fallbackContentDrafts(): ContentDraft[] {
+  return [
+    {
+      id: "draft-1",
+      channel: "x",
+      hook: "Trend signal: AI employees are opening a content angle for Fedey.",
+      body: "People are talking about AI employees.\n\nHere is the interesting part: the real opportunity is not just posting about it. It is building a system that can test angles around it, measure response, and compound what works for Fedey.",
+      rationale: "Generated from X with high relevance.",
+      sourceTrend: "AI employees replacing specialist roles",
+      status: "draft",
+      createdAt: new Date().toISOString()
     }
   ];
 }
