@@ -26,5 +26,6 @@ Copy `.env.example` to `.env.local` and set `FEDEY_API_URL` to your backend URL.
 The Experiment Lab form posts to backend `POST /v1/experiments`.
 The analytics form posts engagement values to `POST /v1/analytics/events`.
 The Brand Memory panel reads and updates `GET/PUT /v1/brand-memory`.
+The Trend Radar panel reads and writes `GET/POST /v1/trends`.
 
 The current theme uses a light-blue primary color system.

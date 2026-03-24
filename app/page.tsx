@@ -4,14 +4,17 @@ import {
   getBrandMemory,
   getExperiments,
   getStrategySnapshot,
+  getTrends,
   recordAnalyticsEvent,
+  createTrend,
   updateBrandMemory
 } from "@/lib/api/client";
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
-  const [brandMemory, snapshot, experiments] = await Promise.all([
+  const [brandMemory, trends, snapshot, experiments] = await Promise.all([
     getBrandMemory(),
+    getTrends(),
     getStrategySnapshot(),
     getExperiments()
   ]);
@@ -61,6 +64,28 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleCreateTrend(formData: FormData) {
+    "use server";
+
+    const topic = String(formData.get("topic") ?? "").trim();
+    const source = String(formData.get("source") ?? "").trim();
+    const angle = String(formData.get("angle") ?? "").trim();
+    const velocity = Number(String(formData.get("velocity") ?? "").trim());
+    const relevance = Number(String(formData.get("relevance") ?? "").trim());
+    if (!topic || !source || !angle || Number.isNaN(velocity) || Number.isNaN(relevance)) {
+      return;
+    }
+
+    await createTrend({
+      topic,
+      source,
+      angle,
+      velocity,
+      relevance
+    });
+    revalidatePath("/");
+  }
+
   async function handleRecordAnalyticsEvent(formData: FormData) {
     "use server";
 
@@ -83,9 +108,11 @@ export default async function HomePage() {
   return (
     <DashboardShell
       brandMemory={brandMemory}
+      trends={trends}
       snapshot={snapshot}
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}
+      onCreateTrend={handleCreateTrend}
       onCreateExperiment={handleCreateExperiment}
       onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
     />

@@ -74,13 +74,32 @@ body {
     linear-gradient(120deg, rgba(90, 178, 255, 0.08), transparent 60%);
 }
 
+.trend-card {
+  background:
+    linear-gradient(165deg, rgba(248, 253, 255, 0.96), rgba(227, 242, 255, 0.98)),
+    radial-gradient(circle at top right, rgba(36, 152, 255, 0.12), transparent 45%);
+}
+
 .brand-form {
   margin-top: 1rem;
   display: grid;
   gap: 0.7rem;
 }
 
+.trend-form {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
 .brand-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.trend-form label {
   display: grid;
   gap: 0.35rem;
   font-size: 0.82rem;
@@ -98,6 +117,15 @@ body {
   resize: vertical;
 }
 
+.trend-form input {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--text);
+}
+
 .brand-form button {
   border: 0;
   border-radius: 10px;
@@ -105,6 +133,16 @@ body {
   color: #05345a;
   font-weight: 700;
   background: linear-gradient(180deg, #8fd1ff, var(--primary-strong));
+  cursor: pointer;
+}
+
+.trend-form button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.68rem 0.85rem;
+  color: #05345a;
+  font-weight: 700;
+  background: linear-gradient(180deg, #b7e1ff, var(--primary));
   cursor: pointer;
 }
 
@@ -198,6 +236,17 @@ body {
   font-size: 0.88rem;
   font-weight: 600;
   color: #0c4e7b;
+}
+
+.trend-copy {
+  width: 100%;
+}
+
+.trend-angle {
+  margin: 0.5rem 0 0;
+  color: #23516f;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .variant-list {

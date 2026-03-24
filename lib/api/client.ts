@@ -4,6 +4,7 @@ import type {
   Hypothesis,
   StrategyRecommendation
 } from "@/lib/contracts/strategy";
+import type { TrendSignal } from "@/lib/contracts/trends";
 
 export type StrategySnapshot = {
   hypotheses: Hypothesis[];
@@ -49,6 +50,57 @@ export async function getBrandMemory(): Promise<BrandMemoryProfile> {
     return (await response.json()) as BrandMemoryProfile;
   } catch {
     return fallbackBrandMemory();
+  }
+}
+
+type ListTrendsResponse = {
+  items: TrendSignal[];
+};
+
+export async function getTrends(): Promise<TrendSignal[]> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackTrends();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/trends`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackTrends();
+    }
+
+    const payload = (await response.json()) as ListTrendsResponse;
+    return payload.items;
+  } catch {
+    return fallbackTrends();
+  }
+}
+
+export async function createTrend(input: {
+  topic: string;
+  source: string;
+  angle: string;
+  velocity: number;
+  relevance: number;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/trends`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to create trend");
   }
 }
 
@@ -121,6 +173,29 @@ function fallbackBrandMemory(): BrandMemoryProfile {
     guardrails: ["No spammy hooks", "No misleading claims", "No off-brand slang"],
     updatedAt: new Date().toISOString()
   };
+}
+
+function fallbackTrends(): TrendSignal[] {
+  return [
+    {
+      id: "trd-1",
+      topic: "AI employees replacing specialist roles",
+      source: "x",
+      angle: "Operators are asking what a reliable AI social manager stack looks like.",
+      velocity: 84,
+      relevance: 0.92,
+      observedAt: new Date().toISOString()
+    },
+    {
+      id: "trd-2",
+      topic: "Founders documenting systems publicly",
+      source: "linkedin",
+      angle: "Process breakdowns and build-in-public posts are getting unusually strong saves.",
+      velocity: 67,
+      relevance: 0.81,
+      observedAt: new Date().toISOString()
+    }
+  ];
 }
 
 type ListExperimentsResponse = {
