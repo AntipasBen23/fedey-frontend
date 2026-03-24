@@ -2,6 +2,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import {
   createExperiment,
   generateContentDrafts,
+  generateDraftVariants,
   getBrandMemory,
   getContentDrafts,
   getExperiments,
@@ -115,6 +116,18 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleGenerateVariants(formData: FormData) {
+    "use server";
+
+    const draftId = String(formData.get("draftId") ?? "").trim();
+    if (!draftId) {
+      return;
+    }
+
+    await generateDraftVariants(draftId);
+    revalidatePath("/");
+  }
+
   return (
     <DashboardShell
       brandMemory={brandMemory}
@@ -125,6 +138,7 @@ export default async function HomePage() {
       onSaveBrandMemory={handleSaveBrandMemory}
       onCreateTrend={handleCreateTrend}
       onGenerateDrafts={handleGenerateDrafts}
+      onGenerateVariants={handleGenerateVariants}
       onCreateExperiment={handleCreateExperiment}
       onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
     />

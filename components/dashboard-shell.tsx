@@ -19,6 +19,7 @@ type DashboardShellProps = {
   onSaveBrandMemory: (formData: FormData) => Promise<void>;
   onCreateTrend: (formData: FormData) => Promise<void>;
   onGenerateDrafts: () => Promise<void>;
+  onGenerateVariants: (formData: FormData) => Promise<void>;
   onCreateExperiment: (formData: FormData) => Promise<void>;
   onRecordAnalyticsEvent: (formData: FormData) => Promise<void>;
 };
@@ -32,6 +33,7 @@ export function DashboardShell({
   onSaveBrandMemory,
   onCreateTrend,
   onGenerateDrafts,
+  onGenerateVariants,
   onCreateExperiment,
   onRecordAnalyticsEvent
 }: DashboardShellProps) {
@@ -49,7 +51,11 @@ export function DashboardShell({
       <section className="grid">
         <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />
         <TrendsPanel trends={trends} onCreateTrend={onCreateTrend} />
-        <ContentPanel drafts={drafts} onGenerateDrafts={onGenerateDrafts} />
+        <ContentPanel
+          drafts={drafts}
+          onGenerateDrafts={onGenerateDrafts}
+          onGenerateVariants={onGenerateVariants}
+        />
         <StrategyPanel hypotheses={snapshot.hypotheses} />
         <ExperimentsPanel
           experiments={experiments}

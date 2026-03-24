@@ -28,5 +28,6 @@ The analytics form posts engagement values to `POST /v1/analytics/events`.
 The Brand Memory panel reads and updates `GET/PUT /v1/brand-memory`.
 The Trend Radar panel reads and writes `GET/POST /v1/trends`.
 The Content Engine reads `GET /v1/content/drafts` and triggers `POST /v1/content/drafts/generate`.
+Draft variants are created through `POST /v1/content/drafts/{id}/variants/generate`.
 
 The current theme uses a light-blue primary color system.

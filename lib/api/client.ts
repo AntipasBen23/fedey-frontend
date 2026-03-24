@@ -146,6 +146,22 @@ export async function generateContentDrafts(): Promise<void> {
   }
 }
 
+export async function generateDraftVariants(draftId: string): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/content/drafts/${draftId}/variants/generate`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to generate draft variants");
+  }
+}
+
 export async function updateBrandMemory(input: {
   brandName: string;
   tone: string;
@@ -249,7 +265,22 @@ function fallbackContentDrafts(): ContentDraft[] {
       body: "People are talking about AI employees.\n\nHere is the interesting part: the real opportunity is not just posting about it. It is building a system that can test angles around it, measure response, and compound what works for Fedey.",
       rationale: "Generated from X with high relevance.",
       sourceTrend: "AI employees replacing specialist roles",
-      status: "draft",
+      experimentId: "exp-demo-1",
+      variants: [
+        {
+          label: "A",
+          hook: "Trend signal: AI employees are opening a content angle for Fedey.",
+          body: "People are talking about AI employees.\n\nHere is the interesting part: the real opportunity is not just posting about it. It is building a system that can test angles around it, measure response, and compound what works for Fedey.",
+          angle: "Baseline explanatory angle"
+        },
+        {
+          label: "B",
+          hook: "What most teams miss about this trend",
+          body: "People are talking about AI employees.\n\nHere is the interesting part: the real opportunity is not just posting about it. It is building a system that can test angles around it, measure response, and compound what works for Fedey.\n\nThe test here is whether a sharper contrarian opening earns more engagement.",
+          angle: "Contrarian hook"
+        }
+      ],
+      status: "variant_ready",
       createdAt: new Date().toISOString()
     }
   ];
