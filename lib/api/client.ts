@@ -1,3 +1,4 @@
+import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type {
   ExperimentSnapshot,
   Hypothesis,
@@ -31,6 +32,52 @@ export async function getStrategySnapshot(): Promise<StrategySnapshot> {
   }
 }
 
+export async function getBrandMemory(): Promise<BrandMemoryProfile> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackBrandMemory();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/brand-memory`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackBrandMemory();
+    }
+
+    return (await response.json()) as BrandMemoryProfile;
+  } catch {
+    return fallbackBrandMemory();
+  }
+}
+
+export async function updateBrandMemory(input: {
+  brandName: string;
+  tone: string;
+  audience: string;
+  pillars: string[];
+  guardrails: string[];
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/brand-memory`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to update brand memory");
+  }
+}
+
 function fallbackSnapshot(): StrategySnapshot {
   return {
     hypotheses: [
@@ -61,6 +108,18 @@ function fallbackSnapshot(): StrategySnapshot {
         impactScore: 72
       }
     ]
+  };
+}
+
+function fallbackBrandMemory(): BrandMemoryProfile {
+  return {
+    id: "default",
+    brandName: "Fedey",
+    tone: "Clear, strategic, confident, and human.",
+    audience: "Founders, creators, and businesses that want AI employees for growth.",
+    pillars: ["AI agents", "social growth systems", "automation strategy"],
+    guardrails: ["No spammy hooks", "No misleading claims", "No off-brand slang"],
+    updatedAt: new Date().toISOString()
   };
 }
 

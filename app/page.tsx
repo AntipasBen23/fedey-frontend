@@ -1,17 +1,49 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import {
   createExperiment,
+  getBrandMemory,
   getExperiments,
   getStrategySnapshot,
-  recordAnalyticsEvent
+  recordAnalyticsEvent,
+  updateBrandMemory
 } from "@/lib/api/client";
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
-  const [snapshot, experiments] = await Promise.all([
+  const [brandMemory, snapshot, experiments] = await Promise.all([
+    getBrandMemory(),
     getStrategySnapshot(),
     getExperiments()
   ]);
+
+  async function handleSaveBrandMemory(formData: FormData) {
+    "use server";
+
+    const brandName = String(formData.get("brandName") ?? "").trim();
+    const tone = String(formData.get("tone") ?? "").trim();
+    const audience = String(formData.get("audience") ?? "").trim();
+    const pillars = String(formData.get("pillars") ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const guardrails = String(formData.get("guardrails") ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (!brandName || !tone || !audience) {
+      return;
+    }
+
+    await updateBrandMemory({
+      brandName,
+      tone,
+      audience,
+      pillars,
+      guardrails
+    });
+    revalidatePath("/");
+  }
 
   async function handleCreateExperiment(formData: FormData) {
     "use server";
@@ -50,8 +82,10 @@ export default async function HomePage() {
 
   return (
     <DashboardShell
+      brandMemory={brandMemory}
       snapshot={snapshot}
       experiments={experiments}
+      onSaveBrandMemory={handleSaveBrandMemory}
       onCreateExperiment={handleCreateExperiment}
       onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
     />

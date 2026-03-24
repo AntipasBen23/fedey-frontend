@@ -1,19 +1,25 @@
+import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { StrategySnapshot } from "@/lib/api/client";
 import type { ExperimentSnapshot } from "@/lib/contracts/strategy";
+import { BrandMemoryPanel } from "@/features/brand-memory/brand-memory-panel";
 import { ExperimentsPanel } from "@/features/experiments/experiments-panel";
 import { RecommendationsPanel } from "@/features/recommendations/recommendations-panel";
 import { StrategyPanel } from "@/features/strategy/strategy-panel";
 
 type DashboardShellProps = {
+  brandMemory: BrandMemoryProfile;
   snapshot: StrategySnapshot;
   experiments: ExperimentSnapshot[];
+  onSaveBrandMemory: (formData: FormData) => Promise<void>;
   onCreateExperiment: (formData: FormData) => Promise<void>;
   onRecordAnalyticsEvent: (formData: FormData) => Promise<void>;
 };
 
 export function DashboardShell({
+  brandMemory,
   snapshot,
   experiments,
+  onSaveBrandMemory,
   onCreateExperiment,
   onRecordAnalyticsEvent
 }: DashboardShellProps) {
@@ -29,6 +35,7 @@ export function DashboardShell({
       </section>
 
       <section className="grid">
+        <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />
         <StrategyPanel hypotheses={snapshot.hypotheses} />
         <ExperimentsPanel
           experiments={experiments}
