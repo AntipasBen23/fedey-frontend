@@ -92,6 +92,11 @@ body {
   gap: 0.55rem;
 }
 
+.event-form {
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--border);
+}
+
 .experiment-form label {
   display: grid;
   gap: 0.35rem;
@@ -128,6 +133,32 @@ body {
   border-radius: 12px;
   background: #f8fcff;
   border: 1px solid #e2f1ff;
+}
+
+.experiment-copy {
+  width: 100%;
+}
+
+.summary-block {
+  margin-top: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #eef8ff, #f9fcff);
+  border: 1px solid #d7ecff;
+}
+
+.summary-title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0c4e7b;
+}
+
+.variant-list {
+  margin: 0.45rem 0 0;
+  padding-left: 1rem;
+  color: var(--muted);
+  font-size: 0.87rem;
 }
 
 .item-title {

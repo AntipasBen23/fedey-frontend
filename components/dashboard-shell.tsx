@@ -8,12 +8,14 @@ type DashboardShellProps = {
   snapshot: StrategySnapshot;
   experiments: ExperimentSnapshot[];
   onCreateExperiment: (formData: FormData) => Promise<void>;
+  onRecordAnalyticsEvent: (formData: FormData) => Promise<void>;
 };
 
 export function DashboardShell({
   snapshot,
   experiments,
-  onCreateExperiment
+  onCreateExperiment,
+  onRecordAnalyticsEvent
 }: DashboardShellProps) {
   return (
     <main className="page">
@@ -31,6 +33,7 @@ export function DashboardShell({
         <ExperimentsPanel
           experiments={experiments}
           onCreateExperiment={onCreateExperiment}
+          onRecordAnalyticsEvent={onRecordAnalyticsEvent}
         />
         <RecommendationsPanel recommendations={snapshot.recommendations} />
       </section>

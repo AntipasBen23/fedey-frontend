@@ -70,6 +70,7 @@ type ListExperimentsResponse = {
     hypothesisId: string;
     metric: string;
     status: ExperimentSnapshot["status"];
+    summary?: ExperimentSnapshot["summary"];
   }>;
 };
 
@@ -92,7 +93,8 @@ export async function getExperiments(): Promise<ExperimentSnapshot[]> {
       id: item.id,
       hypothesisId: item.hypothesisId,
       metric: item.metric,
-      status: item.status
+      status: item.status,
+      summary: item.summary
     }));
   } catch {
     return fallbackExperiments();
@@ -122,13 +124,56 @@ export async function createExperiment(input: {
   }
 }
 
+export async function recordAnalyticsEvent(input: {
+  experimentId: string;
+  variant: string;
+  value: number;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/analytics/events`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to record analytics event");
+  }
+}
+
 function fallbackExperiments(): ExperimentSnapshot[] {
   return [
     {
       id: "exp-11",
       hypothesisId: "hyp-01",
       metric: "engagement_rate",
-      status: "running"
+      status: "running",
+      summary: {
+        winnerVariant: "B",
+        winnerScore: 7.4,
+        confidence: 0.19,
+        variants: [
+          {
+            variant: "B",
+            events: 4,
+            totalValue: 29.6,
+            averageValue: 7.4
+          },
+          {
+            variant: "A",
+            events: 4,
+            totalValue: 24.8,
+            averageValue: 6.2
+          }
+        ]
+      }
     },
     {
       id: "exp-12",

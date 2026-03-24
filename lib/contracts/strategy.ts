@@ -10,6 +10,17 @@ export type ExperimentSnapshot = {
   hypothesisId: string;
   metric: string;
   status: "draft" | "running" | "completed";
+  summary?: {
+    winnerVariant?: string;
+    winnerScore: number;
+    confidence: number;
+    variants: Array<{
+      variant: string;
+      events: number;
+      totalValue: number;
+      averageValue: number;
+    }>;
+  };
 };
 
 export type StrategyRecommendation = {
