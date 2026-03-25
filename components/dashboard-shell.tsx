@@ -1,10 +1,12 @@
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
+import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type { StrategySnapshot } from "@/lib/api/client";
 import type { ExperimentSnapshot } from "@/lib/contracts/strategy";
 import type { TrendSignal } from "@/lib/contracts/trends";
 import { BrandMemoryPanel } from "@/features/brand-memory/brand-memory-panel";
+import { CommunityPanel } from "@/features/community/community-panel";
 import { ContentPanel } from "@/features/content/content-panel";
 import { ExperimentsPanel } from "@/features/experiments/experiments-panel";
 import { PublishingPanel } from "@/features/publishing/publishing-panel";
@@ -17,6 +19,7 @@ type DashboardShellProps = {
   trends: TrendSignal[];
   drafts: ContentDraft[];
   schedules: PublishingSchedule[];
+  communityItems: CommunityItem[];
   snapshot: StrategySnapshot;
   experiments: ExperimentSnapshot[];
   onSaveBrandMemory: (formData: FormData) => Promise<void>;
@@ -25,6 +28,9 @@ type DashboardShellProps = {
   onGenerateVariants: (formData: FormData) => Promise<void>;
   onCreateSchedule: (formData: FormData) => Promise<void>;
   onMarkPublished: (formData: FormData) => Promise<void>;
+  onCreateInboxItem: (formData: FormData) => Promise<void>;
+  onDraftReply: (formData: FormData) => Promise<void>;
+  onMarkReplied: (formData: FormData) => Promise<void>;
   onCreateExperiment: (formData: FormData) => Promise<void>;
   onRecordAnalyticsEvent: (formData: FormData) => Promise<void>;
 };
@@ -34,6 +40,7 @@ export function DashboardShell({
   trends,
   drafts,
   schedules,
+  communityItems,
   snapshot,
   experiments,
   onSaveBrandMemory,
@@ -42,6 +49,9 @@ export function DashboardShell({
   onGenerateVariants,
   onCreateSchedule,
   onMarkPublished,
+  onCreateInboxItem,
+  onDraftReply,
+  onMarkReplied,
   onCreateExperiment,
   onRecordAnalyticsEvent
 }: DashboardShellProps) {
@@ -69,6 +79,12 @@ export function DashboardShell({
           schedules={schedules}
           onCreateSchedule={onCreateSchedule}
           onMarkPublished={onMarkPublished}
+        />
+        <CommunityPanel
+          items={communityItems}
+          onCreateInboxItem={onCreateInboxItem}
+          onDraftReply={onDraftReply}
+          onMarkReplied={onMarkReplied}
         />
         <StrategyPanel hypotheses={snapshot.hypotheses} />
         <ExperimentsPanel

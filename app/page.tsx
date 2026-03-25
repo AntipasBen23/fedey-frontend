@@ -1,15 +1,19 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import {
+  createCommunityInboxItem,
   createExperiment,
   createPublishingSchedule,
   generateContentDrafts,
   generateDraftVariants,
   getBrandMemory,
+  getCommunityInbox,
   getContentDrafts,
   getExperiments,
   getPublishingSchedules,
   getStrategySnapshot,
   getTrends,
+  draftCommunityReply,
+  markCommunityReplySent,
   markPublishingSchedulePublished,
   recordAnalyticsEvent,
   createTrend,
@@ -18,11 +22,12 @@ import {
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
-  const [brandMemory, trends, drafts, schedules, snapshot, experiments] = await Promise.all([
+  const [brandMemory, trends, drafts, schedules, communityItems, snapshot, experiments] = await Promise.all([
     getBrandMemory(),
     getTrends(),
     getContentDrafts(),
     getPublishingSchedules(),
+    getCommunityInbox(),
     getStrategySnapshot(),
     getExperiments()
   ]);
@@ -169,12 +174,59 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleCreateInboxItem(formData: FormData) {
+    "use server";
+
+    const platform = String(formData.get("platform") ?? "").trim();
+    const author = String(formData.get("author") ?? "").trim();
+    const message = String(formData.get("message") ?? "").trim();
+    const sentiment = String(formData.get("sentiment") ?? "").trim();
+    const linkedPostRef = String(formData.get("linkedPostRef") ?? "").trim();
+    if (!platform || !author || !message || !linkedPostRef) {
+      return;
+    }
+
+    await createCommunityInboxItem({
+      platform,
+      author,
+      message,
+      sentiment,
+      linkedPostRef
+    });
+    revalidatePath("/");
+  }
+
+  async function handleDraftReply(formData: FormData) {
+    "use server";
+
+    const itemId = String(formData.get("itemId") ?? "").trim();
+    if (!itemId) {
+      return;
+    }
+
+    await draftCommunityReply(itemId);
+    revalidatePath("/");
+  }
+
+  async function handleMarkReplied(formData: FormData) {
+    "use server";
+
+    const itemId = String(formData.get("itemId") ?? "").trim();
+    if (!itemId) {
+      return;
+    }
+
+    await markCommunityReplySent(itemId);
+    revalidatePath("/");
+  }
+
   return (
     <DashboardShell
       brandMemory={brandMemory}
       trends={trends}
       drafts={drafts}
       schedules={schedules}
+      communityItems={communityItems}
       snapshot={snapshot}
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}
@@ -183,6 +235,9 @@ export default async function HomePage() {
       onGenerateVariants={handleGenerateVariants}
       onCreateSchedule={handleCreateSchedule}
       onMarkPublished={handleMarkPublished}
+      onCreateInboxItem={handleCreateInboxItem}
+      onDraftReply={handleDraftReply}
+      onMarkReplied={handleMarkReplied}
       onCreateExperiment={handleCreateExperiment}
       onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
     />

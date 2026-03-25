@@ -1,4 +1,5 @@
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
+import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type {
@@ -65,6 +66,10 @@ type ListDraftsResponse = {
 
 type ListSchedulesResponse = {
   items: PublishingSchedule[];
+};
+
+type ListCommunityResponse = {
+  items: CommunityItem[];
 };
 
 export async function getTrends(): Promise<TrendSignal[]> {
@@ -229,6 +234,85 @@ export async function markPublishingSchedulePublished(scheduleId: string): Promi
   }
 }
 
+export async function getCommunityInbox(): Promise<CommunityItem[]> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackCommunityInbox();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/community/inbox`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackCommunityInbox();
+    }
+
+    const payload = (await response.json()) as ListCommunityResponse;
+    return payload.items;
+  } catch {
+    return fallbackCommunityInbox();
+  }
+}
+
+export async function createCommunityInboxItem(input: {
+  platform: string;
+  author: string;
+  message: string;
+  sentiment: string;
+  linkedPostRef: string;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/community/inbox`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to create community inbox item");
+  }
+}
+
+export async function draftCommunityReply(itemId: string): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/community/inbox/${itemId}/draft-reply`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to draft community reply");
+  }
+}
+
+export async function markCommunityReplySent(itemId: string): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/community/inbox/${itemId}/reply`, {
+    method: "PATCH",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to mark community reply sent");
+  }
+}
+
 export async function updateBrandMemory(input: {
   brandName: string;
   tone: string;
@@ -362,6 +446,22 @@ function fallbackPublishingSchedules(): PublishingSchedule[] {
       channel: "x",
       scheduledFor: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
       status: "scheduled",
+      createdAt: new Date().toISOString()
+    }
+  ];
+}
+
+function fallbackCommunityInbox(): CommunityItem[] {
+  return [
+    {
+      id: "cmt-1",
+      platform: "x",
+      author: "founder_ops",
+      message: "This is exactly the kind of AI social operator stack I have been looking for. How would you keep replies on-brand?",
+      sentiment: "positive",
+      replyDraft: "Thanks founder_ops. Fedey would keep replies on-brand by grounding them in the same voice, audience, and guardrails stored in the agent memory, not by improvising randomly.",
+      linkedPostRef: "sch-1",
+      status: "drafted",
       createdAt: new Date().toISOString()
     }
   ];

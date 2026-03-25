@@ -30,5 +30,6 @@ The Trend Radar panel reads and writes `GET/POST /v1/trends`.
 The Content Engine reads `GET /v1/content/drafts` and triggers `POST /v1/content/drafts/generate`.
 Draft variants are created through `POST /v1/content/drafts/{id}/variants/generate`.
 Publishing schedules are managed through `GET/POST /v1/publishing/schedules` and `PATCH /v1/publishing/schedules/{id}/publish`.
+Community inbox items are managed through `GET/POST /v1/community/inbox`, `POST /v1/community/inbox/{id}/draft-reply`, and `PATCH /v1/community/inbox/{id}/reply`.
 
 The current theme uses a light-blue primary color system.
