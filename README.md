@@ -29,5 +29,6 @@ The Brand Memory panel reads and updates `GET/PUT /v1/brand-memory`.
 The Trend Radar panel reads and writes `GET/POST /v1/trends`.
 The Content Engine reads `GET /v1/content/drafts` and triggers `POST /v1/content/drafts/generate`.
 Draft variants are created through `POST /v1/content/drafts/{id}/variants/generate`.
+Publishing schedules are managed through `GET/POST /v1/publishing/schedules` and `PATCH /v1/publishing/schedules/{id}/publish`.
 
 The current theme uses a light-blue primary color system.

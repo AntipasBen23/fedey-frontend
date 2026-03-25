@@ -86,6 +86,12 @@ body {
     radial-gradient(circle at bottom left, rgba(90, 178, 255, 0.12), transparent 40%);
 }
 
+.publishing-card {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(233, 246, 255, 0.98)),
+    radial-gradient(circle at top left, rgba(36, 152, 255, 0.1), transparent 42%);
+}
+
 .brand-form {
   margin-top: 1rem;
   display: grid;
@@ -93,6 +99,12 @@ body {
 }
 
 .trend-form {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.publishing-form {
   margin-top: 1rem;
   display: grid;
   gap: 0.65rem;
@@ -134,6 +146,13 @@ body {
   color: var(--muted);
 }
 
+.publishing-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .brand-form input,
 .brand-form textarea {
   width: 100%;
@@ -146,6 +165,16 @@ body {
 }
 
 .trend-form input {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--text);
+}
+
+.publishing-form input,
+.publishing-form select {
   width: 100%;
   padding: 0.6rem 0.7rem;
   border-radius: 10px;
@@ -171,6 +200,17 @@ body {
   color: #05345a;
   font-weight: 700;
   background: linear-gradient(180deg, #b7e1ff, var(--primary));
+  cursor: pointer;
+}
+
+.publishing-form button,
+.publish-button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.68rem 0.85rem;
+  color: #05345a;
+  font-weight: 700;
+  background: linear-gradient(180deg, #c2e7ff, #8ac9ff);
   cursor: pointer;
 }
 
@@ -274,6 +314,10 @@ body {
   width: 100%;
 }
 
+.publish-copy {
+  width: 100%;
+}
+
 .trend-angle {
   margin: 0.5rem 0 0;
   color: #23516f;
@@ -291,6 +335,12 @@ body {
 
 .draft-rationale {
   margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.publish-meta {
+  margin: 0.65rem 0 0;
   font-size: 0.82rem;
   color: var(--muted);
 }

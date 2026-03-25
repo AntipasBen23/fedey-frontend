@@ -1,13 +1,16 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import {
   createExperiment,
+  createPublishingSchedule,
   generateContentDrafts,
   generateDraftVariants,
   getBrandMemory,
   getContentDrafts,
   getExperiments,
+  getPublishingSchedules,
   getStrategySnapshot,
   getTrends,
+  markPublishingSchedulePublished,
   recordAnalyticsEvent,
   createTrend,
   updateBrandMemory
@@ -15,10 +18,11 @@ import {
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
-  const [brandMemory, trends, drafts, snapshot, experiments] = await Promise.all([
+  const [brandMemory, trends, drafts, schedules, snapshot, experiments] = await Promise.all([
     getBrandMemory(),
     getTrends(),
     getContentDrafts(),
+    getPublishingSchedules(),
     getStrategySnapshot(),
     getExperiments()
   ]);
@@ -128,17 +132,57 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleCreateSchedule(formData: FormData) {
+    "use server";
+
+    const draftId = String(formData.get("draftId") ?? "").trim();
+    const variantLabel = String(formData.get("variantLabel") ?? "").trim();
+    const channel = String(formData.get("channel") ?? "").trim();
+    const scheduledValue = String(formData.get("scheduledFor") ?? "").trim();
+    if (!draftId || !channel || !scheduledValue) {
+      return;
+    }
+
+    const scheduledFor = new Date(scheduledValue);
+    if (Number.isNaN(scheduledFor.getTime())) {
+      return;
+    }
+
+    await createPublishingSchedule({
+      draftId,
+      variantLabel,
+      channel,
+      scheduledFor: scheduledFor.toISOString()
+    });
+    revalidatePath("/");
+  }
+
+  async function handleMarkPublished(formData: FormData) {
+    "use server";
+
+    const scheduleId = String(formData.get("scheduleId") ?? "").trim();
+    if (!scheduleId) {
+      return;
+    }
+
+    await markPublishingSchedulePublished(scheduleId);
+    revalidatePath("/");
+  }
+
   return (
     <DashboardShell
       brandMemory={brandMemory}
       trends={trends}
       drafts={drafts}
+      schedules={schedules}
       snapshot={snapshot}
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}
       onCreateTrend={handleCreateTrend}
       onGenerateDrafts={handleGenerateDrafts}
       onGenerateVariants={handleGenerateVariants}
+      onCreateSchedule={handleCreateSchedule}
+      onMarkPublished={handleMarkPublished}
       onCreateExperiment={handleCreateExperiment}
       onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
     />

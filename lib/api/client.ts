@@ -1,5 +1,6 @@
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { ContentDraft } from "@/lib/contracts/content";
+import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type {
   ExperimentSnapshot,
   Hypothesis,
@@ -60,6 +61,10 @@ type ListTrendsResponse = {
 
 type ListDraftsResponse = {
   items: ContentDraft[];
+};
+
+type ListSchedulesResponse = {
+  items: PublishingSchedule[];
 };
 
 export async function getTrends(): Promise<TrendSignal[]> {
@@ -159,6 +164,68 @@ export async function generateDraftVariants(draftId: string): Promise<void> {
 
   if (!response.ok) {
     throw new Error("failed to generate draft variants");
+  }
+}
+
+export async function getPublishingSchedules(): Promise<PublishingSchedule[]> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackPublishingSchedules();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/publishing/schedules`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackPublishingSchedules();
+    }
+
+    const payload = (await response.json()) as ListSchedulesResponse;
+    return payload.items;
+  } catch {
+    return fallbackPublishingSchedules();
+  }
+}
+
+export async function createPublishingSchedule(input: {
+  draftId: string;
+  variantLabel: string;
+  channel: string;
+  scheduledFor: string;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/publishing/schedules`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to create publishing schedule");
+  }
+}
+
+export async function markPublishingSchedulePublished(scheduleId: string): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/publishing/schedules/${scheduleId}/publish`, {
+    method: "PATCH",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to mark publishing schedule published");
   }
 }
 
@@ -281,6 +348,20 @@ function fallbackContentDrafts(): ContentDraft[] {
         }
       ],
       status: "variant_ready",
+      createdAt: new Date().toISOString()
+    }
+  ];
+}
+
+function fallbackPublishingSchedules(): PublishingSchedule[] {
+  return [
+    {
+      id: "sch-1",
+      draftId: "draft-1",
+      variantLabel: "B",
+      channel: "x",
+      scheduledFor: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      status: "scheduled",
       createdAt: new Date().toISOString()
     }
   ];
