@@ -1,17 +1,22 @@
-import type { AutomationRun } from "@/lib/contracts/automation";
+import type { AutomationRun, AutomationSettings } from "@/lib/contracts/automation";
 
 type AutomationPanelProps = {
   runs: AutomationRun[];
+  settings: AutomationSettings;
   onRunNow: () => Promise<void>;
 };
 
-export function AutomationPanel({ runs, onRunNow }: AutomationPanelProps) {
+export function AutomationPanel({ runs, settings, onRunNow }: AutomationPanelProps) {
   return (
     <section className="card automation-card">
       <header className="section-header">
         <h2>Automation Worker</h2>
-        <p>Run the agent loop now and inspect what each automation pass completed.</p>
+        <p>Run the agent loop now and inspect how timed windows drive scheduling and publishing.</p>
       </header>
+      <p className="automation-meta">
+        Interval {settings.interval} | Windows{" "}
+        {settings.windows.length > 0 ? settings.windows.map((window) => window.label).join(", ") : "Not set"}
+      </p>
       <form action={onRunNow}>
         <button type="submit" className="automation-button">
           Run Automation Now
@@ -26,8 +31,8 @@ export function AutomationPanel({ runs, onRunNow }: AutomationPanelProps) {
               </p>
               <p className="item-subtitle">{run.notes}</p>
               <p className="automation-meta">
-                Drafts {run.draftsGenerated} | Schedules {run.schedulesCreated} | Mentions{" "}
-                {run.mentionsSynced} | Replies {run.repliesDrafted}
+                Published {run.postsPublished} | Drafts {run.draftsGenerated} | Schedules {run.schedulesCreated} |
+                Mentions {run.mentionsSynced} | Replies {run.repliesDrafted}
               </p>
             </div>
             <span className={`status status-${run.status}`}>{run.status}</span>

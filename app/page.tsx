@@ -5,8 +5,10 @@ import {
   createPublishingSchedule,
   generateContentDrafts,
   generateDraftVariants,
+  getAutomationSettings,
   getAutomationRuns,
   getBrandMemory,
+  getLinkedInConnectionStatus,
   getXConnectionStatus,
   getCommunityInbox,
   getContentDrafts,
@@ -27,14 +29,16 @@ import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
   const apiBaseUrl = process.env.FEDEY_API_URL ?? "http://localhost:8080";
-  const [xConnectionStatus, brandMemory, trends, drafts, schedules, communityItems, automationRuns, snapshot, experiments] = await Promise.all([
+  const [xConnectionStatus, linkedinConnectionStatus, brandMemory, trends, drafts, schedules, communityItems, automationRuns, automationSettings, snapshot, experiments] = await Promise.all([
     getXConnectionStatus(),
+    getLinkedInConnectionStatus(),
     getBrandMemory(),
     getTrends(),
     getContentDrafts(),
     getPublishingSchedules(),
     getCommunityInbox(),
     getAutomationRuns(),
+    getAutomationSettings(),
     getStrategySnapshot(),
     getExperiments()
   ]);
@@ -244,13 +248,16 @@ export default async function HomePage() {
   return (
     <DashboardShell
       xConnectionStatus={xConnectionStatus}
+      linkedinConnectionStatus={linkedinConnectionStatus}
       xConnectUrl={`${apiBaseUrl}/v1/integrations/x/connect`}
+      linkedinConnectUrl={`${apiBaseUrl}/v1/integrations/linkedin/connect`}
       brandMemory={brandMemory}
       trends={trends}
       drafts={drafts}
       schedules={schedules}
       communityItems={communityItems}
       automationRuns={automationRuns}
+      automationSettings={automationSettings}
       snapshot={snapshot}
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}

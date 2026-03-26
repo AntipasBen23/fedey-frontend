@@ -1,8 +1,8 @@
-import type { AutomationRun } from "@/lib/contracts/automation";
+import type { AutomationRun, AutomationSettings } from "@/lib/contracts/automation";
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
-import type { XConnectionStatus } from "@/lib/contracts/integrations";
+import type { LinkedInConnectionStatus, XConnectionStatus } from "@/lib/contracts/integrations";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type { StrategySnapshot } from "@/lib/api/client";
 import type { ExperimentSnapshot } from "@/lib/contracts/strategy";
@@ -12,6 +12,7 @@ import { BrandMemoryPanel } from "@/features/brand-memory/brand-memory-panel";
 import { CommunityPanel } from "@/features/community/community-panel";
 import { ContentPanel } from "@/features/content/content-panel";
 import { ExperimentsPanel } from "@/features/experiments/experiments-panel";
+import { LinkedInConnectionPanel } from "@/features/integrations/linkedin-connection-panel";
 import { XConnectionPanel } from "@/features/integrations/x-connection-panel";
 import { PublishingPanel } from "@/features/publishing/publishing-panel";
 import { RecommendationsPanel } from "@/features/recommendations/recommendations-panel";
@@ -21,12 +22,15 @@ import { TrendsPanel } from "@/features/trends/trends-panel";
 type DashboardShellProps = {
   brandMemory: BrandMemoryProfile;
   xConnectionStatus: XConnectionStatus;
+  linkedinConnectionStatus: LinkedInConnectionStatus;
   xConnectUrl: string;
+  linkedinConnectUrl: string;
   trends: TrendSignal[];
   drafts: ContentDraft[];
   schedules: PublishingSchedule[];
   communityItems: CommunityItem[];
   automationRuns: AutomationRun[];
+  automationSettings: AutomationSettings;
   snapshot: StrategySnapshot;
   experiments: ExperimentSnapshot[];
   onSaveBrandMemory: (formData: FormData) => Promise<void>;
@@ -47,12 +51,15 @@ type DashboardShellProps = {
 export function DashboardShell({
   brandMemory,
   xConnectionStatus,
+  linkedinConnectionStatus,
   xConnectUrl,
+  linkedinConnectUrl,
   trends,
   drafts,
   schedules,
   communityItems,
   automationRuns,
+  automationSettings,
   snapshot,
   experiments,
   onSaveBrandMemory,
@@ -82,6 +89,7 @@ export function DashboardShell({
 
       <section className="grid">
         <XConnectionPanel status={xConnectionStatus} connectUrl={xConnectUrl} />
+        <LinkedInConnectionPanel status={linkedinConnectionStatus} connectUrl={linkedinConnectUrl} />
         <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />
         <TrendsPanel trends={trends} onCreateTrend={onCreateTrend} />
         <ContentPanel
@@ -102,7 +110,7 @@ export function DashboardShell({
           onDraftReply={onDraftReply}
           onMarkReplied={onMarkReplied}
         />
-        <AutomationPanel runs={automationRuns} onRunNow={onRunAutomationNow} />
+        <AutomationPanel runs={automationRuns} settings={automationSettings} onRunNow={onRunAutomationNow} />
         <StrategyPanel hypotheses={snapshot.hypotheses} />
         <ExperimentsPanel
           experiments={experiments}

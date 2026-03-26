@@ -40,7 +40,10 @@ export function PublishingPanel({
         </label>
         <label>
           Publish Channel
-          <input type="text" name="channel" placeholder="x" required />
+          <select name="channel" required defaultValue="x">
+            <option value="x">X</option>
+            <option value="linkedin">LinkedIn</option>
+          </select>
         </label>
         <label>
           Scheduled Time

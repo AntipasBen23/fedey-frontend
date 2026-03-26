@@ -1,8 +1,8 @@
-import type { AutomationRun } from "@/lib/contracts/automation";
+import type { AutomationRun, AutomationSettings } from "@/lib/contracts/automation";
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
-import type { XConnectionStatus } from "@/lib/contracts/integrations";
+import type { LinkedInConnectionStatus, XConnectionStatus } from "@/lib/contracts/integrations";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type {
   ExperimentSnapshot,
@@ -77,6 +77,8 @@ type ListCommunityResponse = {
 type ListAutomationResponse = {
   items: AutomationRun[];
 };
+
+type AutomationSettingsResponse = AutomationSettings;
 
 export async function getTrends(): Promise<TrendSignal[]> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
@@ -357,6 +359,26 @@ export async function getAutomationRuns(): Promise<AutomationRun[]> {
   }
 }
 
+export async function getAutomationSettings(): Promise<AutomationSettings> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackAutomationSettings();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/automation/settings`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackAutomationSettings();
+    }
+
+    return (await response.json()) as AutomationSettingsResponse;
+  } catch {
+    return fallbackAutomationSettings();
+  }
+}
+
 export async function runAutomationNow(): Promise<void> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
   if (!apiBaseUrl) {
@@ -390,6 +412,26 @@ export async function getXConnectionStatus(): Promise<XConnectionStatus> {
     return (await response.json()) as XConnectionStatus;
   } catch {
     return fallbackXConnectionStatus();
+  }
+}
+
+export async function getLinkedInConnectionStatus(): Promise<LinkedInConnectionStatus> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackLinkedInConnectionStatus();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/integrations/linkedin/status`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackLinkedInConnectionStatus();
+    }
+
+    return (await response.json()) as LinkedInConnectionStatus;
+  } catch {
+    return fallbackLinkedInConnectionStatus();
   }
 }
 
@@ -556,16 +598,34 @@ function fallbackAutomationRuns(): AutomationRun[] {
       status: "completed",
       draftsGenerated: 3,
       schedulesCreated: 1,
+      postsPublished: 1,
       mentionsSynced: 2,
       repliesDrafted: 1,
       triggeredBy: "manual",
-      notes: "Generated 3 drafts, created 1 schedule, synced 2 mentions, drafted 1 reply.",
+      notes: "Published 1 post, generated 3 drafts, created 1 schedule, synced 2 mentions, drafted 1 reply.",
       createdAt: new Date().toISOString()
     }
   ];
 }
 
+function fallbackAutomationSettings(): AutomationSettings {
+  return {
+    interval: "1h",
+    windows: [
+      { hour: 9, minute: 0, label: "09:00" },
+      { hour: 13, minute: 0, label: "13:00" },
+      { hour: 18, minute: 0, label: "18:00" }
+    ]
+  };
+}
+
 function fallbackXConnectionStatus(): XConnectionStatus {
+  return {
+    connected: false
+  };
+}
+
+function fallbackLinkedInConnectionStatus(): LinkedInConnectionStatus {
   return {
     connected: false
   };
