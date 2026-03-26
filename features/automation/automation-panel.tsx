@@ -31,8 +31,8 @@ export function AutomationPanel({ runs, settings, onRunNow }: AutomationPanelPro
               </p>
               <p className="item-subtitle">{run.notes}</p>
               <p className="automation-meta">
-                Published {run.postsPublished} | Drafts {run.draftsGenerated} | Schedules {run.schedulesCreated} |
-                Mentions {run.mentionsSynced} | Replies {run.repliesDrafted}
+                Published {run.postsPublished} | Signals {run.signalsIngested} | Drafts {run.draftsGenerated} |
+                Schedules {run.schedulesCreated} | Mentions {run.mentionsSynced} | Replies {run.repliesDrafted}
               </p>
             </div>
             <span className={`status status-${run.status}`}>{run.status}</span>

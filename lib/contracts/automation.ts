@@ -4,6 +4,7 @@ export type AutomationRun = {
   draftsGenerated: number;
   schedulesCreated: number;
   postsPublished: number;
+  signalsIngested: number;
   mentionsSynced: number;
   repliesDrafted: number;
   triggeredBy: string;

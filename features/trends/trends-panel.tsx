@@ -3,15 +3,38 @@ import type { TrendSignal } from "@/lib/contracts/trends";
 type TrendsPanelProps = {
   trends: TrendSignal[];
   onCreateTrend: (formData: FormData) => Promise<void>;
+  onIngestLiveTrends: (formData: FormData) => Promise<void>;
 };
 
-export function TrendsPanel({ trends, onCreateTrend }: TrendsPanelProps) {
+export function TrendsPanel({ trends, onCreateTrend, onIngestLiveTrends }: TrendsPanelProps) {
   return (
     <section className="card trend-card">
       <header className="section-header">
         <h2>Trend Radar</h2>
         <p>Signals the agent can observe and turn into strategy hypotheses.</p>
       </header>
+      <form className="trend-form" action={onIngestLiveTrends}>
+        <label>
+          Live Source
+          <select name="source" defaultValue="reddit">
+            <option value="reddit">Reddit</option>
+            <option value="google_news">Google News</option>
+          </select>
+        </label>
+        <label>
+          Query
+          <input type="text" name="query" placeholder="AI marketing automation" />
+        </label>
+        <label>
+          Subreddit
+          <input type="text" name="subreddit" placeholder="artificial" />
+        </label>
+        <label>
+          Limit
+          <input type="number" min="1" max="10" name="limit" placeholder="5" defaultValue="5" />
+        </label>
+        <button type="submit">Ingest Live Trends</button>
+      </form>
       <form className="trend-form" action={onCreateTrend}>
         <label>
           Topic
@@ -19,7 +42,7 @@ export function TrendsPanel({ trends, onCreateTrend }: TrendsPanelProps) {
         </label>
         <label>
           Source
-          <input type="text" name="source" placeholder="x" required />
+          <input type="text" name="source" placeholder="manual" required />
         </label>
         <label>
           Angle

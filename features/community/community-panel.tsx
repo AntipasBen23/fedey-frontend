@@ -4,6 +4,7 @@ type CommunityPanelProps = {
   items: CommunityItem[];
   onCreateInboxItem: (formData: FormData) => Promise<void>;
   onSyncXMentions: () => Promise<void>;
+  onSyncLinkedInComments: () => Promise<void>;
   onDraftReply: (formData: FormData) => Promise<void>;
   onMarkReplied: (formData: FormData) => Promise<void>;
 };
@@ -12,6 +13,7 @@ export function CommunityPanel({
   items,
   onCreateInboxItem,
   onSyncXMentions,
+  onSyncLinkedInComments,
   onDraftReply,
   onMarkReplied
 }: CommunityPanelProps) {
@@ -24,6 +26,11 @@ export function CommunityPanel({
       <form action={onSyncXMentions}>
         <button type="submit" className="community-button">
           Sync X Mentions
+        </button>
+      </form>
+      <form action={onSyncLinkedInComments}>
+        <button type="submit" className="community-button">
+          Sync LinkedIn Comments
         </button>
       </form>
       <form className="community-form" action={onCreateInboxItem}>

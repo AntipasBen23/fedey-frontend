@@ -16,7 +16,9 @@ import {
   getPublishingSchedules,
   getStrategySnapshot,
   getTrends,
+  ingestLiveTrends,
   runAutomationNow,
+  syncLinkedInCommunityInbox,
   syncXCommunityInbox,
   draftCommunityReply,
   markCommunityReplySent,
@@ -106,6 +108,26 @@ export default async function HomePage() {
       angle,
       velocity,
       relevance
+    });
+    revalidatePath("/");
+  }
+
+  async function handleIngestLiveTrends(formData: FormData) {
+    "use server";
+
+    const source = String(formData.get("source") ?? "").trim();
+    const query = String(formData.get("query") ?? "").trim();
+    const subreddit = String(formData.get("subreddit") ?? "").trim();
+    const limit = Number(String(formData.get("limit") ?? "").trim() || "5");
+    if (!source || Number.isNaN(limit)) {
+      return;
+    }
+
+    await ingestLiveTrends({
+      source,
+      query,
+      subreddit,
+      limit
     });
     revalidatePath("/");
   }
@@ -214,6 +236,13 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleSyncLinkedInComments() {
+    "use server";
+
+    await syncLinkedInCommunityInbox();
+    revalidatePath("/");
+  }
+
   async function handleDraftReply(formData: FormData) {
     "use server";
 
@@ -262,12 +291,14 @@ export default async function HomePage() {
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}
       onCreateTrend={handleCreateTrend}
+      onIngestLiveTrends={handleIngestLiveTrends}
       onGenerateDrafts={handleGenerateDrafts}
       onGenerateVariants={handleGenerateVariants}
       onCreateSchedule={handleCreateSchedule}
       onMarkPublished={handleMarkPublished}
       onCreateInboxItem={handleCreateInboxItem}
       onSyncXMentions={handleSyncXMentions}
+      onSyncLinkedInComments={handleSyncLinkedInComments}
       onDraftReply={handleDraftReply}
       onMarkReplied={handleMarkReplied}
       onRunAutomationNow={handleRunAutomationNow}

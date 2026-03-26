@@ -127,6 +127,31 @@ export async function createTrend(input: {
   }
 }
 
+export async function ingestLiveTrends(input: {
+  source: string;
+  query?: string;
+  subreddit?: string;
+  limit: number;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/trends/ingest`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to ingest live trends");
+  }
+}
+
 export async function getContentDrafts(): Promise<ContentDraft[]> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
   if (!apiBaseUrl) {
@@ -319,6 +344,22 @@ export async function syncXCommunityInbox(): Promise<void> {
 
   if (!response.ok) {
     throw new Error("failed to sync x community inbox");
+  }
+}
+
+export async function syncLinkedInCommunityInbox(): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/community/inbox/sync/linkedin`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to sync linkedin community inbox");
   }
 }
 
@@ -599,6 +640,7 @@ function fallbackAutomationRuns(): AutomationRun[] {
       draftsGenerated: 3,
       schedulesCreated: 1,
       postsPublished: 1,
+      signalsIngested: 4,
       mentionsSynced: 2,
       repliesDrafted: 1,
       triggeredBy: "manual",

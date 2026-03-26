@@ -35,12 +35,14 @@ type DashboardShellProps = {
   experiments: ExperimentSnapshot[];
   onSaveBrandMemory: (formData: FormData) => Promise<void>;
   onCreateTrend: (formData: FormData) => Promise<void>;
+  onIngestLiveTrends: (formData: FormData) => Promise<void>;
   onGenerateDrafts: () => Promise<void>;
   onGenerateVariants: (formData: FormData) => Promise<void>;
   onCreateSchedule: (formData: FormData) => Promise<void>;
   onMarkPublished: (formData: FormData) => Promise<void>;
   onCreateInboxItem: (formData: FormData) => Promise<void>;
   onSyncXMentions: () => Promise<void>;
+  onSyncLinkedInComments: () => Promise<void>;
   onDraftReply: (formData: FormData) => Promise<void>;
   onMarkReplied: (formData: FormData) => Promise<void>;
   onRunAutomationNow: () => Promise<void>;
@@ -64,12 +66,14 @@ export function DashboardShell({
   experiments,
   onSaveBrandMemory,
   onCreateTrend,
+  onIngestLiveTrends,
   onGenerateDrafts,
   onGenerateVariants,
   onCreateSchedule,
   onMarkPublished,
   onCreateInboxItem,
   onSyncXMentions,
+  onSyncLinkedInComments,
   onDraftReply,
   onMarkReplied,
   onRunAutomationNow,
@@ -91,7 +95,7 @@ export function DashboardShell({
         <XConnectionPanel status={xConnectionStatus} connectUrl={xConnectUrl} />
         <LinkedInConnectionPanel status={linkedinConnectionStatus} connectUrl={linkedinConnectUrl} />
         <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />
-        <TrendsPanel trends={trends} onCreateTrend={onCreateTrend} />
+        <TrendsPanel trends={trends} onCreateTrend={onCreateTrend} onIngestLiveTrends={onIngestLiveTrends} />
         <ContentPanel
           drafts={drafts}
           onGenerateDrafts={onGenerateDrafts}
@@ -107,6 +111,7 @@ export function DashboardShell({
           items={communityItems}
           onCreateInboxItem={onCreateInboxItem}
           onSyncXMentions={onSyncXMentions}
+          onSyncLinkedInComments={onSyncLinkedInComments}
           onDraftReply={onDraftReply}
           onMarkReplied={onMarkReplied}
         />
