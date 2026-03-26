@@ -5,6 +5,7 @@ import {
   createPublishingSchedule,
   generateContentDrafts,
   generateDraftVariants,
+  getAutomationRuns,
   getBrandMemory,
   getCommunityInbox,
   getContentDrafts,
@@ -12,6 +13,7 @@ import {
   getPublishingSchedules,
   getStrategySnapshot,
   getTrends,
+  runAutomationNow,
   draftCommunityReply,
   markCommunityReplySent,
   markPublishingSchedulePublished,
@@ -22,12 +24,13 @@ import {
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
-  const [brandMemory, trends, drafts, schedules, communityItems, snapshot, experiments] = await Promise.all([
+  const [brandMemory, trends, drafts, schedules, communityItems, automationRuns, snapshot, experiments] = await Promise.all([
     getBrandMemory(),
     getTrends(),
     getContentDrafts(),
     getPublishingSchedules(),
     getCommunityInbox(),
+    getAutomationRuns(),
     getStrategySnapshot(),
     getExperiments()
   ]);
@@ -220,6 +223,13 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleRunAutomationNow() {
+    "use server";
+
+    await runAutomationNow();
+    revalidatePath("/");
+  }
+
   return (
     <DashboardShell
       brandMemory={brandMemory}
@@ -227,6 +237,7 @@ export default async function HomePage() {
       drafts={drafts}
       schedules={schedules}
       communityItems={communityItems}
+      automationRuns={automationRuns}
       snapshot={snapshot}
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}
@@ -238,6 +249,7 @@ export default async function HomePage() {
       onCreateInboxItem={handleCreateInboxItem}
       onDraftReply={handleDraftReply}
       onMarkReplied={handleMarkReplied}
+      onRunAutomationNow={handleRunAutomationNow}
       onCreateExperiment={handleCreateExperiment}
       onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
     />

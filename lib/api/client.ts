@@ -1,3 +1,4 @@
+import type { AutomationRun } from "@/lib/contracts/automation";
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
@@ -70,6 +71,10 @@ type ListSchedulesResponse = {
 
 type ListCommunityResponse = {
   items: CommunityItem[];
+};
+
+type ListAutomationResponse = {
+  items: AutomationRun[];
 };
 
 export async function getTrends(): Promise<TrendSignal[]> {
@@ -313,6 +318,43 @@ export async function markCommunityReplySent(itemId: string): Promise<void> {
   }
 }
 
+export async function getAutomationRuns(): Promise<AutomationRun[]> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackAutomationRuns();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/automation/runs`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackAutomationRuns();
+    }
+
+    const payload = (await response.json()) as ListAutomationResponse;
+    return payload.items;
+  } catch {
+    return fallbackAutomationRuns();
+  }
+}
+
+export async function runAutomationNow(): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/automation/run`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to run automation");
+  }
+}
+
 export async function updateBrandMemory(input: {
   brandName: string;
   tone: string;
@@ -462,6 +504,21 @@ function fallbackCommunityInbox(): CommunityItem[] {
       replyDraft: "Thanks founder_ops. Fedey would keep replies on-brand by grounding them in the same voice, audience, and guardrails stored in the agent memory, not by improvising randomly.",
       linkedPostRef: "sch-1",
       status: "drafted",
+      createdAt: new Date().toISOString()
+    }
+  ];
+}
+
+function fallbackAutomationRuns(): AutomationRun[] {
+  return [
+    {
+      id: "run-1",
+      status: "completed",
+      draftsGenerated: 3,
+      schedulesCreated: 1,
+      repliesDrafted: 1,
+      triggeredBy: "manual",
+      notes: "Generated 3 drafts, created 1 schedule, drafted 1 reply.",
       createdAt: new Date().toISOString()
     }
   ];

@@ -1,3 +1,4 @@
+import type { AutomationRun } from "@/lib/contracts/automation";
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
@@ -5,6 +6,7 @@ import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type { StrategySnapshot } from "@/lib/api/client";
 import type { ExperimentSnapshot } from "@/lib/contracts/strategy";
 import type { TrendSignal } from "@/lib/contracts/trends";
+import { AutomationPanel } from "@/features/automation/automation-panel";
 import { BrandMemoryPanel } from "@/features/brand-memory/brand-memory-panel";
 import { CommunityPanel } from "@/features/community/community-panel";
 import { ContentPanel } from "@/features/content/content-panel";
@@ -20,6 +22,7 @@ type DashboardShellProps = {
   drafts: ContentDraft[];
   schedules: PublishingSchedule[];
   communityItems: CommunityItem[];
+  automationRuns: AutomationRun[];
   snapshot: StrategySnapshot;
   experiments: ExperimentSnapshot[];
   onSaveBrandMemory: (formData: FormData) => Promise<void>;
@@ -31,6 +34,7 @@ type DashboardShellProps = {
   onCreateInboxItem: (formData: FormData) => Promise<void>;
   onDraftReply: (formData: FormData) => Promise<void>;
   onMarkReplied: (formData: FormData) => Promise<void>;
+  onRunAutomationNow: () => Promise<void>;
   onCreateExperiment: (formData: FormData) => Promise<void>;
   onRecordAnalyticsEvent: (formData: FormData) => Promise<void>;
 };
@@ -41,6 +45,7 @@ export function DashboardShell({
   drafts,
   schedules,
   communityItems,
+  automationRuns,
   snapshot,
   experiments,
   onSaveBrandMemory,
@@ -52,6 +57,7 @@ export function DashboardShell({
   onCreateInboxItem,
   onDraftReply,
   onMarkReplied,
+  onRunAutomationNow,
   onCreateExperiment,
   onRecordAnalyticsEvent
 }: DashboardShellProps) {
@@ -86,6 +92,7 @@ export function DashboardShell({
           onDraftReply={onDraftReply}
           onMarkReplied={onMarkReplied}
         />
+        <AutomationPanel runs={automationRuns} onRunNow={onRunAutomationNow} />
         <StrategyPanel hypotheses={snapshot.hypotheses} />
         <ExperimentsPanel
           experiments={experiments}

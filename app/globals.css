@@ -98,6 +98,12 @@ body {
     radial-gradient(circle at top right, rgba(90, 178, 255, 0.1), transparent 40%);
 }
 
+.automation-card {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(230, 245, 255, 0.98)),
+    radial-gradient(circle at center right, rgba(36, 152, 255, 0.12), transparent 42%);
+}
+
 .brand-form {
   margin-top: 1rem;
   display: grid;
@@ -120,6 +126,17 @@ body {
   margin-top: 1rem;
   display: grid;
   gap: 0.65rem;
+}
+
+.automation-button {
+  margin-top: 1rem;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.72rem 0.9rem;
+  color: #05345a;
+  font-weight: 700;
+  background: linear-gradient(180deg, #d7efff, #87c8ff);
+  cursor: pointer;
 }
 
 .content-button {
@@ -368,6 +385,10 @@ body {
   width: 100%;
 }
 
+.automation-copy {
+  width: 100%;
+}
+
 .trend-angle {
   margin: 0.5rem 0 0;
   color: #23516f;
@@ -409,6 +430,12 @@ body {
   border: 1px solid #d7ecff;
   color: #21506d;
   line-height: 1.5;
+}
+
+.automation-meta {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
 }
 
 .draft-link {
