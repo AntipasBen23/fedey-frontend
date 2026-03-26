@@ -2,6 +2,7 @@ import type { AutomationRun } from "@/lib/contracts/automation";
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
+import type { XConnectionStatus } from "@/lib/contracts/integrations";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type {
   ExperimentSnapshot,
@@ -372,6 +373,26 @@ export async function runAutomationNow(): Promise<void> {
   }
 }
 
+export async function getXConnectionStatus(): Promise<XConnectionStatus> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackXConnectionStatus();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/integrations/x/status`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackXConnectionStatus();
+    }
+
+    return (await response.json()) as XConnectionStatus;
+  } catch {
+    return fallbackXConnectionStatus();
+  }
+}
+
 export async function updateBrandMemory(input: {
   brandName: string;
   tone: string;
@@ -542,6 +563,12 @@ function fallbackAutomationRuns(): AutomationRun[] {
       createdAt: new Date().toISOString()
     }
   ];
+}
+
+function fallbackXConnectionStatus(): XConnectionStatus {
+  return {
+    connected: false
+  };
 }
 
 type ListExperimentsResponse = {

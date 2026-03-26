@@ -7,6 +7,7 @@ import {
   generateDraftVariants,
   getAutomationRuns,
   getBrandMemory,
+  getXConnectionStatus,
   getCommunityInbox,
   getContentDrafts,
   getExperiments,
@@ -25,7 +26,9 @@ import {
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
-  const [brandMemory, trends, drafts, schedules, communityItems, automationRuns, snapshot, experiments] = await Promise.all([
+  const apiBaseUrl = process.env.FEDEY_API_URL ?? "http://localhost:8080";
+  const [xConnectionStatus, brandMemory, trends, drafts, schedules, communityItems, automationRuns, snapshot, experiments] = await Promise.all([
+    getXConnectionStatus(),
     getBrandMemory(),
     getTrends(),
     getContentDrafts(),
@@ -240,6 +243,8 @@ export default async function HomePage() {
 
   return (
     <DashboardShell
+      xConnectionStatus={xConnectionStatus}
+      xConnectUrl={`${apiBaseUrl}/v1/integrations/x/connect`}
       brandMemory={brandMemory}
       trends={trends}
       drafts={drafts}

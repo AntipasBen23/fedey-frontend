@@ -2,6 +2,7 @@ import type { AutomationRun } from "@/lib/contracts/automation";
 import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
+import type { XConnectionStatus } from "@/lib/contracts/integrations";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type { StrategySnapshot } from "@/lib/api/client";
 import type { ExperimentSnapshot } from "@/lib/contracts/strategy";
@@ -11,6 +12,7 @@ import { BrandMemoryPanel } from "@/features/brand-memory/brand-memory-panel";
 import { CommunityPanel } from "@/features/community/community-panel";
 import { ContentPanel } from "@/features/content/content-panel";
 import { ExperimentsPanel } from "@/features/experiments/experiments-panel";
+import { XConnectionPanel } from "@/features/integrations/x-connection-panel";
 import { PublishingPanel } from "@/features/publishing/publishing-panel";
 import { RecommendationsPanel } from "@/features/recommendations/recommendations-panel";
 import { StrategyPanel } from "@/features/strategy/strategy-panel";
@@ -18,6 +20,8 @@ import { TrendsPanel } from "@/features/trends/trends-panel";
 
 type DashboardShellProps = {
   brandMemory: BrandMemoryProfile;
+  xConnectionStatus: XConnectionStatus;
+  xConnectUrl: string;
   trends: TrendSignal[];
   drafts: ContentDraft[];
   schedules: PublishingSchedule[];
@@ -42,6 +46,8 @@ type DashboardShellProps = {
 
 export function DashboardShell({
   brandMemory,
+  xConnectionStatus,
+  xConnectUrl,
   trends,
   drafts,
   schedules,
@@ -75,6 +81,7 @@ export function DashboardShell({
       </section>
 
       <section className="grid">
+        <XConnectionPanel status={xConnectionStatus} connectUrl={xConnectUrl} />
         <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />
         <TrendsPanel trends={trends} onCreateTrend={onCreateTrend} />
         <ContentPanel
