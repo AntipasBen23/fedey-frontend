@@ -3,6 +3,7 @@ import type { CommunityItem } from "@/lib/contracts/community";
 type CommunityPanelProps = {
   items: CommunityItem[];
   onCreateInboxItem: (formData: FormData) => Promise<void>;
+  onSyncXMentions: () => Promise<void>;
   onDraftReply: (formData: FormData) => Promise<void>;
   onMarkReplied: (formData: FormData) => Promise<void>;
 };
@@ -10,6 +11,7 @@ type CommunityPanelProps = {
 export function CommunityPanel({
   items,
   onCreateInboxItem,
+  onSyncXMentions,
   onDraftReply,
   onMarkReplied
 }: CommunityPanelProps) {
@@ -19,6 +21,11 @@ export function CommunityPanel({
         <h2>Community Inbox</h2>
         <p>Audience replies the agent can triage, draft, and mark as handled.</p>
       </header>
+      <form action={onSyncXMentions}>
+        <button type="submit" className="community-button">
+          Sync X Mentions
+        </button>
+      </form>
       <form className="community-form" action={onCreateInboxItem}>
         <label>
           Platform
@@ -53,6 +60,9 @@ export function CommunityPanel({
               <p className="community-meta">
                 Sentiment: {item.sentiment} | Linked post: {item.linkedPostRef}
               </p>
+              {item.externalCommentId ? (
+                <p className="community-meta">External comment ID: {item.externalCommentId}</p>
+              ) : null}
               {item.replyDraft ? (
                 <p className="reply-draft">{item.replyDraft}</p>
               ) : (

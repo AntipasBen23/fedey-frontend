@@ -14,6 +14,7 @@ import {
   getStrategySnapshot,
   getTrends,
   runAutomationNow,
+  syncXCommunityInbox,
   draftCommunityReply,
   markCommunityReplySent,
   markPublishingSchedulePublished,
@@ -199,6 +200,13 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleSyncXMentions() {
+    "use server";
+
+    await syncXCommunityInbox();
+    revalidatePath("/");
+  }
+
   async function handleDraftReply(formData: FormData) {
     "use server";
 
@@ -247,6 +255,7 @@ export default async function HomePage() {
       onCreateSchedule={handleCreateSchedule}
       onMarkPublished={handleMarkPublished}
       onCreateInboxItem={handleCreateInboxItem}
+      onSyncXMentions={handleSyncXMentions}
       onDraftReply={handleDraftReply}
       onMarkReplied={handleMarkReplied}
       onRunAutomationNow={handleRunAutomationNow}

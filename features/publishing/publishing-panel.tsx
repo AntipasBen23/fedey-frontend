@@ -59,6 +59,9 @@ export function PublishingPanel({
               <p className="item-subtitle">
                 Scheduled for {new Date(schedule.scheduledFor).toLocaleString()}
               </p>
+              {schedule.platformPostId ? (
+                <p className="publish-meta">Platform post ID: {schedule.platformPostId}</p>
+              ) : null}
               {schedule.status === "published" && schedule.publishedAt ? (
                 <p className="publish-meta">
                   Published at {new Date(schedule.publishedAt).toLocaleString()}

@@ -266,6 +266,7 @@ export async function createCommunityInboxItem(input: {
   message: string;
   sentiment: string;
   linkedPostRef: string;
+  externalCommentId?: string;
 }): Promise<void> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
   if (!apiBaseUrl) {
@@ -299,6 +300,22 @@ export async function draftCommunityReply(itemId: string): Promise<void> {
 
   if (!response.ok) {
     throw new Error("failed to draft community reply");
+  }
+}
+
+export async function syncXCommunityInbox(): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/community/inbox/sync/x`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to sync x community inbox");
   }
 }
 
@@ -486,6 +503,7 @@ function fallbackPublishingSchedules(): PublishingSchedule[] {
       draftId: "draft-1",
       variantLabel: "B",
       channel: "x",
+      platformPostId: "195-demo-post",
       scheduledFor: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
       status: "scheduled",
       createdAt: new Date().toISOString()
@@ -503,6 +521,7 @@ function fallbackCommunityInbox(): CommunityItem[] {
       sentiment: "positive",
       replyDraft: "Thanks founder_ops. Fedey would keep replies on-brand by grounding them in the same voice, audience, and guardrails stored in the agent memory, not by improvising randomly.",
       linkedPostRef: "sch-1",
+      externalCommentId: "191-demo",
       status: "drafted",
       createdAt: new Date().toISOString()
     }
@@ -516,9 +535,10 @@ function fallbackAutomationRuns(): AutomationRun[] {
       status: "completed",
       draftsGenerated: 3,
       schedulesCreated: 1,
+      mentionsSynced: 2,
       repliesDrafted: 1,
       triggeredBy: "manual",
-      notes: "Generated 3 drafts, created 1 schedule, drafted 1 reply.",
+      notes: "Generated 3 drafts, created 1 schedule, synced 2 mentions, drafted 1 reply.",
       createdAt: new Date().toISOString()
     }
   ];

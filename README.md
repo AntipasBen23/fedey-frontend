@@ -32,5 +32,6 @@ Draft variants are created through `POST /v1/content/drafts/{id}/variants/genera
 Publishing schedules are managed through `GET/POST /v1/publishing/schedules` and `PATCH /v1/publishing/schedules/{id}/publish`.
 Community inbox items are managed through `GET/POST /v1/community/inbox`, `POST /v1/community/inbox/{id}/draft-reply`, and `PATCH /v1/community/inbox/{id}/reply`.
 Automation runs are visible through `GET /v1/automation/runs` and can be triggered with `POST /v1/automation/run`.
+Real X integration depends on backend `FEDEY_X_ACCESS_TOKEN` and `FEDEY_X_USER_ID` being configured.
 
 The current theme uses a light-blue primary color system.

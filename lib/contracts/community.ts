@@ -6,6 +6,7 @@ export type CommunityItem = {
   sentiment: string;
   replyDraft?: string;
   linkedPostRef: string;
+  externalCommentId?: string;
   status: "pending" | "drafted" | "replied";
   createdAt: string;
   repliedAt?: string;

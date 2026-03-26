@@ -32,6 +32,7 @@ type DashboardShellProps = {
   onCreateSchedule: (formData: FormData) => Promise<void>;
   onMarkPublished: (formData: FormData) => Promise<void>;
   onCreateInboxItem: (formData: FormData) => Promise<void>;
+  onSyncXMentions: () => Promise<void>;
   onDraftReply: (formData: FormData) => Promise<void>;
   onMarkReplied: (formData: FormData) => Promise<void>;
   onRunAutomationNow: () => Promise<void>;
@@ -55,6 +56,7 @@ export function DashboardShell({
   onCreateSchedule,
   onMarkPublished,
   onCreateInboxItem,
+  onSyncXMentions,
   onDraftReply,
   onMarkReplied,
   onRunAutomationNow,
@@ -89,6 +91,7 @@ export function DashboardShell({
         <CommunityPanel
           items={communityItems}
           onCreateInboxItem={onCreateInboxItem}
+          onSyncXMentions={onSyncXMentions}
           onDraftReply={onDraftReply}
           onMarkReplied={onMarkReplied}
         />

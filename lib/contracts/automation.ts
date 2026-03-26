@@ -3,6 +3,7 @@ export type AutomationRun = {
   status: string;
   draftsGenerated: number;
   schedulesCreated: number;
+  mentionsSynced: number;
   repliesDrafted: number;
   triggeredBy: string;
   notes: string;
