@@ -8,6 +8,7 @@ type OnboardingPanelProps = {
   onRunAudit: (formData: FormData) => Promise<void>;
   onActivate: (formData: FormData) => Promise<void>;
   onUpdateActivationPlan: (formData: FormData) => Promise<void>;
+  onUpdateActivationDrafts: (formData: FormData) => Promise<void>;
   onApprove: (formData: FormData) => Promise<void>;
 };
 
@@ -19,6 +20,7 @@ export function OnboardingPanel({
   onRunAudit,
   onActivate,
   onUpdateActivationPlan,
+  onUpdateActivationDrafts,
   onApprove
 }: OnboardingPanelProps) {
   return (
@@ -216,11 +218,46 @@ export function OnboardingPanel({
                   )
                 ) : null}
                 {session.activation.drafts.map((draft) => (
-                  <p key={draft.draftId} className="reply-draft">
-                    Draft {draft.channel.toUpperCase()} | {draft.hook}
-                    {draft.scheduledFor ? ` | Scheduled ${new Date(draft.scheduledFor).toLocaleString()}` : ""}
-                  </p>
+                  session.reviewMode === "manual" && session.approvalStatus !== "approved" ? null : (
+                    <p key={draft.draftId} className="reply-draft">
+                      Draft {draft.channel.toUpperCase()} | {draft.hook}
+                      {draft.scheduledFor ? ` | Scheduled ${new Date(draft.scheduledFor).toLocaleString()}` : ""}
+                    </p>
+                  )
                 ))}
+                {session.activation.drafts.length > 0 && session.reviewMode === "manual" && session.approvalStatus !== "approved" ? (
+                  <form className="onboarding-answer-form" action={onUpdateActivationDrafts}>
+                    <input type="hidden" name="sessionId" value={session.id} />
+                    <input type="hidden" name="draftCount" value={String(session.activation.drafts.length)} />
+                    {session.activation.drafts.map((draft, index) => (
+                      <div key={`${session.id}-${draft.draftId}`} className="onboarding-block">
+                        <input type="hidden" name={`draftId-${index}`} value={draft.draftId} />
+                        <label>
+                          Draft Channel
+                          <select name={`draftChannel-${index}`} defaultValue={draft.channel}>
+                            <option value="x">X</option>
+                            <option value="linkedin">LinkedIn</option>
+                          </select>
+                        </label>
+                        <label>
+                          Hook
+                          <input type="text" name={`draftHook-${index}`} defaultValue={draft.hook} />
+                        </label>
+                        <label>
+                          Body
+                          <textarea name={`draftBody-${index}`} rows={5} defaultValue={draft.body} />
+                        </label>
+                        <label>
+                          Rationale
+                          <input type="text" name={`draftRationale-${index}`} defaultValue={draft.rationale} />
+                        </label>
+                      </div>
+                    ))}
+                    <button type="submit" className="community-button secondary">
+                      Save Activation Drafts
+                    </button>
+                  </form>
+                ) : null}
                 <form action={onActivate}>
                   <input type="hidden" name="sessionId" value={session.id} />
                   <button type="submit" className="community-button secondary">
@@ -234,6 +271,16 @@ export function OnboardingPanel({
                       Approve and Schedule Week One
                     </button>
                   </form>
+                ) : null}
+                {session.history.length > 0 ? (
+                  <div className="onboarding-block">
+                    <p className="item-subtitle">Approval and Audit History</p>
+                    {session.history.map((entry) => (
+                      <p key={entry.id} className="onboarding-meta">
+                        {new Date(entry.createdAt).toLocaleString()} | {entry.actor} | {entry.description}
+                      </p>
+                    ))}
+                  </div>
                 ) : null}
               </div>
             </div>

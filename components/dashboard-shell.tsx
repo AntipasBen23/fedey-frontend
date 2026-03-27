@@ -43,6 +43,7 @@ type DashboardShellProps = {
   onRunOnboardingAudit: (formData: FormData) => Promise<void>;
   onActivateOnboardingSession: (formData: FormData) => Promise<void>;
   onUpdateOnboardingActivationPlan: (formData: FormData) => Promise<void>;
+  onUpdateOnboardingActivationDrafts: (formData: FormData) => Promise<void>;
   onApproveOnboardingSession: (formData: FormData) => Promise<void>;
   onCreateTrend: (formData: FormData) => Promise<void>;
   onIngestLiveTrends: (formData: FormData) => Promise<void>;
@@ -82,6 +83,7 @@ export function DashboardShell({
   onRunOnboardingAudit,
   onActivateOnboardingSession,
   onUpdateOnboardingActivationPlan,
+  onUpdateOnboardingActivationDrafts,
   onApproveOnboardingSession,
   onCreateTrend,
   onIngestLiveTrends,
@@ -120,6 +122,7 @@ export function DashboardShell({
           onRunAudit={onRunOnboardingAudit}
           onActivate={onActivateOnboardingSession}
           onUpdateActivationPlan={onUpdateOnboardingActivationPlan}
+          onUpdateActivationDrafts={onUpdateOnboardingActivationDrafts}
           onApprove={onApproveOnboardingSession}
         />
         <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />

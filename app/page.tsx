@@ -7,6 +7,7 @@ import {
   answerOnboardingQuestion,
   activateOnboardingSession,
   approveOnboardingSession,
+  updateOnboardingActivationDrafts,
   updateOnboardingActivationPlan,
   generateContentDrafts,
   generateDraftVariants,
@@ -198,6 +199,34 @@ export default async function HomePage() {
     await updateOnboardingActivationPlan({
       sessionId,
       weekPlan
+    });
+    revalidatePath("/");
+  }
+
+  async function handleUpdateOnboardingActivationDrafts(formData: FormData) {
+    "use server";
+
+    const sessionId = String(formData.get("sessionId") ?? "").trim();
+    const draftCount = Number(String(formData.get("draftCount") ?? "0").trim());
+    if (!sessionId || Number.isNaN(draftCount) || draftCount <= 0) {
+      return;
+    }
+
+    const drafts = Array.from({ length: draftCount }, (_, index) => ({
+      draftId: String(formData.get(`draftId-${index}`) ?? "").trim(),
+      channel: String(formData.get(`draftChannel-${index}`) ?? "").trim(),
+      hook: String(formData.get(`draftHook-${index}`) ?? "").trim(),
+      body: String(formData.get(`draftBody-${index}`) ?? "").trim(),
+      rationale: String(formData.get(`draftRationale-${index}`) ?? "").trim()
+    })).filter((item) => item.draftId && item.hook && item.body);
+
+    if (drafts.length === 0) {
+      return;
+    }
+
+    await updateOnboardingActivationDrafts({
+      sessionId,
+      drafts
     });
     revalidatePath("/");
   }
@@ -437,6 +466,7 @@ export default async function HomePage() {
       onRunOnboardingAudit={handleRunOnboardingAudit}
       onActivateOnboardingSession={handleActivateOnboardingSession}
       onUpdateOnboardingActivationPlan={handleUpdateOnboardingActivationPlan}
+      onUpdateOnboardingActivationDrafts={handleUpdateOnboardingActivationDrafts}
       onApproveOnboardingSession={handleApproveOnboardingSession}
       onCreateTrend={handleCreateTrend}
       onIngestLiveTrends={handleIngestLiveTrends}

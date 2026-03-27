@@ -396,6 +396,35 @@ export async function updateOnboardingActivationPlan(input: {
   }
 }
 
+export async function updateOnboardingActivationDrafts(input: {
+  sessionId: string;
+  drafts: Array<{
+    draftId: string;
+    channel: string;
+    hook: string;
+    body: string;
+    rationale: string;
+  }>;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${input.sessionId}/activation-drafts`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to update onboarding activation drafts");
+  }
+}
+
 export async function answerOnboardingQuestion(input: {
   sessionId: string;
   questionId: string;
@@ -896,6 +925,7 @@ function fallbackOnboardingSessions(): OnboardingSession[] {
         weekPlan: [],
         summary: ""
       },
+      history: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }

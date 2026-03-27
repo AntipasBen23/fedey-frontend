@@ -27,6 +27,7 @@ export type ActivationPlan = {
     draftId: string;
     channel: string;
     hook: string;
+    body: string;
     rationale: string;
     scheduleId?: string;
     scheduleStatus?: string;
@@ -41,6 +42,14 @@ export type ActivationPlan = {
   }>;
   summary: string;
   generatedAt?: string;
+};
+
+export type OnboardingHistoryEntry = {
+  id: string;
+  actor: string;
+  action: string;
+  description: string;
+  createdAt: string;
 };
 
 export type OnboardingSession = {
@@ -59,6 +68,7 @@ export type OnboardingSession = {
   questions: OnboardingQuestion[];
   audit: OnboardingAudit;
   activation: ActivationPlan;
+  history: OnboardingHistoryEntry[];
   status: string;
   createdAt: string;
   updatedAt: string;
