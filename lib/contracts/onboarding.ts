@@ -19,6 +19,20 @@ export type OnboardingAudit = {
   lastRunAt?: string;
 };
 
+export type ActivationPlan = {
+  status: string;
+  brandMemorySync: boolean;
+  weekPlan: Array<{
+    day: string;
+    channel: string;
+    focus: string;
+    format: string;
+    hypothesis: string;
+  }>;
+  summary: string;
+  generatedAt?: string;
+};
+
 export type OnboardingSession = {
   id: string;
   title: string;
@@ -32,6 +46,7 @@ export type OnboardingSession = {
   constraints: string[];
   questions: OnboardingQuestion[];
   audit: OnboardingAudit;
+  activation: ActivationPlan;
   status: string;
   createdAt: string;
   updatedAt: string;

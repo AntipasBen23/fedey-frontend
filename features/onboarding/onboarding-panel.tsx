@@ -5,13 +5,15 @@ type OnboardingPanelProps = {
   onCreateSession: (formData: FormData) => Promise<void>;
   onAnswerQuestion: (formData: FormData) => Promise<void>;
   onRunAudit: (formData: FormData) => Promise<void>;
+  onActivate: (formData: FormData) => Promise<void>;
 };
 
 export function OnboardingPanel({
   sessions,
   onCreateSession,
   onAnswerQuestion,
-  onRunAudit
+  onRunAudit,
+  onActivate
 }: OnboardingPanelProps) {
   return (
     <section className="card onboarding-card">
@@ -130,6 +132,28 @@ export function OnboardingPanel({
                 {session.audit.recommendations.map((item) => (
                   <p key={item} className="reply-draft">{item}</p>
                 ))}
+              </div>
+
+              <div className="onboarding-block">
+                <p className="item-subtitle">Activation Plan</p>
+                <p className="onboarding-meta">
+                  Status: {session.activation.status || "not_started"} | Brand memory sync:{" "}
+                  {session.activation.brandMemorySync ? "yes" : "no"}
+                </p>
+                {session.activation.summary ? (
+                  <p className="reply-draft">{session.activation.summary}</p>
+                ) : null}
+                {session.activation.weekPlan.map((item) => (
+                  <p key={`${session.id}-${item.day}-${item.channel}`} className="onboarding-meta">
+                    {item.day} | {item.channel.toUpperCase()} | {item.focus} | {item.format}
+                  </p>
+                ))}
+                <form action={onActivate}>
+                  <input type="hidden" name="sessionId" value={session.id} />
+                  <button type="submit" className="community-button secondary">
+                    Activate Agent
+                  </button>
+                </form>
               </div>
             </div>
             <span className={`status status-${session.status}`}>{session.status}</span>

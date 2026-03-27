@@ -5,6 +5,7 @@ import {
   createExperiment,
   createPublishingSchedule,
   answerOnboardingQuestion,
+  activateOnboardingSession,
   generateContentDrafts,
   generateDraftVariants,
   getAutomationSettings,
@@ -137,6 +138,18 @@ export default async function HomePage() {
     }
 
     await runOnboardingAudit(sessionId);
+    revalidatePath("/");
+  }
+
+  async function handleActivateOnboardingSession(formData: FormData) {
+    "use server";
+
+    const sessionId = String(formData.get("sessionId") ?? "").trim();
+    if (!sessionId) {
+      return;
+    }
+
+    await activateOnboardingSession(sessionId);
     revalidatePath("/");
   }
 
@@ -360,6 +373,7 @@ export default async function HomePage() {
       onCreateOnboardingSession={handleCreateOnboardingSession}
       onAnswerOnboardingQuestion={handleAnswerOnboardingQuestion}
       onRunOnboardingAudit={handleRunOnboardingAudit}
+      onActivateOnboardingSession={handleActivateOnboardingSession}
       onCreateTrend={handleCreateTrend}
       onIngestLiveTrends={handleIngestLiveTrends}
       onGenerateDrafts={handleGenerateDrafts}

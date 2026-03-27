@@ -383,6 +383,22 @@ export async function runOnboardingAudit(sessionId: string): Promise<void> {
   }
 }
 
+export async function activateOnboardingSession(sessionId: string): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${sessionId}/activate`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to activate onboarding session");
+  }
+}
+
 export async function createCommunityInboxItem(input: {
   platform: string;
   author: string;
@@ -800,6 +816,12 @@ function fallbackOnboardingSessions(): OnboardingSession[] {
         replyPatterns: [],
         contentPatterns: [],
         recommendations: ["Connect an existing X account so the agent can learn from historical posts and replies."]
+      },
+      activation: {
+        status: "not_started",
+        brandMemorySync: false,
+        weekPlan: [],
+        summary: ""
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
