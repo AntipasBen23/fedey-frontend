@@ -367,6 +367,35 @@ export async function updateOnboardingReviewMode(input: {
   }
 }
 
+export async function updateOnboardingActivationPlan(input: {
+  sessionId: string;
+  weekPlan: Array<{
+    day: string;
+    channel: string;
+    focus: string;
+    format: string;
+    hypothesis: string;
+  }>;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${input.sessionId}/activation-plan`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to update onboarding activation plan");
+  }
+}
+
 export async function answerOnboardingQuestion(input: {
   sessionId: string;
   questionId: string;
@@ -857,7 +886,8 @@ function fallbackOnboardingSessions(): OnboardingSession[] {
         postsReviewed: 0,
         replyPatterns: [],
         contentPatterns: [],
-        recommendations: ["Connect an existing X account so the agent can learn from historical posts and replies."]
+        recommendations: ["Connect an existing X account so the agent can learn from historical posts and replies."],
+        performanceInsights: []
       },
       activation: {
         status: "not_started",

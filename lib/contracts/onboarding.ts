@@ -16,6 +16,7 @@ export type OnboardingAudit = {
   replyPatterns: string[];
   contentPatterns: string[];
   recommendations: string[];
+  performanceInsights: string[];
   lastRunAt?: string;
 };
 
@@ -27,6 +28,9 @@ export type ActivationPlan = {
     channel: string;
     hook: string;
     rationale: string;
+    scheduleId?: string;
+    scheduleStatus?: string;
+    scheduledFor?: string;
   }>;
   weekPlan: Array<{
     day: string;

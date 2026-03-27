@@ -7,6 +7,7 @@ import {
   answerOnboardingQuestion,
   activateOnboardingSession,
   approveOnboardingSession,
+  updateOnboardingActivationPlan,
   generateContentDrafts,
   generateDraftVariants,
   getAutomationSettings,
@@ -170,6 +171,34 @@ export default async function HomePage() {
     }
 
     await activateOnboardingSession(sessionId);
+    revalidatePath("/");
+  }
+
+  async function handleUpdateOnboardingActivationPlan(formData: FormData) {
+    "use server";
+
+    const sessionId = String(formData.get("sessionId") ?? "").trim();
+    const itemCount = Number(String(formData.get("itemCount") ?? "0").trim());
+    if (!sessionId || Number.isNaN(itemCount) || itemCount <= 0) {
+      return;
+    }
+
+    const weekPlan = Array.from({ length: itemCount }, (_, index) => ({
+      day: String(formData.get(`day-${index}`) ?? "").trim(),
+      channel: String(formData.get(`channel-${index}`) ?? "").trim(),
+      focus: String(formData.get(`focus-${index}`) ?? "").trim(),
+      format: String(formData.get(`format-${index}`) ?? "").trim(),
+      hypothesis: String(formData.get(`hypothesis-${index}`) ?? "").trim()
+    })).filter((item) => item.day && item.channel && item.focus && item.format && item.hypothesis);
+
+    if (weekPlan.length === 0) {
+      return;
+    }
+
+    await updateOnboardingActivationPlan({
+      sessionId,
+      weekPlan
+    });
     revalidatePath("/");
   }
 
@@ -407,6 +436,7 @@ export default async function HomePage() {
       onUpdateOnboardingReviewMode={handleUpdateOnboardingReviewMode}
       onRunOnboardingAudit={handleRunOnboardingAudit}
       onActivateOnboardingSession={handleActivateOnboardingSession}
+      onUpdateOnboardingActivationPlan={handleUpdateOnboardingActivationPlan}
       onApproveOnboardingSession={handleApproveOnboardingSession}
       onCreateTrend={handleCreateTrend}
       onIngestLiveTrends={handleIngestLiveTrends}

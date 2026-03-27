@@ -7,6 +7,7 @@ type OnboardingPanelProps = {
   onUpdateReviewMode: (formData: FormData) => Promise<void>;
   onRunAudit: (formData: FormData) => Promise<void>;
   onActivate: (formData: FormData) => Promise<void>;
+  onUpdateActivationPlan: (formData: FormData) => Promise<void>;
   onApprove: (formData: FormData) => Promise<void>;
 };
 
@@ -17,6 +18,7 @@ export function OnboardingPanel({
   onUpdateReviewMode,
   onRunAudit,
   onActivate,
+  onUpdateActivationPlan,
   onApprove
 }: OnboardingPanelProps) {
   return (
@@ -158,6 +160,9 @@ export function OnboardingPanel({
                 {session.audit.recommendations.map((item) => (
                   <p key={item} className="reply-draft">{item}</p>
                 ))}
+                {session.audit.performanceInsights.map((item) => (
+                  <p key={item} className="reply-draft">{item}</p>
+                ))}
               </div>
 
               <div className="onboarding-block">
@@ -169,27 +174,64 @@ export function OnboardingPanel({
                 {session.activation.summary ? (
                   <p className="reply-draft">{session.activation.summary}</p>
                 ) : null}
-                {session.activation.weekPlan.map((item) => (
-                  <p key={`${session.id}-${item.day}-${item.channel}`} className="onboarding-meta">
-                    {item.day} | {item.channel.toUpperCase()} | {item.focus} | {item.format}
-                  </p>
-                ))}
+                {session.activation.weekPlan.length > 0 ? (
+                  session.reviewMode === "manual" && session.approvalStatus !== "approved" ? (
+                    <form className="onboarding-answer-form" action={onUpdateActivationPlan}>
+                      <input type="hidden" name="sessionId" value={session.id} />
+                      <input type="hidden" name="itemCount" value={String(session.activation.weekPlan.length)} />
+                      {session.activation.weekPlan.map((item, index) => (
+                        <div key={`${session.id}-${item.day}-${item.channel}`} className="onboarding-block">
+                          <input type="hidden" name={`day-${index}`} value={item.day} />
+                          <label>
+                            Channel
+                            <select name={`channel-${index}`} defaultValue={item.channel}>
+                              <option value="x">X</option>
+                              <option value="linkedin">LinkedIn</option>
+                            </select>
+                          </label>
+                          <label>
+                            Focus
+                            <input type="text" name={`focus-${index}`} defaultValue={item.focus} />
+                          </label>
+                          <label>
+                            Format
+                            <input type="text" name={`format-${index}`} defaultValue={item.format} />
+                          </label>
+                          <label>
+                            Hypothesis
+                            <input type="text" name={`hypothesis-${index}`} defaultValue={item.hypothesis} />
+                          </label>
+                        </div>
+                      ))}
+                      <button type="submit" className="community-button secondary">
+                        Save Week-One Plan
+                      </button>
+                    </form>
+                  ) : (
+                    session.activation.weekPlan.map((item) => (
+                      <p key={`${session.id}-${item.day}-${item.channel}`} className="onboarding-meta">
+                        {item.day} | {item.channel.toUpperCase()} | {item.focus} | {item.format}
+                      </p>
+                    ))
+                  )
+                ) : null}
                 {session.activation.drafts.map((draft) => (
                   <p key={draft.draftId} className="reply-draft">
                     Draft {draft.channel.toUpperCase()} | {draft.hook}
+                    {draft.scheduledFor ? ` | Scheduled ${new Date(draft.scheduledFor).toLocaleString()}` : ""}
                   </p>
                 ))}
                 <form action={onActivate}>
                   <input type="hidden" name="sessionId" value={session.id} />
                   <button type="submit" className="community-button secondary">
-                    Activate Agent
+                    {session.reviewMode === "manual" ? "Generate Plan and Drafts" : "Activate Agent"}
                   </button>
                 </form>
                 {session.approvalStatus === "pending" ? (
                   <form action={onApprove}>
                     <input type="hidden" name="sessionId" value={session.id} />
                     <button type="submit" className="community-button">
-                      Approve Activation
+                      Approve and Schedule Week One
                     </button>
                   </form>
                 ) : null}
