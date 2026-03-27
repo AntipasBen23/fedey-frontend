@@ -235,6 +235,7 @@ export async function createPublishingSchedule(input: {
   draftId: string;
   variantLabel: string;
   channel: string;
+  queueProfile?: string;
   scheduledFor: string;
 }): Promise<void> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
@@ -832,6 +833,7 @@ function fallbackPublishingSchedules(): PublishingSchedule[] {
       draftId: "draft-1",
       variantLabel: "B",
       channel: "x",
+      queueProfile: "existing",
       platformPostId: "195-demo-post",
       scheduledFor: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
       status: "scheduled",

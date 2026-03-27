@@ -53,6 +53,14 @@ export function PublishingPanel({
           </select>
         </label>
         <label>
+          Queue Profile
+          <select name="queueProfile" defaultValue="standard">
+            <option value="standard">Standard</option>
+            <option value="new">New Account</option>
+            <option value="existing">Existing Account</option>
+          </select>
+        </label>
+        <label>
           Scheduled Time
           <input type="datetime-local" name="scheduledFor" required />
         </label>
@@ -69,6 +77,7 @@ export function PublishingPanel({
               <p className="item-subtitle">
                 Scheduled for {new Date(schedule.scheduledFor).toLocaleString()}
               </p>
+              <p className="publish-meta">Queue profile: {schedule.queueProfile}</p>
               {schedule.platformPostId ? (
                 <p className="publish-meta">Platform post ID: {schedule.platformPostId}</p>
               ) : null}
@@ -76,6 +85,17 @@ export function PublishingPanel({
                 <p className="publish-meta">
                   Performance synced at {new Date(schedule.performanceSyncedAt).toLocaleString()}
                 </p>
+              ) : null}
+              {schedule.timeline && schedule.timeline.length > 0 ? (
+                <div className="summary-block">
+                  <p className="summary-title">Engagement Timeline</p>
+                  {schedule.timeline.map((point) => (
+                    <p key={`${schedule.id}-${point.capturedAt}`} className="publish-meta">
+                      {new Date(point.capturedAt).toLocaleString()} | total {point.totalEngagement} | likes {point.likes} | replies {point.replies}
+                      {schedule.channel === "linkedin" ? ` | comments ${point.comments}` : ` | quotes ${point.quotes}`}
+                    </p>
+                  ))}
+                </div>
               ) : null}
               {schedule.status === "published" && schedule.publishedAt ? (
                 <p className="publish-meta">

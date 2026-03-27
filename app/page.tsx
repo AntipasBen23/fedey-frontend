@@ -346,6 +346,7 @@ export default async function HomePage() {
     const draftId = String(formData.get("draftId") ?? "").trim();
     const variantLabel = String(formData.get("variantLabel") ?? "").trim();
     const channel = String(formData.get("channel") ?? "").trim();
+    const queueProfile = String(formData.get("queueProfile") ?? "").trim();
     const scheduledValue = String(formData.get("scheduledFor") ?? "").trim();
     if (!draftId || !channel || !scheduledValue) {
       return;
@@ -360,6 +361,7 @@ export default async function HomePage() {
       draftId,
       variantLabel,
       channel,
+      queueProfile,
       scheduledFor: scheduledFor.toISOString()
     });
     revalidatePath("/");
