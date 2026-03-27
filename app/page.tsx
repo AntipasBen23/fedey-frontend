@@ -1,8 +1,10 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import {
   createCommunityInboxItem,
+  createOnboardingSession,
   createExperiment,
   createPublishingSchedule,
+  answerOnboardingQuestion,
   generateContentDrafts,
   generateDraftVariants,
   getAutomationSettings,
@@ -13,6 +15,7 @@ import {
   getCommunityInbox,
   getContentDrafts,
   getExperiments,
+  getOnboardingSessions,
   getPublishingSchedules,
   getStrategySnapshot,
   getTrends,
@@ -24,6 +27,7 @@ import {
   markCommunityReplySent,
   markPublishingSchedulePublished,
   recordAnalyticsEvent,
+  runOnboardingAudit,
   createTrend,
   updateBrandMemory
 } from "@/lib/api/client";
@@ -31,9 +35,10 @@ import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
   const apiBaseUrl = process.env.FEDEY_API_URL ?? "http://localhost:8080";
-  const [xConnectionStatus, linkedinConnectionStatus, brandMemory, trends, drafts, schedules, communityItems, automationRuns, automationSettings, snapshot, experiments] = await Promise.all([
+  const [xConnectionStatus, linkedinConnectionStatus, onboardingSessions, brandMemory, trends, drafts, schedules, communityItems, automationRuns, automationSettings, snapshot, experiments] = await Promise.all([
     getXConnectionStatus(),
     getLinkedInConnectionStatus(),
+    getOnboardingSessions(),
     getBrandMemory(),
     getTrends(),
     getContentDrafts(),
@@ -71,6 +76,67 @@ export default async function HomePage() {
       pillars,
       guardrails
     });
+    revalidatePath("/");
+  }
+
+  async function handleCreateOnboardingSession(formData: FormData) {
+    "use server";
+
+    const title = String(formData.get("title") ?? "").trim();
+    const accountMode = String(formData.get("accountMode") ?? "").trim();
+    const brandName = String(formData.get("brandName") ?? "").trim();
+    const primaryPlatform = String(formData.get("primaryPlatform") ?? "").trim();
+    const objective = String(formData.get("objective") ?? "").trim();
+    const audience = String(formData.get("audience") ?? "").trim();
+    const constraints = String(formData.get("constraints") ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const jobDescription = String(formData.get("jobDescription") ?? "").trim();
+    if (!jobDescription || !accountMode) {
+      return;
+    }
+
+    await createOnboardingSession({
+      title,
+      accountMode,
+      brandName,
+      primaryPlatform,
+      objective,
+      audience,
+      constraints,
+      jobDescription
+    });
+    revalidatePath("/");
+  }
+
+  async function handleAnswerOnboardingQuestion(formData: FormData) {
+    "use server";
+
+    const sessionId = String(formData.get("sessionId") ?? "").trim();
+    const questionId = String(formData.get("questionId") ?? "").trim();
+    const answer = String(formData.get("answer") ?? "").trim();
+    if (!sessionId || !questionId || !answer) {
+      return;
+    }
+
+    await answerOnboardingQuestion({
+      sessionId,
+      questionId,
+      answer
+    });
+    revalidatePath("/");
+  }
+
+  async function handleRunOnboardingAudit(formData: FormData) {
+    "use server";
+
+    const sessionId = String(formData.get("sessionId") ?? "").trim();
+    if (!sessionId) {
+      return;
+    }
+
+    await runOnboardingAudit(sessionId);
     revalidatePath("/");
   }
 
@@ -280,6 +346,7 @@ export default async function HomePage() {
       linkedinConnectionStatus={linkedinConnectionStatus}
       xConnectUrl={`${apiBaseUrl}/v1/integrations/x/connect`}
       linkedinConnectUrl={`${apiBaseUrl}/v1/integrations/linkedin/connect`}
+      onboardingSessions={onboardingSessions}
       brandMemory={brandMemory}
       trends={trends}
       drafts={drafts}
@@ -290,6 +357,9 @@ export default async function HomePage() {
       snapshot={snapshot}
       experiments={experiments}
       onSaveBrandMemory={handleSaveBrandMemory}
+      onCreateOnboardingSession={handleCreateOnboardingSession}
+      onAnswerOnboardingQuestion={handleAnswerOnboardingQuestion}
+      onRunOnboardingAudit={handleRunOnboardingAudit}
       onCreateTrend={handleCreateTrend}
       onIngestLiveTrends={handleIngestLiveTrends}
       onGenerateDrafts={handleGenerateDrafts}

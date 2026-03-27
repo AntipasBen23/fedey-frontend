@@ -3,6 +3,7 @@ import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
 import type { LinkedInConnectionStatus, XConnectionStatus } from "@/lib/contracts/integrations";
+import type { OnboardingSession } from "@/lib/contracts/onboarding";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type { StrategySnapshot } from "@/lib/api/client";
 import type { ExperimentSnapshot } from "@/lib/contracts/strategy";
@@ -13,6 +14,7 @@ import { CommunityPanel } from "@/features/community/community-panel";
 import { ContentPanel } from "@/features/content/content-panel";
 import { ExperimentsPanel } from "@/features/experiments/experiments-panel";
 import { LinkedInConnectionPanel } from "@/features/integrations/linkedin-connection-panel";
+import { OnboardingPanel } from "@/features/onboarding/onboarding-panel";
 import { XConnectionPanel } from "@/features/integrations/x-connection-panel";
 import { PublishingPanel } from "@/features/publishing/publishing-panel";
 import { RecommendationsPanel } from "@/features/recommendations/recommendations-panel";
@@ -25,6 +27,7 @@ type DashboardShellProps = {
   linkedinConnectionStatus: LinkedInConnectionStatus;
   xConnectUrl: string;
   linkedinConnectUrl: string;
+  onboardingSessions: OnboardingSession[];
   trends: TrendSignal[];
   drafts: ContentDraft[];
   schedules: PublishingSchedule[];
@@ -34,6 +37,9 @@ type DashboardShellProps = {
   snapshot: StrategySnapshot;
   experiments: ExperimentSnapshot[];
   onSaveBrandMemory: (formData: FormData) => Promise<void>;
+  onCreateOnboardingSession: (formData: FormData) => Promise<void>;
+  onAnswerOnboardingQuestion: (formData: FormData) => Promise<void>;
+  onRunOnboardingAudit: (formData: FormData) => Promise<void>;
   onCreateTrend: (formData: FormData) => Promise<void>;
   onIngestLiveTrends: (formData: FormData) => Promise<void>;
   onGenerateDrafts: () => Promise<void>;
@@ -56,6 +62,7 @@ export function DashboardShell({
   linkedinConnectionStatus,
   xConnectUrl,
   linkedinConnectUrl,
+  onboardingSessions,
   trends,
   drafts,
   schedules,
@@ -65,6 +72,9 @@ export function DashboardShell({
   snapshot,
   experiments,
   onSaveBrandMemory,
+  onCreateOnboardingSession,
+  onAnswerOnboardingQuestion,
+  onRunOnboardingAudit,
   onCreateTrend,
   onIngestLiveTrends,
   onGenerateDrafts,
@@ -94,6 +104,12 @@ export function DashboardShell({
       <section className="grid">
         <XConnectionPanel status={xConnectionStatus} connectUrl={xConnectUrl} />
         <LinkedInConnectionPanel status={linkedinConnectionStatus} connectUrl={linkedinConnectUrl} />
+        <OnboardingPanel
+          sessions={onboardingSessions}
+          onCreateSession={onCreateOnboardingSession}
+          onAnswerQuestion={onAnswerOnboardingQuestion}
+          onRunAudit={onRunOnboardingAudit}
+        />
         <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />
         <TrendsPanel trends={trends} onCreateTrend={onCreateTrend} onIngestLiveTrends={onIngestLiveTrends} />
         <ContentPanel

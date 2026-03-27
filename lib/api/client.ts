@@ -3,6 +3,7 @@ import type { BrandMemoryProfile } from "@/lib/contracts/brand-memory";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { ContentDraft } from "@/lib/contracts/content";
 import type { LinkedInConnectionStatus, XConnectionStatus } from "@/lib/contracts/integrations";
+import type { OnboardingSession } from "@/lib/contracts/onboarding";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 import type {
   ExperimentSnapshot,
@@ -72,6 +73,10 @@ type ListSchedulesResponse = {
 
 type ListCommunityResponse = {
   items: CommunityItem[];
+};
+
+type ListOnboardingResponse = {
+  items: OnboardingSession[];
 };
 
 type ListAutomationResponse = {
@@ -285,6 +290,96 @@ export async function getCommunityInbox(): Promise<CommunityItem[]> {
     return payload.items;
   } catch {
     return fallbackCommunityInbox();
+  }
+}
+
+export async function getOnboardingSessions(): Promise<OnboardingSession[]> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return fallbackOnboardingSessions();
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions`, {
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      return fallbackOnboardingSessions();
+    }
+
+    const payload = (await response.json()) as ListOnboardingResponse;
+    return payload.items;
+  } catch {
+    return fallbackOnboardingSessions();
+  }
+}
+
+export async function createOnboardingSession(input: {
+  title: string;
+  accountMode: string;
+  brandName: string;
+  primaryPlatform: string;
+  objective: string;
+  audience: string;
+  constraints: string[];
+  jobDescription: string;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to create onboarding session");
+  }
+}
+
+export async function answerOnboardingQuestion(input: {
+  sessionId: string;
+  questionId: string;
+  answer: string;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${input.sessionId}/questions/answer`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to answer onboarding question");
+  }
+}
+
+export async function runOnboardingAudit(sessionId: string): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${sessionId}/audit`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to run onboarding audit");
   }
 }
 
@@ -671,6 +766,45 @@ function fallbackLinkedInConnectionStatus(): LinkedInConnectionStatus {
   return {
     connected: false
   };
+}
+
+function fallbackOnboardingSessions(): OnboardingSession[] {
+  return [
+    {
+      id: "onb-1",
+      title: "Founder Social Agent",
+      jobDescription: "Act like a social media manager for a founder account. Build authority, sound sharp but human, and improve existing X content without losing the founder's voice.",
+      accountMode: "existing",
+      objective: "build authority",
+      primaryPlatform: "x",
+      brandName: "Fedey",
+      audience: "Founders and operators",
+      voiceSummary: "professional, strategic, human",
+      constraints: ["No fake urgency", "No rude replies"],
+      status: "audit_ready",
+      questions: [
+        {
+          id: "q-demo-1",
+          sessionId: "onb-1",
+          prompt: "Should the agent preserve the current style closely, or deliberately sharpen it?",
+          category: "improvement_mode",
+          answer: "",
+          required: true,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      audit: {
+        status: "waiting_for_connections",
+        connectedPlatforms: [],
+        postsReviewed: 0,
+        replyPatterns: [],
+        contentPatterns: [],
+        recommendations: ["Connect an existing X account so the agent can learn from historical posts and replies."]
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
 }
 
 type ListExperimentsResponse = {
