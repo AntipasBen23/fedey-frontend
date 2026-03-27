@@ -39,8 +39,10 @@ type DashboardShellProps = {
   onSaveBrandMemory: (formData: FormData) => Promise<void>;
   onCreateOnboardingSession: (formData: FormData) => Promise<void>;
   onAnswerOnboardingQuestion: (formData: FormData) => Promise<void>;
+  onUpdateOnboardingReviewMode: (formData: FormData) => Promise<void>;
   onRunOnboardingAudit: (formData: FormData) => Promise<void>;
   onActivateOnboardingSession: (formData: FormData) => Promise<void>;
+  onApproveOnboardingSession: (formData: FormData) => Promise<void>;
   onCreateTrend: (formData: FormData) => Promise<void>;
   onIngestLiveTrends: (formData: FormData) => Promise<void>;
   onGenerateDrafts: () => Promise<void>;
@@ -75,8 +77,10 @@ export function DashboardShell({
   onSaveBrandMemory,
   onCreateOnboardingSession,
   onAnswerOnboardingQuestion,
+  onUpdateOnboardingReviewMode,
   onRunOnboardingAudit,
   onActivateOnboardingSession,
+  onApproveOnboardingSession,
   onCreateTrend,
   onIngestLiveTrends,
   onGenerateDrafts,
@@ -110,8 +114,10 @@ export function DashboardShell({
           sessions={onboardingSessions}
           onCreateSession={onCreateOnboardingSession}
           onAnswerQuestion={onAnswerOnboardingQuestion}
+          onUpdateReviewMode={onUpdateOnboardingReviewMode}
           onRunAudit={onRunOnboardingAudit}
           onActivate={onActivateOnboardingSession}
+          onApprove={onApproveOnboardingSession}
         />
         <BrandMemoryPanel profile={brandMemory} onSave={onSaveBrandMemory} />
         <TrendsPanel trends={trends} onCreateTrend={onCreateTrend} onIngestLiveTrends={onIngestLiveTrends} />

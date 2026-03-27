@@ -22,6 +22,12 @@ export type OnboardingAudit = {
 export type ActivationPlan = {
   status: string;
   brandMemorySync: boolean;
+  drafts: Array<{
+    draftId: string;
+    channel: string;
+    hook: string;
+    rationale: string;
+  }>;
   weekPlan: Array<{
     day: string;
     channel: string;
@@ -44,6 +50,8 @@ export type OnboardingSession = {
   audience: string;
   voiceSummary: string;
   constraints: string[];
+  reviewMode: string;
+  approvalStatus: string;
   questions: OnboardingQuestion[];
   audit: OnboardingAudit;
   activation: ActivationPlan;

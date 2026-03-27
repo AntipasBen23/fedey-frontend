@@ -322,6 +322,7 @@ export async function createOnboardingSession(input: {
   objective: string;
   audience: string;
   constraints: string[];
+  reviewMode: string;
   jobDescription: string;
 }): Promise<void> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
@@ -340,6 +341,29 @@ export async function createOnboardingSession(input: {
 
   if (!response.ok) {
     throw new Error("failed to create onboarding session");
+  }
+}
+
+export async function updateOnboardingReviewMode(input: {
+  sessionId: string;
+  reviewMode: string;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${input.sessionId}/review-mode`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to update onboarding review mode");
   }
 }
 
@@ -396,6 +420,22 @@ export async function activateOnboardingSession(sessionId: string): Promise<void
 
   if (!response.ok) {
     throw new Error("failed to activate onboarding session");
+  }
+}
+
+export async function approveOnboardingSession(sessionId: string): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${sessionId}/approve`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to approve onboarding session");
   }
 }
 
@@ -797,6 +837,8 @@ function fallbackOnboardingSessions(): OnboardingSession[] {
       audience: "Founders and operators",
       voiceSummary: "professional, strategic, human",
       constraints: ["No fake urgency", "No rude replies"],
+      reviewMode: "manual",
+      approvalStatus: "not_started",
       status: "audit_ready",
       questions: [
         {
@@ -820,6 +862,7 @@ function fallbackOnboardingSessions(): OnboardingSession[] {
       activation: {
         status: "not_started",
         brandMemorySync: false,
+        drafts: [],
         weekPlan: [],
         summary: ""
       },

@@ -4,16 +4,20 @@ type OnboardingPanelProps = {
   sessions: OnboardingSession[];
   onCreateSession: (formData: FormData) => Promise<void>;
   onAnswerQuestion: (formData: FormData) => Promise<void>;
+  onUpdateReviewMode: (formData: FormData) => Promise<void>;
   onRunAudit: (formData: FormData) => Promise<void>;
   onActivate: (formData: FormData) => Promise<void>;
+  onApprove: (formData: FormData) => Promise<void>;
 };
 
 export function OnboardingPanel({
   sessions,
   onCreateSession,
   onAnswerQuestion,
+  onUpdateReviewMode,
   onRunAudit,
-  onActivate
+  onActivate,
+  onApprove
 }: OnboardingPanelProps) {
   return (
     <section className="card onboarding-card">
@@ -59,6 +63,13 @@ export function OnboardingPanel({
           <input type="text" name="constraints" placeholder="No hype, no fake urgency, no rude replies" />
         </label>
         <label>
+          Review Mode
+          <select name="reviewMode" defaultValue="auto">
+            <option value="auto">Auto activate</option>
+            <option value="manual">Review before activation</option>
+          </select>
+        </label>
+        <label>
           Job Description
           <textarea
             name="jobDescription"
@@ -80,7 +91,22 @@ export function OnboardingPanel({
               <p className="item-subtitle">{session.objective}</p>
               <p className="onboarding-meta">Voice: {session.voiceSummary}</p>
               <p className="onboarding-meta">Status: {session.status}</p>
+              <p className="onboarding-meta">
+                Review mode: {session.reviewMode} | Approval: {session.approvalStatus}
+              </p>
               <p className="onboarding-meta">{session.jobDescription}</p>
+
+              <form className="onboarding-answer-form" action={onUpdateReviewMode}>
+                <input type="hidden" name="sessionId" value={session.id} />
+                <label>
+                  Change review mode
+                  <select name="reviewMode" defaultValue={session.reviewMode}>
+                    <option value="auto">Auto activate</option>
+                    <option value="manual">Review before activation</option>
+                  </select>
+                </label>
+                <button type="submit">Update Review Mode</button>
+              </form>
 
               {session.questions.length > 0 ? (
                 <div className="onboarding-block">
@@ -148,12 +174,25 @@ export function OnboardingPanel({
                     {item.day} | {item.channel.toUpperCase()} | {item.focus} | {item.format}
                   </p>
                 ))}
+                {session.activation.drafts.map((draft) => (
+                  <p key={draft.draftId} className="reply-draft">
+                    Draft {draft.channel.toUpperCase()} | {draft.hook}
+                  </p>
+                ))}
                 <form action={onActivate}>
                   <input type="hidden" name="sessionId" value={session.id} />
                   <button type="submit" className="community-button secondary">
                     Activate Agent
                   </button>
                 </form>
+                {session.approvalStatus === "pending" ? (
+                  <form action={onApprove}>
+                    <input type="hidden" name="sessionId" value={session.id} />
+                    <button type="submit" className="community-button">
+                      Approve Activation
+                    </button>
+                  </form>
+                ) : null}
               </div>
             </div>
             <span className={`status status-${session.status}`}>{session.status}</span>

@@ -6,6 +6,7 @@ import {
   createPublishingSchedule,
   answerOnboardingQuestion,
   activateOnboardingSession,
+  approveOnboardingSession,
   generateContentDrafts,
   generateDraftVariants,
   getAutomationSettings,
@@ -30,6 +31,7 @@ import {
   recordAnalyticsEvent,
   runOnboardingAudit,
   createTrend,
+  updateOnboardingReviewMode,
   updateBrandMemory
 } from "@/lib/api/client";
 import { revalidatePath } from "next/cache";
@@ -89,6 +91,7 @@ export default async function HomePage() {
     const primaryPlatform = String(formData.get("primaryPlatform") ?? "").trim();
     const objective = String(formData.get("objective") ?? "").trim();
     const audience = String(formData.get("audience") ?? "").trim();
+    const reviewMode = String(formData.get("reviewMode") ?? "").trim();
     const constraints = String(formData.get("constraints") ?? "")
       .split(",")
       .map((item) => item.trim())
@@ -106,6 +109,7 @@ export default async function HomePage() {
       objective,
       audience,
       constraints,
+      reviewMode,
       jobDescription
     });
     revalidatePath("/");
@@ -141,6 +145,22 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleUpdateOnboardingReviewMode(formData: FormData) {
+    "use server";
+
+    const sessionId = String(formData.get("sessionId") ?? "").trim();
+    const reviewMode = String(formData.get("reviewMode") ?? "").trim();
+    if (!sessionId || !reviewMode) {
+      return;
+    }
+
+    await updateOnboardingReviewMode({
+      sessionId,
+      reviewMode
+    });
+    revalidatePath("/");
+  }
+
   async function handleActivateOnboardingSession(formData: FormData) {
     "use server";
 
@@ -150,6 +170,18 @@ export default async function HomePage() {
     }
 
     await activateOnboardingSession(sessionId);
+    revalidatePath("/");
+  }
+
+  async function handleApproveOnboardingSession(formData: FormData) {
+    "use server";
+
+    const sessionId = String(formData.get("sessionId") ?? "").trim();
+    if (!sessionId) {
+      return;
+    }
+
+    await approveOnboardingSession(sessionId);
     revalidatePath("/");
   }
 
@@ -372,8 +404,10 @@ export default async function HomePage() {
       onSaveBrandMemory={handleSaveBrandMemory}
       onCreateOnboardingSession={handleCreateOnboardingSession}
       onAnswerOnboardingQuestion={handleAnswerOnboardingQuestion}
+      onUpdateOnboardingReviewMode={handleUpdateOnboardingReviewMode}
       onRunOnboardingAudit={handleRunOnboardingAudit}
       onActivateOnboardingSession={handleActivateOnboardingSession}
+      onApproveOnboardingSession={handleApproveOnboardingSession}
       onCreateTrend={handleCreateTrend}
       onIngestLiveTrends={handleIngestLiveTrends}
       onGenerateDrafts={handleGenerateDrafts}
