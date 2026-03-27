@@ -267,6 +267,11 @@ body {
   cursor: pointer;
 }
 
+.sync-button {
+  margin-top: 1rem;
+  margin-bottom: 0.8rem;
+}
+
 .community-form button,
 .community-button {
   border: 0;
@@ -440,6 +445,52 @@ body {
   border: 1px solid #d7ecff;
   color: #21506d;
   line-height: 1.5;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+}
+
+.calendar-card {
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #eef7ff, #f9fcff);
+  border: 1px solid #d7ecff;
+}
+
+.calendar-day,
+.calendar-time,
+.calendar-channel,
+.calendar-hook {
+  margin: 0;
+}
+
+.calendar-day {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.calendar-time {
+  margin-top: 0.2rem;
+  font-weight: 700;
+  color: #0b5589;
+}
+
+.calendar-channel {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: #21506d;
+}
+
+.calendar-hook {
+  margin-top: 0.45rem;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--text);
 }
 
 .automation-meta {

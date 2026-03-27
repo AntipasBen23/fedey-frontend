@@ -7,5 +7,6 @@ export type PublishingSchedule = {
   scheduledFor: string;
   status: "scheduled" | "published";
   publishedAt?: string;
+  performanceSyncedAt?: string;
   createdAt: string;
 };

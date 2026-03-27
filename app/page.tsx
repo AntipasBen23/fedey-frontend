@@ -30,6 +30,7 @@ import {
   draftCommunityReply,
   markCommunityReplySent,
   markPublishingSchedulePublished,
+  syncPublishingPerformance,
   recordAnalyticsEvent,
   runOnboardingAudit,
   createTrend,
@@ -376,6 +377,13 @@ export default async function HomePage() {
     revalidatePath("/");
   }
 
+  async function handleSyncPublishingPerformance() {
+    "use server";
+
+    await syncPublishingPerformance();
+    revalidatePath("/");
+  }
+
   async function handleCreateInboxItem(formData: FormData) {
     "use server";
 
@@ -474,6 +482,7 @@ export default async function HomePage() {
       onGenerateVariants={handleGenerateVariants}
       onCreateSchedule={handleCreateSchedule}
       onMarkPublished={handleMarkPublished}
+      onSyncPublishingPerformance={handleSyncPublishingPerformance}
       onCreateInboxItem={handleCreateInboxItem}
       onSyncXMentions={handleSyncXMentions}
       onSyncLinkedInComments={handleSyncLinkedInComments}

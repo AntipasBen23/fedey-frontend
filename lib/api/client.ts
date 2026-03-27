@@ -272,6 +272,22 @@ export async function markPublishingSchedulePublished(scheduleId: string): Promi
   }
 }
 
+export async function syncPublishingPerformance(): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/publishing/schedules/sync-performance`, {
+    method: "POST",
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to sync publishing performance");
+  }
+}
+
 export async function getCommunityInbox(): Promise<CommunityItem[]> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
   if (!apiBaseUrl) {

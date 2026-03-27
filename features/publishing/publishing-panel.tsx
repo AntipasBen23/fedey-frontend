@@ -6,20 +6,27 @@ type PublishingPanelProps = {
   schedules: PublishingSchedule[];
   onCreateSchedule: (formData: FormData) => Promise<void>;
   onMarkPublished: (formData: FormData) => Promise<void>;
+  onSyncPerformance: () => Promise<void>;
 };
 
 export function PublishingPanel({
   drafts,
   schedules,
   onCreateSchedule,
-  onMarkPublished
+  onMarkPublished,
+  onSyncPerformance
 }: PublishingPanelProps) {
   return (
     <section className="card publishing-card">
       <header className="section-header">
         <h2>Publishing Queue</h2>
-        <p>Schedule a draft or variant for a channel and track whether it has gone live.</p>
+        <p>Schedule a draft or variant for a channel, keep spacing healthy, and sync live engagement back into experiments.</p>
       </header>
+      <form action={onSyncPerformance}>
+        <button type="submit" className="publish-button sync-button">
+          Sync Live Performance
+        </button>
+      </form>
       <form className="publishing-form" action={onCreateSchedule}>
         <label>
           Draft
@@ -64,6 +71,11 @@ export function PublishingPanel({
               </p>
               {schedule.platformPostId ? (
                 <p className="publish-meta">Platform post ID: {schedule.platformPostId}</p>
+              ) : null}
+              {schedule.performanceSyncedAt ? (
+                <p className="publish-meta">
+                  Performance synced at {new Date(schedule.performanceSyncedAt).toLocaleString()}
+                </p>
               ) : null}
               {schedule.status === "published" && schedule.publishedAt ? (
                 <p className="publish-meta">

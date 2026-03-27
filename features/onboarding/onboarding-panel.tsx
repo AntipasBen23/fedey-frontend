@@ -23,6 +23,46 @@ export function OnboardingPanel({
   onUpdateActivationDrafts,
   onApprove
 }: OnboardingPanelProps) {
+  function renderActivationCalendar(session: OnboardingSession) {
+    const scheduledDrafts = session.activation.drafts
+      .filter((draft) => draft.scheduledFor)
+      .sort((left, right) => new Date(left.scheduledFor ?? "").getTime() - new Date(right.scheduledFor ?? "").getTime());
+
+    if (scheduledDrafts.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="onboarding-block">
+        <p className="item-subtitle">Week-One Calendar</p>
+        <div className="calendar-grid">
+          {scheduledDrafts.map((draft) => {
+            const scheduledAt = new Date(draft.scheduledFor ?? "");
+            const dayLabel = scheduledAt.toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric"
+            });
+
+            return (
+              <div key={`${session.id}-${draft.draftId}-calendar`} className="calendar-card">
+                <p className="calendar-day">{dayLabel}</p>
+                <p className="calendar-time">
+                  {scheduledAt.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}
+                </p>
+                <p className="calendar-channel">{draft.channel.toUpperCase()}</p>
+                <p className="calendar-hook">{draft.hook}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="card onboarding-card">
       <header className="section-header">
@@ -272,6 +312,7 @@ export function OnboardingPanel({
                     </button>
                   </form>
                 ) : null}
+                {renderActivationCalendar(session)}
                 {session.history.length > 0 ? (
                   <div className="onboarding-block">
                     <p className="item-subtitle">Approval and Audit History</p>
