@@ -341,6 +341,12 @@ body {
   font-size: 0.9rem;
 }
 
+.chat-error {
+  margin: 1rem 0 0;
+  color: #a13a3a;
+  font-size: 0.9rem;
+}
+
 .chat-composer {
   display: grid;
   gap: 0.75rem;
@@ -365,6 +371,12 @@ body {
   font-weight: 700;
   background: linear-gradient(180deg, #8fd1ff, var(--primary-strong));
   cursor: pointer;
+}
+
+.chat-composer button:disabled,
+.chat-composer input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .chat-done {

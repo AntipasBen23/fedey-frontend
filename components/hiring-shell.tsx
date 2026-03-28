@@ -1,9 +1,11 @@
+import { AgentChatPanel } from "@/components/agent-chat-panel";
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { LinkedInConnectionStatus, XConnectionStatus } from "@/lib/contracts/integrations";
-import type { OnboardingChatMessage, OnboardingHistoryEntry, OnboardingSession } from "@/lib/contracts/onboarding";
+import type { OnboardingHistoryEntry, OnboardingSession } from "@/lib/contracts/onboarding";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 
 type HiringShellProps = {
+  apiBaseUrl: string;
   xConnectionStatus: XConnectionStatus;
   linkedinConnectionStatus: LinkedInConnectionStatus;
   xConnectUrl: string;
@@ -12,7 +14,6 @@ type HiringShellProps = {
   schedules: PublishingSchedule[];
   communityItems: CommunityItem[];
   onCreateSession: (formData: FormData) => Promise<void>;
-  onSendChatMessage: (formData: FormData) => Promise<void>;
   onUpdateReviewMode: (formData: FormData) => Promise<void>;
   onRunAudit: (formData: FormData) => Promise<void>;
   onActivate: (formData: FormData) => Promise<void>;
@@ -31,6 +32,7 @@ type LiveStatus = {
 };
 
 export function HiringShell({
+  apiBaseUrl,
   xConnectionStatus,
   linkedinConnectionStatus,
   xConnectUrl,
@@ -39,7 +41,6 @@ export function HiringShell({
   schedules,
   communityItems,
   onCreateSession,
-  onSendChatMessage,
   onUpdateReviewMode,
   onRunAudit,
   onActivate,
@@ -291,39 +292,12 @@ export function HiringShell({
 
                 <div className="chat-shell">
                   <div className="chat-thread">
-                    {latestSession.chatMessages.length > 0 ? (
-                      latestSession.chatMessages.map((message) => (
-                        <ChatBubble key={message.id} message={message} />
-                      ))
-                    ) : (
-                      <ChatMessage
-                        role="assistant"
-                        title="Fedey agent"
-                        body={`I’ve read the role description for ${latestSession.brandName || latestSession.title}. I’m ready to learn the last details I need before I start working.`}
-                      />
-                    )}
-
-                    {pendingQuestion ? (
-                      <p className="chat-helper">Current missing detail: {pendingQuestion.prompt}</p>
-                    ) : (
-                      <div className="chat-done">
-                        <p className="item-title">The agent has what it needs for now.</p>
-                        <p className="item-subtitle">
-                          If this is an existing account, run the audit so it can learn from previous posts and replies.
-                        </p>
-                      </div>
-                    )}
-
-                    <form className="chat-composer" action={onSendChatMessage}>
-                      <input type="hidden" name="sessionId" value={latestSession.id} />
-                      <input
-                        type="text"
-                        name="message"
-                        placeholder="Reply naturally or ask the agent a question"
-                        autoComplete="off"
-                      />
-                      <button type="submit">Send</button>
-                    </form>
+                    <AgentChatPanel
+                      apiBaseUrl={apiBaseUrl}
+                      sessionId={latestSession.id}
+                      messages={latestSession.chatMessages}
+                      pendingPrompt={pendingQuestion?.prompt}
+                    />
                   </div>
 
                   <aside className="chat-sidebar">
@@ -566,20 +540,6 @@ function StepChip({ index, title, state }: { index: number; title: string; state
     <div className={`step-chip step-chip-${state}`}>
       <span className="step-chip-index">{index}</span>
       <span>{title}</span>
-    </div>
-  );
-}
-
-function ChatBubble({ message }: { message: OnboardingChatMessage }) {
-  const role = message.role === "user" ? "user" : "assistant";
-  return <ChatMessage role={role} title={role === "user" ? "You" : "Fedey agent"} body={message.content} />;
-}
-
-function ChatMessage({ role, title, body }: { role: "assistant" | "user"; title: string; body: string }) {
-  return (
-    <div className={`chat-message chat-message-${role}`}>
-      <p className="chat-title">{title}</p>
-      <p className="chat-body">{body}</p>
     </div>
   );
 }

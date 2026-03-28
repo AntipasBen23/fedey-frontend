@@ -11,7 +11,6 @@ import {
   getXConnectionStatus,
   getOnboardingSessions,
   runOnboardingAudit,
-  sendOnboardingChatMessage,
   updateOnboardingReviewMode
 } from "@/lib/api/client";
 import { revalidatePath } from "next/cache";
@@ -55,23 +54,6 @@ export default async function HomePage() {
       constraints,
       reviewMode,
       jobDescription
-    });
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
-  async function handleSendOnboardingChatMessage(formData: FormData) {
-    "use server";
-
-    const sessionId = String(formData.get("sessionId") ?? "").trim();
-    const message = String(formData.get("message") ?? "").trim();
-    if (!sessionId || !message) {
-      return;
-    }
-
-    await sendOnboardingChatMessage({
-      sessionId,
-      message
     });
     revalidatePath("/");
     revalidatePath("/ops");
@@ -193,6 +175,7 @@ export default async function HomePage() {
 
   return (
     <HiringShell
+      apiBaseUrl={apiBaseUrl}
       xConnectionStatus={xConnectionStatus}
       linkedinConnectionStatus={linkedinConnectionStatus}
       xConnectUrl={`${apiBaseUrl}/v1/integrations/x/connect`}
@@ -201,7 +184,6 @@ export default async function HomePage() {
       schedules={schedules}
       communityItems={communityItems}
       onCreateSession={handleCreateOnboardingSession}
-      onSendChatMessage={handleSendOnboardingChatMessage}
       onUpdateReviewMode={handleUpdateOnboardingReviewMode}
       onRunAudit={handleRunOnboardingAudit}
       onActivate={handleActivateOnboardingSession}
