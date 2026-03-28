@@ -1,89 +1,26 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { HiringShell } from "@/components/hiring-shell";
 import {
-  createCommunityInboxItem,
   createOnboardingSession,
-  createExperiment,
-  createPublishingSchedule,
   answerOnboardingQuestion,
   activateOnboardingSession,
   approveOnboardingSession,
   updateOnboardingActivationDrafts,
   updateOnboardingActivationPlan,
-  generateContentDrafts,
-  generateDraftVariants,
-  getAutomationSettings,
-  getAutomationRuns,
-  getBrandMemory,
   getLinkedInConnectionStatus,
   getXConnectionStatus,
-  getCommunityInbox,
-  getContentDrafts,
-  getExperiments,
   getOnboardingSessions,
-  getPublishingSchedules,
-  getStrategySnapshot,
-  getTrends,
-  ingestLiveTrends,
-  runAutomationNow,
-  syncLinkedInCommunityInbox,
-  syncXCommunityInbox,
-  draftCommunityReply,
-  markCommunityReplySent,
-  markPublishingSchedulePublished,
-  syncPublishingPerformance,
-  recordAnalyticsEvent,
   runOnboardingAudit,
-  createTrend,
-  updateOnboardingReviewMode,
-  updateBrandMemory
+  updateOnboardingReviewMode
 } from "@/lib/api/client";
 import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
   const apiBaseUrl = process.env.FEDEY_API_URL ?? "http://localhost:8080";
-  const [xConnectionStatus, linkedinConnectionStatus, onboardingSessions, brandMemory, trends, drafts, schedules, communityItems, automationRuns, automationSettings, snapshot, experiments] = await Promise.all([
+  const [xConnectionStatus, linkedinConnectionStatus, onboardingSessions] = await Promise.all([
     getXConnectionStatus(),
     getLinkedInConnectionStatus(),
-    getOnboardingSessions(),
-    getBrandMemory(),
-    getTrends(),
-    getContentDrafts(),
-    getPublishingSchedules(),
-    getCommunityInbox(),
-    getAutomationRuns(),
-    getAutomationSettings(),
-    getStrategySnapshot(),
-    getExperiments()
+    getOnboardingSessions()
   ]);
-
-  async function handleSaveBrandMemory(formData: FormData) {
-    "use server";
-
-    const brandName = String(formData.get("brandName") ?? "").trim();
-    const tone = String(formData.get("tone") ?? "").trim();
-    const audience = String(formData.get("audience") ?? "").trim();
-    const pillars = String(formData.get("pillars") ?? "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const guardrails = String(formData.get("guardrails") ?? "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    if (!brandName || !tone || !audience) {
-      return;
-    }
-
-    await updateBrandMemory({
-      brandName,
-      tone,
-      audience,
-      pillars,
-      guardrails
-    });
-    revalidatePath("/");
-  }
 
   async function handleCreateOnboardingSession(formData: FormData) {
     "use server";
@@ -116,6 +53,7 @@ export default async function HomePage() {
       jobDescription
     });
     revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   async function handleAnswerOnboardingQuestion(formData: FormData) {
@@ -134,6 +72,7 @@ export default async function HomePage() {
       answer
     });
     revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   async function handleRunOnboardingAudit(formData: FormData) {
@@ -146,6 +85,7 @@ export default async function HomePage() {
 
     await runOnboardingAudit(sessionId);
     revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   async function handleUpdateOnboardingReviewMode(formData: FormData) {
@@ -162,6 +102,7 @@ export default async function HomePage() {
       reviewMode
     });
     revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   async function handleActivateOnboardingSession(formData: FormData) {
@@ -174,6 +115,7 @@ export default async function HomePage() {
 
     await activateOnboardingSession(sessionId);
     revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   async function handleUpdateOnboardingActivationPlan(formData: FormData) {
@@ -202,6 +144,7 @@ export default async function HomePage() {
       weekPlan
     });
     revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   async function handleUpdateOnboardingActivationDrafts(formData: FormData) {
@@ -230,6 +173,7 @@ export default async function HomePage() {
       drafts
     });
     revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   async function handleApproveOnboardingSession(formData: FormData) {
@@ -242,257 +186,24 @@ export default async function HomePage() {
 
     await approveOnboardingSession(sessionId);
     revalidatePath("/");
-  }
-
-  async function handleCreateExperiment(formData: FormData) {
-    "use server";
-
-    const hypothesisId = String(formData.get("hypothesisId") ?? "").trim();
-    const metric = String(formData.get("metric") ?? "").trim();
-    if (!hypothesisId || !metric) {
-      return;
-    }
-
-    await createExperiment({
-      hypothesisId,
-      metric
-    });
-    revalidatePath("/");
-  }
-
-  async function handleCreateTrend(formData: FormData) {
-    "use server";
-
-    const topic = String(formData.get("topic") ?? "").trim();
-    const source = String(formData.get("source") ?? "").trim();
-    const angle = String(formData.get("angle") ?? "").trim();
-    const velocity = Number(String(formData.get("velocity") ?? "").trim());
-    const relevance = Number(String(formData.get("relevance") ?? "").trim());
-    if (!topic || !source || !angle || Number.isNaN(velocity) || Number.isNaN(relevance)) {
-      return;
-    }
-
-    await createTrend({
-      topic,
-      source,
-      angle,
-      velocity,
-      relevance
-    });
-    revalidatePath("/");
-  }
-
-  async function handleIngestLiveTrends(formData: FormData) {
-    "use server";
-
-    const source = String(formData.get("source") ?? "").trim();
-    const query = String(formData.get("query") ?? "").trim();
-    const subreddit = String(formData.get("subreddit") ?? "").trim();
-    const limit = Number(String(formData.get("limit") ?? "").trim() || "5");
-    if (!source || Number.isNaN(limit)) {
-      return;
-    }
-
-    await ingestLiveTrends({
-      source,
-      query,
-      subreddit,
-      limit
-    });
-    revalidatePath("/");
-  }
-
-  async function handleRecordAnalyticsEvent(formData: FormData) {
-    "use server";
-
-    const experimentId = String(formData.get("experimentId") ?? "").trim();
-    const variant = String(formData.get("variant") ?? "").trim();
-    const rawValue = String(formData.get("value") ?? "").trim();
-    const value = Number(rawValue);
-    if (!experimentId || !variant || Number.isNaN(value) || value < 0) {
-      return;
-    }
-
-    await recordAnalyticsEvent({
-      experimentId,
-      variant,
-      value
-    });
-    revalidatePath("/");
-  }
-
-  async function handleGenerateDrafts() {
-    "use server";
-
-    await generateContentDrafts();
-    revalidatePath("/");
-  }
-
-  async function handleGenerateVariants(formData: FormData) {
-    "use server";
-
-    const draftId = String(formData.get("draftId") ?? "").trim();
-    if (!draftId) {
-      return;
-    }
-
-    await generateDraftVariants(draftId);
-    revalidatePath("/");
-  }
-
-  async function handleCreateSchedule(formData: FormData) {
-    "use server";
-
-    const draftId = String(formData.get("draftId") ?? "").trim();
-    const variantLabel = String(formData.get("variantLabel") ?? "").trim();
-    const channel = String(formData.get("channel") ?? "").trim();
-    const queueProfile = String(formData.get("queueProfile") ?? "").trim();
-    const scheduledValue = String(formData.get("scheduledFor") ?? "").trim();
-    if (!draftId || !channel || !scheduledValue) {
-      return;
-    }
-
-    const scheduledFor = new Date(scheduledValue);
-    if (Number.isNaN(scheduledFor.getTime())) {
-      return;
-    }
-
-    await createPublishingSchedule({
-      draftId,
-      variantLabel,
-      channel,
-      queueProfile,
-      scheduledFor: scheduledFor.toISOString()
-    });
-    revalidatePath("/");
-  }
-
-  async function handleMarkPublished(formData: FormData) {
-    "use server";
-
-    const scheduleId = String(formData.get("scheduleId") ?? "").trim();
-    if (!scheduleId) {
-      return;
-    }
-
-    await markPublishingSchedulePublished(scheduleId);
-    revalidatePath("/");
-  }
-
-  async function handleSyncPublishingPerformance() {
-    "use server";
-
-    await syncPublishingPerformance();
-    revalidatePath("/");
-  }
-
-  async function handleCreateInboxItem(formData: FormData) {
-    "use server";
-
-    const platform = String(formData.get("platform") ?? "").trim();
-    const author = String(formData.get("author") ?? "").trim();
-    const message = String(formData.get("message") ?? "").trim();
-    const sentiment = String(formData.get("sentiment") ?? "").trim();
-    const linkedPostRef = String(formData.get("linkedPostRef") ?? "").trim();
-    if (!platform || !author || !message || !linkedPostRef) {
-      return;
-    }
-
-    await createCommunityInboxItem({
-      platform,
-      author,
-      message,
-      sentiment,
-      linkedPostRef
-    });
-    revalidatePath("/");
-  }
-
-  async function handleSyncXMentions() {
-    "use server";
-
-    await syncXCommunityInbox();
-    revalidatePath("/");
-  }
-
-  async function handleSyncLinkedInComments() {
-    "use server";
-
-    await syncLinkedInCommunityInbox();
-    revalidatePath("/");
-  }
-
-  async function handleDraftReply(formData: FormData) {
-    "use server";
-
-    const itemId = String(formData.get("itemId") ?? "").trim();
-    if (!itemId) {
-      return;
-    }
-
-    await draftCommunityReply(itemId);
-    revalidatePath("/");
-  }
-
-  async function handleMarkReplied(formData: FormData) {
-    "use server";
-
-    const itemId = String(formData.get("itemId") ?? "").trim();
-    if (!itemId) {
-      return;
-    }
-
-    await markCommunityReplySent(itemId);
-    revalidatePath("/");
-  }
-
-  async function handleRunAutomationNow() {
-    "use server";
-
-    await runAutomationNow();
-    revalidatePath("/");
+    revalidatePath("/ops");
   }
 
   return (
-    <DashboardShell
+    <HiringShell
       xConnectionStatus={xConnectionStatus}
       linkedinConnectionStatus={linkedinConnectionStatus}
       xConnectUrl={`${apiBaseUrl}/v1/integrations/x/connect`}
       linkedinConnectUrl={`${apiBaseUrl}/v1/integrations/linkedin/connect`}
-      onboardingSessions={onboardingSessions}
-      brandMemory={brandMemory}
-      trends={trends}
-      drafts={drafts}
-      schedules={schedules}
-      communityItems={communityItems}
-      automationRuns={automationRuns}
-      automationSettings={automationSettings}
-      snapshot={snapshot}
-      experiments={experiments}
-      onSaveBrandMemory={handleSaveBrandMemory}
-      onCreateOnboardingSession={handleCreateOnboardingSession}
-      onAnswerOnboardingQuestion={handleAnswerOnboardingQuestion}
-      onUpdateOnboardingReviewMode={handleUpdateOnboardingReviewMode}
-      onRunOnboardingAudit={handleRunOnboardingAudit}
-      onActivateOnboardingSession={handleActivateOnboardingSession}
-      onUpdateOnboardingActivationPlan={handleUpdateOnboardingActivationPlan}
-      onUpdateOnboardingActivationDrafts={handleUpdateOnboardingActivationDrafts}
-      onApproveOnboardingSession={handleApproveOnboardingSession}
-      onCreateTrend={handleCreateTrend}
-      onIngestLiveTrends={handleIngestLiveTrends}
-      onGenerateDrafts={handleGenerateDrafts}
-      onGenerateVariants={handleGenerateVariants}
-      onCreateSchedule={handleCreateSchedule}
-      onMarkPublished={handleMarkPublished}
-      onSyncPublishingPerformance={handleSyncPublishingPerformance}
-      onCreateInboxItem={handleCreateInboxItem}
-      onSyncXMentions={handleSyncXMentions}
-      onSyncLinkedInComments={handleSyncLinkedInComments}
-      onDraftReply={handleDraftReply}
-      onMarkReplied={handleMarkReplied}
-      onRunAutomationNow={handleRunAutomationNow}
-      onCreateExperiment={handleCreateExperiment}
-      onRecordAnalyticsEvent={handleRecordAnalyticsEvent}
+      sessions={onboardingSessions}
+      onCreateSession={handleCreateOnboardingSession}
+      onAnswerQuestion={handleAnswerOnboardingQuestion}
+      onUpdateReviewMode={handleUpdateOnboardingReviewMode}
+      onRunAudit={handleRunOnboardingAudit}
+      onActivate={handleActivateOnboardingSession}
+      onUpdateActivationPlan={handleUpdateOnboardingActivationPlan}
+      onUpdateActivationDrafts={handleUpdateOnboardingActivationDrafts}
+      onApprove={handleApproveOnboardingSession}
     />
   );
 }

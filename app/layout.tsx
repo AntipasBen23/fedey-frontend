@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Fedey Growth Console",
-  description: "Strategy-first AI social media growth operations dashboard"
+  title: "Fedey",
+  description: "Hire an AI social media manager for X and LinkedIn"
 };
 
 type RootLayoutProps = Readonly<{
