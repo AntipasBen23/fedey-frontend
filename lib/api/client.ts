@@ -466,6 +466,29 @@ export async function answerOnboardingQuestion(input: {
   }
 }
 
+export async function sendOnboardingChatMessage(input: {
+  sessionId: string;
+  message: string;
+}): Promise<void> {
+  const apiBaseUrl = process.env.FEDEY_API_URL;
+  if (!apiBaseUrl) {
+    return;
+  }
+
+  const response = await fetch(`${apiBaseUrl}/v1/onboarding/sessions/${input.sessionId}/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to send onboarding chat message");
+  }
+}
+
 export async function runOnboardingAudit(sessionId: string): Promise<void> {
   const apiBaseUrl = process.env.FEDEY_API_URL;
   if (!apiBaseUrl) {
@@ -915,6 +938,15 @@ function fallbackOnboardingSessions(): OnboardingSession[] {
       constraints: ["No fake urgency", "No rude replies"],
       reviewMode: "manual",
       approvalStatus: "not_started",
+      chatMessages: [
+        {
+          id: "chat-demo-1",
+          role: "assistant",
+          content:
+            "I’ve read the hiring brief for Fedey. I’m going to learn the brand, tighten the strategy, and only ask for details that materially improve execution.",
+          createdAt: new Date().toISOString()
+        }
+      ],
       status: "audit_ready",
       questions: [
         {

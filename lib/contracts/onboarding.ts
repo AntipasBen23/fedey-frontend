@@ -9,6 +9,13 @@ export type OnboardingQuestion = {
   answeredAt?: string;
 };
 
+export type OnboardingChatMessage = {
+  id: string;
+  role: string;
+  content: string;
+  createdAt: string;
+};
+
 export type OnboardingAudit = {
   status: string;
   connectedPlatforms: string[];
@@ -65,6 +72,7 @@ export type OnboardingSession = {
   constraints: string[];
   reviewMode: string;
   approvalStatus: string;
+  chatMessages: OnboardingChatMessage[];
   questions: OnboardingQuestion[];
   audit: OnboardingAudit;
   activation: ActivationPlan;

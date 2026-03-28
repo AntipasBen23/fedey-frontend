@@ -82,6 +82,12 @@ body {
   margin-top: 1rem;
 }
 
+.live-home-grid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
 .focus-card {
   padding: 1.25rem;
 }
@@ -219,6 +225,31 @@ body {
   line-height: 1.5;
 }
 
+.activity-feed {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.activity-entry {
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid #d8edff;
+  background: #f8fcff;
+}
+
+.activity-entry-title {
+  margin: 0;
+  color: #12324d;
+  line-height: 1.5;
+}
+
+.activity-entry-meta {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .landing-ops-link {
   display: inline-flex;
   margin-top: 1rem;
@@ -302,6 +333,12 @@ body {
   line-height: 1.6;
   color: #163e5b;
   white-space: pre-line;
+}
+
+.chat-helper {
+  margin: 1rem 0 0;
+  color: #4c6f8a;
+  font-size: 0.9rem;
 }
 
 .chat-composer {
@@ -949,7 +986,8 @@ body {
 
   .stepper-row,
   .inline-field-grid,
-  .live-status-grid {
+  .live-status-grid,
+  .live-home-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

@@ -1,7 +1,6 @@
 import { HiringShell } from "@/components/hiring-shell";
 import {
   createOnboardingSession,
-  answerOnboardingQuestion,
   activateOnboardingSession,
   approveOnboardingSession,
   getCommunityInbox,
@@ -12,6 +11,7 @@ import {
   getXConnectionStatus,
   getOnboardingSessions,
   runOnboardingAudit,
+  sendOnboardingChatMessage,
   updateOnboardingReviewMode
 } from "@/lib/api/client";
 import { revalidatePath } from "next/cache";
@@ -60,20 +60,18 @@ export default async function HomePage() {
     revalidatePath("/ops");
   }
 
-  async function handleAnswerOnboardingQuestion(formData: FormData) {
+  async function handleSendOnboardingChatMessage(formData: FormData) {
     "use server";
 
     const sessionId = String(formData.get("sessionId") ?? "").trim();
-    const questionId = String(formData.get("questionId") ?? "").trim();
-    const answer = String(formData.get("answer") ?? "").trim();
-    if (!sessionId || !questionId || !answer) {
+    const message = String(formData.get("message") ?? "").trim();
+    if (!sessionId || !message) {
       return;
     }
 
-    await answerOnboardingQuestion({
+    await sendOnboardingChatMessage({
       sessionId,
-      questionId,
-      answer
+      message
     });
     revalidatePath("/");
     revalidatePath("/ops");
@@ -203,7 +201,7 @@ export default async function HomePage() {
       schedules={schedules}
       communityItems={communityItems}
       onCreateSession={handleCreateOnboardingSession}
-      onAnswerQuestion={handleAnswerOnboardingQuestion}
+      onSendChatMessage={handleSendOnboardingChatMessage}
       onUpdateReviewMode={handleUpdateOnboardingReviewMode}
       onRunAudit={handleRunOnboardingAudit}
       onActivate={handleActivateOnboardingSession}

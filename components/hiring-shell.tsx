@@ -1,6 +1,6 @@
 import type { CommunityItem } from "@/lib/contracts/community";
 import type { LinkedInConnectionStatus, XConnectionStatus } from "@/lib/contracts/integrations";
-import type { OnboardingQuestion, OnboardingSession } from "@/lib/contracts/onboarding";
+import type { OnboardingChatMessage, OnboardingHistoryEntry, OnboardingSession } from "@/lib/contracts/onboarding";
 import type { PublishingSchedule } from "@/lib/contracts/publishing";
 
 type HiringShellProps = {
@@ -12,7 +12,7 @@ type HiringShellProps = {
   schedules: PublishingSchedule[];
   communityItems: CommunityItem[];
   onCreateSession: (formData: FormData) => Promise<void>;
-  onAnswerQuestion: (formData: FormData) => Promise<void>;
+  onSendChatMessage: (formData: FormData) => Promise<void>;
   onUpdateReviewMode: (formData: FormData) => Promise<void>;
   onRunAudit: (formData: FormData) => Promise<void>;
   onActivate: (formData: FormData) => Promise<void>;
@@ -39,7 +39,7 @@ export function HiringShell({
   schedules,
   communityItems,
   onCreateSession,
-  onAnswerQuestion,
+  onSendChatMessage,
   onUpdateReviewMode,
   onRunAudit,
   onActivate,
@@ -49,14 +49,15 @@ export function HiringShell({
 }: HiringShellProps) {
   const latestSession = sessions[0];
   const activeStep = getActiveStep(latestSession, xConnectionStatus.connected, linkedinConnectionStatus.connected);
+  const showLiveHome = isSessionLive(latestSession);
   const liveStatus = getLiveStatus({
     xConnectionStatus,
     linkedinConnectionStatus,
     schedules,
     communityItems
   });
-  const showLiveHome = isSessionLive(latestSession);
-  const pendingQuestion = latestSession ? latestSession.questions.find((question) => !question.answer) : undefined;
+  const activityFeed = latestSession ? latestSession.history.slice(-6).reverse() : [];
+  const pendingQuestion = latestSession?.questions.find((question) => !question.answer);
 
   return (
     <main className="landing-page">
@@ -65,223 +66,245 @@ export function HiringShell({
           <p className="badge">Hire an AI Social Media Manager</p>
           <h1>Describe the role and let the agent take over from there.</h1>
           <p>
-            This should feel like hiring a smart teammate. Give the job description, connect X or LinkedIn,
-            answer the agent&apos;s questions, and decide whether you want to review the plan or let it run.
+            Fedey should feel like hiring a smart teammate. Give the job description, connect X or LinkedIn, chat with
+            the agent, and choose whether you want review control or hands-off execution.
           </p>
         </div>
         <div className="landing-summary">
           <p className="landing-summary-title">Guided flow</p>
           <p className="landing-summary-item">1. Describe the job and goals.</p>
-          <p className="landing-summary-item">2. Connect the accounts you want the agent to manage.</p>
-          <p className="landing-summary-item">3. Chat with the agent only about what it still needs.</p>
+          <p className="landing-summary-item">2. Connect the accounts the agent should learn from and manage.</p>
+          <p className="landing-summary-item">3. Chat naturally while the agent fills missing context.</p>
           <p className="landing-summary-item">4. Review the launch plan or let the agent start automatically.</p>
         </div>
       </section>
 
       {showLiveHome ? (
-        <section className="live-home">
-          <header className="section-header">
-            <h2>Agent Live Status</h2>
-            <p>The agent is onboarded. Here is the simple operating view you should care about day to day.</p>
-          </header>
-          <div className="live-status-grid">
-            <div className="status-card">
-              <p className="status-card-label">Next post</p>
-              {liveStatus.nextPost ? (
-                <>
-                  <p className="status-card-value">{liveStatus.nextPost.channel.toUpperCase()}</p>
-                  <p className="status-card-meta">{formatSchedule(liveStatus.nextPost.scheduledFor)}</p>
-                </>
-              ) : (
-                <>
-                  <p className="status-card-value">No post queued</p>
-                  <p className="status-card-meta">The agent will schedule the next slot after the next planning run.</p>
-                </>
-              )}
-            </div>
-            <div className="status-card">
-              <p className="status-card-label">Connected accounts</p>
-              <p className="status-card-value">{liveStatus.connectedAccounts.length}</p>
-              <p className="status-card-meta">
-                {liveStatus.connectedAccounts.length > 0
-                  ? liveStatus.connectedAccounts.join(" and ")
-                  : "No connected accounts yet"}
-              </p>
-            </div>
-            <div className="status-card">
-              <p className="status-card-label">Replies waiting</p>
-              <p className="status-card-value">{String(liveStatus.repliesWaiting)}</p>
-              <p className="status-card-meta">Comments and mentions waiting on the agent reply loop.</p>
-            </div>
-            <div className="status-card">
-              <p className="status-card-label">Weekly growth summary</p>
-              <p className="status-card-value">This week</p>
-              <p className="status-card-meta">{liveStatus.weeklyGrowthSummary}</p>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="stepper-card">
-        <div className="stepper-row">
-          <StepChip index={1} title="Describe role" state={getStepState(activeStep, 1)} />
-          <StepChip index={2} title="Connect accounts" state={getStepState(activeStep, 2)} />
-          <StepChip index={3} title="Agent interview" state={getStepState(activeStep, 3)} />
-          <StepChip index={4} title="Review and launch" state={getStepState(activeStep, 4)} />
-        </div>
-      </section>
-
-      {activeStep === 1 ? (
-        <section className="landing-focus">
-          <section className="card landing-card focus-card">
-            <header className="section-header">
-              <h2>Step 1. Describe the role</h2>
-              <p>Start the same way you would brief a real social media hire.</p>
-            </header>
-            <form className="onboarding-form" action={onCreateSession}>
-              <label>
-                Role Title
-                <input type="text" name="title" placeholder="Founder social media manager" />
-              </label>
-              <label>
-                Job Description
-                <textarea
-                  name="jobDescription"
-                  rows={8}
-                  placeholder="Act as our social media manager. Learn our style, grow authority on X and LinkedIn, reply well, and improve results every week."
-                  required
-                />
-              </label>
-              <div className="inline-field-grid">
-                <label>
-                  Account Type
-                  <select name="accountMode" defaultValue="new">
-                    <option value="new">New account</option>
-                    <option value="existing">Existing account</option>
-                  </select>
-                </label>
-                <label>
-                  Primary Platform
-                  <select name="primaryPlatform" defaultValue="x">
-                    <option value="x">X</option>
-                    <option value="linkedin">LinkedIn</option>
-                  </select>
-                </label>
-              </div>
-              <div className="inline-field-grid">
-                <label>
-                  Brand Name
-                  <input type="text" name="brandName" placeholder="Fedey" />
-                </label>
-                <label>
-                  Main Goal
-                  <input type="text" name="objective" placeholder="Build authority and generate leads" />
-                </label>
-              </div>
-              <label>
-                Audience
-                <input type="text" name="audience" placeholder="Founders, operators, and growth teams" />
-              </label>
-              <label>
-                Hard Constraints
-                <input type="text" name="constraints" placeholder="No hype, no fake urgency, no rude replies" />
-              </label>
-              <label>
-                Review Preference
-                <select name="reviewMode" defaultValue="manual">
-                  <option value="manual">I want to review first</option>
-                  <option value="auto">The agent can run automatically</option>
-                </select>
-              </label>
-              <button type="submit">Start onboarding</button>
-            </form>
-          </section>
-        </section>
-      ) : null}
-
-      {latestSession ? (
         <>
-          {activeStep === 2 ? (
+          <section className="live-home">
+            <header className="section-header">
+              <h2>Agent Live Status</h2>
+              <p>The agent is live. This is the simple operating view a hiring team should land on by default.</p>
+            </header>
+            <div className="live-status-grid">
+              <StatusCard
+                label="Next post"
+                value={liveStatus.nextPost ? liveStatus.nextPost.channel.toUpperCase() : "No post queued"}
+                meta={
+                  liveStatus.nextPost
+                    ? formatSchedule(liveStatus.nextPost.scheduledFor)
+                    : "The next planning run will queue the next best slot."
+                }
+              />
+              <StatusCard
+                label="Connected accounts"
+                value={String(liveStatus.connectedAccounts.length)}
+                meta={
+                  liveStatus.connectedAccounts.length > 0
+                    ? liveStatus.connectedAccounts.join(" and ")
+                    : "No connected accounts yet"
+                }
+              />
+              <StatusCard
+                label="Replies waiting"
+                value={String(liveStatus.repliesWaiting)}
+                meta="Comments and mentions waiting on the reply loop."
+              />
+              <StatusCard label="Weekly growth summary" value="This week" meta={liveStatus.weeklyGrowthSummary} />
+            </div>
+          </section>
+
+          <section className="live-home-grid">
+            <section className="card landing-card">
+              <header className="section-header">
+                <h2>Agent Activity</h2>
+                <p>A compact feed of what the agent has been doing without opening the advanced console.</p>
+              </header>
+              {activityFeed.length > 0 ? (
+                <div className="activity-feed">
+                  {activityFeed.map((entry) => (
+                    <ActivityEntry key={entry.id} entry={entry} />
+                  ))}
+                </div>
+              ) : (
+                <p className="onboarding-meta">The activity feed will populate as the agent starts taking actions.</p>
+              )}
+            </section>
+
+            <section className="card landing-card">
+              <header className="section-header">
+                <h2>Need To Review Anything?</h2>
+                <p>You can stay hands-off or step back into onboarding controls whenever you want.</p>
+              </header>
+              {latestSession ? (
+                <>
+                  <p className="item-title">{latestSession.title}</p>
+                  <p className="item-subtitle">
+                    Review mode: {latestSession.reviewMode} · Approval: {latestSession.approvalStatus}
+                  </p>
+                  <form className="onboarding-answer-form" action={onUpdateReviewMode}>
+                    <input type="hidden" name="sessionId" value={latestSession.id} />
+                    <label>
+                      Review preference
+                      <select name="reviewMode" defaultValue={latestSession.reviewMode}>
+                        <option value="manual">I want to review first</option>
+                        <option value="auto">The agent can run automatically</option>
+                      </select>
+                    </label>
+                    <button type="submit">Save preference</button>
+                  </form>
+                </>
+              ) : null}
+              <a className="landing-ops-link" href="/ops">
+                Open advanced workspace
+              </a>
+            </section>
+          </section>
+        </>
+      ) : null}
+
+      {!showLiveHome ? (
+        <>
+          <section className="stepper-card">
+            <div className="stepper-row">
+              <StepChip index={1} title="Describe role" state={getStepState(activeStep, 1)} />
+              <StepChip index={2} title="Connect accounts" state={getStepState(activeStep, 2)} />
+              <StepChip index={3} title="Agent interview" state={getStepState(activeStep, 3)} />
+              <StepChip index={4} title="Review and launch" state={getStepState(activeStep, 4)} />
+            </div>
+          </section>
+
+          {activeStep === 1 ? (
+            <section className="landing-focus">
+              <section className="card landing-card focus-card">
+                <header className="section-header">
+                  <h2>Step 1. Describe the role</h2>
+                  <p>Start the same way you would brief a real social media hire.</p>
+                </header>
+                <form className="onboarding-form" action={onCreateSession}>
+                  <label>
+                    Role title
+                    <input type="text" name="title" placeholder="Founder social media manager" />
+                  </label>
+                  <label>
+                    Job description
+                    <textarea
+                      name="jobDescription"
+                      rows={8}
+                      placeholder="Act as our social media manager. Learn our style, grow authority on X and LinkedIn, reply well, and improve results every week."
+                      required
+                    />
+                  </label>
+                  <div className="inline-field-grid">
+                    <label>
+                      Account type
+                      <select name="accountMode" defaultValue="new">
+                        <option value="new">New account</option>
+                        <option value="existing">Existing account</option>
+                      </select>
+                    </label>
+                    <label>
+                      Primary platform
+                      <select name="primaryPlatform" defaultValue="x">
+                        <option value="x">X</option>
+                        <option value="linkedin">LinkedIn</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div className="inline-field-grid">
+                    <label>
+                      Brand name
+                      <input type="text" name="brandName" placeholder="Fedey" />
+                    </label>
+                    <label>
+                      Main goal
+                      <input type="text" name="objective" placeholder="Build authority and generate leads" />
+                    </label>
+                  </div>
+                  <label>
+                    Audience
+                    <input type="text" name="audience" placeholder="Founders, operators, and growth teams" />
+                  </label>
+                  <label>
+                    Hard constraints
+                    <input type="text" name="constraints" placeholder="No hype, no fake urgency, no rude replies" />
+                  </label>
+                  <label>
+                    Review preference
+                    <select name="reviewMode" defaultValue="manual">
+                      <option value="manual">I want to review first</option>
+                      <option value="auto">The agent can run automatically</option>
+                    </select>
+                  </label>
+                  <button type="submit">Start onboarding</button>
+                </form>
+              </section>
+            </section>
+          ) : null}
+
+          {latestSession && activeStep === 2 ? (
             <section className="landing-focus">
               <section className="card landing-card focus-card">
                 <header className="section-header">
                   <h2>Step 2. Connect the accounts</h2>
                   <p>
-                    The more real history the agent can inspect, the better it can mirror tone, posting style,
-                    and reply behavior.
+                    The more real history the agent can inspect, the better it can mirror tone, posting style, reply
+                    behavior, and performance patterns.
                   </p>
                 </header>
                 <div className="connect-stack">
-                  <div className="connect-card">
-                    <p className="item-title">X</p>
-                    <p className="item-subtitle">
-                      {xConnectionStatus.connected
+                  <ConnectCard
+                    title="X"
+                    description={
+                      xConnectionStatus.connected
                         ? `Connected as @${xConnectionStatus.account?.username ?? "account"}`
-                        : "Connect X so the agent can study historical posts and publish on your behalf."}
-                    </p>
-                    <a className="integration-link" href={xConnectUrl}>
-                      {xConnectionStatus.connected ? "Reconnect X" : "Connect X"}
-                    </a>
-                  </div>
-                  <div className="connect-card">
-                    <p className="item-title">LinkedIn</p>
-                    <p className="item-subtitle">
-                      {linkedinConnectionStatus.connected
+                        : "Connect X so the agent can study historical posts and publish on your behalf."
+                    }
+                    href={xConnectUrl}
+                    cta={xConnectionStatus.connected ? "Reconnect X" : "Connect X"}
+                  />
+                  <ConnectCard
+                    title="LinkedIn"
+                    description={
+                      linkedinConnectionStatus.connected
                         ? `Connected as ${linkedinConnectionStatus.account?.displayName ?? "account"}`
-                        : "Connect LinkedIn so the agent can learn your professional content style and audience."}
-                    </p>
-                    <a className="integration-link" href={linkedinConnectUrl}>
-                      {linkedinConnectionStatus.connected ? "Reconnect LinkedIn" : "Connect LinkedIn"}
-                    </a>
-                  </div>
+                        : "Connect LinkedIn so the agent can learn your professional content style and audience."
+                    }
+                    href={linkedinConnectUrl}
+                    cta={linkedinConnectionStatus.connected ? "Reconnect LinkedIn" : "Connect LinkedIn"}
+                  />
                 </div>
               </section>
             </section>
           ) : null}
 
-          {activeStep === 3 ? (
+          {latestSession && activeStep === 3 ? (
             <section className="landing-focus">
               <section className="card landing-card focus-card">
                 <header className="section-header">
                   <h2>Step 3. Chat with the agent</h2>
                   <p>
-                    Yes, this can feel more like GPT or Claude. Right now we&apos;re shaping the UX into a real
-                    chat-style interview, while the backend still uses the onboarding question system underneath.
+                    Yes, this is now shaped to behave like a real agent. You can answer naturally or ask follow-up
+                    questions, and the system will keep extracting onboarding context as it chats.
                   </p>
                 </header>
 
                 <div className="chat-shell">
                   <div className="chat-thread">
-                    <ChatMessage
-                      role="agent"
-                      title="Fedey agent"
-                      body={`I’ve read the role description for ${latestSession.brandName || latestSession.title}. I’m collecting only the details I still need before I start planning.`}
-                    />
-                    <ChatMessage
-                      role="agent"
-                      title="What I already know"
-                      body={`${latestSession.objective || "Your main objective is still being clarified"}. Primary platform: ${latestSession.primaryPlatform.toUpperCase()}. Review mode: ${latestSession.reviewMode}.`}
-                    />
-                    {latestSession.questions
-                      .filter((question) => question.answer)
-                      .map((question) => (
-                        <AnsweredQuestion key={question.id} question={question} />
-                      ))}
+                    {latestSession.chatMessages.length > 0 ? (
+                      latestSession.chatMessages.map((message) => (
+                        <ChatBubble key={message.id} message={message} />
+                      ))
+                    ) : (
+                      <ChatMessage
+                        role="assistant"
+                        title="Fedey agent"
+                        body={`I’ve read the role description for ${latestSession.brandName || latestSession.title}. I’m ready to learn the last details I need before I start working.`}
+                      />
+                    )}
+
                     {pendingQuestion ? (
-                      <>
-                        <ChatMessage role="agent" title="Next question" body={pendingQuestion.prompt} />
-                        <form className="chat-composer" action={onAnswerQuestion}>
-                          <input type="hidden" name="sessionId" value={latestSession.id} />
-                          <input type="hidden" name="questionId" value={pendingQuestion.id} />
-                          <input
-                            type="text"
-                            name="answer"
-                            placeholder="Type your answer to the agent"
-                            autoComplete="off"
-                          />
-                          <button type="submit">Send</button>
-                        </form>
-                      </>
+                      <p className="chat-helper">Current missing detail: {pendingQuestion.prompt}</p>
                     ) : (
                       <div className="chat-done">
                         <p className="item-title">The agent has what it needs for now.</p>
@@ -290,6 +313,17 @@ export function HiringShell({
                         </p>
                       </div>
                     )}
+
+                    <form className="chat-composer" action={onSendChatMessage}>
+                      <input type="hidden" name="sessionId" value={latestSession.id} />
+                      <input
+                        type="text"
+                        name="message"
+                        placeholder="Reply naturally or ask the agent a question"
+                        autoComplete="off"
+                      />
+                      <button type="submit">Send</button>
+                    </form>
                   </div>
 
                   <aside className="chat-sidebar">
@@ -299,6 +333,7 @@ export function HiringShell({
                         {latestSession.accountMode.toUpperCase()} account for {latestSession.primaryPlatform.toUpperCase()} first
                       </p>
                       <p className="onboarding-meta">Review mode: {latestSession.reviewMode}</p>
+                      <p className="onboarding-meta">Status: {latestSession.status}</p>
                     </div>
                     <form className="onboarding-answer-form" action={onUpdateReviewMode}>
                       <input type="hidden" name="sessionId" value={latestSession.id} />
@@ -325,13 +360,13 @@ export function HiringShell({
             </section>
           ) : null}
 
-          {activeStep === 4 ? (
+          {latestSession && activeStep === 4 ? (
             <section className="landing-focus">
               <section className="card landing-card focus-card">
                 <header className="section-header">
                   <h2>Step 4. Review and launch</h2>
                   <p>
-                    You can keep this hands-off or review the week-one plan before the agent starts. That choice stays
+                    You can keep this hands-off or review the first-week plan before the agent starts. That choice stays
                     yours at any time.
                   </p>
                 </header>
@@ -402,7 +437,7 @@ export function HiringShell({
                       <div key={`${latestSession.id}-${draft.draftId}`} className="onboarding-block">
                         <input type="hidden" name={`draftId-${index}`} value={draft.draftId} />
                         <label>
-                          Draft Channel
+                          Draft channel
                           <select name={`draftChannel-${index}`} defaultValue={draft.channel}>
                             <option value="x">X</option>
                             <option value="linkedin">LinkedIn</option>
@@ -481,14 +516,48 @@ export function HiringShell({
             </section>
           ) : null}
 
-          <section className="landing-footer-note">
-            <a className="landing-ops-link" href="/ops">
-              Open advanced workspace
-            </a>
-          </section>
+          {latestSession ? (
+            <section className="landing-footer-note">
+              <a className="landing-ops-link" href="/ops">
+                Open advanced workspace
+              </a>
+            </section>
+          ) : null}
         </>
       ) : null}
     </main>
+  );
+}
+
+function StatusCard({ label, value, meta }: { label: string; value: string; meta: string }) {
+  return (
+    <div className="status-card">
+      <p className="status-card-label">{label}</p>
+      <p className="status-card-value">{value}</p>
+      <p className="status-card-meta">{meta}</p>
+    </div>
+  );
+}
+
+function ConnectCard({
+  title,
+  description,
+  href,
+  cta
+}: {
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <div className="connect-card">
+      <p className="item-title">{title}</p>
+      <p className="item-subtitle">{description}</p>
+      <a className="integration-link" href={href}>
+        {cta}
+      </a>
+    </div>
   );
 }
 
@@ -501,7 +570,12 @@ function StepChip({ index, title, state }: { index: number; title: string; state
   );
 }
 
-function ChatMessage({ role, title, body }: { role: "agent" | "user"; title: string; body: string }) {
+function ChatBubble({ message }: { message: OnboardingChatMessage }) {
+  const role = message.role === "user" ? "user" : "assistant";
+  return <ChatMessage role={role} title={role === "user" ? "You" : "Fedey agent"} body={message.content} />;
+}
+
+function ChatMessage({ role, title, body }: { role: "assistant" | "user"; title: string; body: string }) {
   return (
     <div className={`chat-message chat-message-${role}`}>
       <p className="chat-title">{title}</p>
@@ -510,12 +584,14 @@ function ChatMessage({ role, title, body }: { role: "agent" | "user"; title: str
   );
 }
 
-function AnsweredQuestion({ question }: { question: OnboardingQuestion }) {
+function ActivityEntry({ entry }: { entry: OnboardingHistoryEntry }) {
   return (
-    <>
-      <ChatMessage role="agent" title="Fedey agent" body={question.prompt} />
-      <ChatMessage role="user" title="You" body={question.answer ?? ""} />
-    </>
+    <div className="activity-entry">
+      <p className="activity-entry-title">{entry.description}</p>
+      <p className="activity-entry-meta">
+        {entry.actor} · {formatTimestamp(entry.createdAt)}
+      </p>
+    </div>
   );
 }
 
@@ -527,15 +603,12 @@ function getActiveStep(
   if (!session) {
     return 1;
   }
-
   if (!xConnected && !linkedinConnected) {
     return 2;
   }
-
   if (session.questions.some((question) => !question.answer)) {
     return 3;
   }
-
   return 4;
 }
 
@@ -543,11 +616,9 @@ function getStepState(activeStep: number, step: number): StepState {
   if (step < activeStep) {
     return "complete";
   }
-
   if (step === activeStep) {
     return "current";
   }
-
   return "upcoming";
 }
 
@@ -555,7 +626,6 @@ function isSessionLive(session: OnboardingSession | undefined): boolean {
   if (!session) {
     return false;
   }
-
   return (
     session.approvalStatus === "approved" ||
     session.activation.drafts.some((draft) => draft.scheduleStatus === "scheduled" || draft.scheduleStatus === "published")
@@ -578,14 +648,11 @@ function getLiveStatus(input: {
     input.linkedinConnectionStatus.connected ? "LinkedIn" : null
   ].filter(Boolean) as string[];
 
-  const repliesWaiting = input.communityItems.filter((item) => item.status !== "replied").length;
-  const weeklyGrowthSummary = summarizeWeeklyGrowth(input.schedules);
-
   return {
     nextPost,
     connectedAccounts,
-    repliesWaiting,
-    weeklyGrowthSummary
+    repliesWaiting: input.communityItems.filter((item) => item.status !== "replied").length,
+    weeklyGrowthSummary: summarizeWeeklyGrowth(input.schedules)
   };
 }
 
@@ -595,27 +662,35 @@ function summarizeWeeklyGrowth(schedules: PublishingSchedule[]): string {
     if (!schedule.publishedAt) {
       return false;
     }
-
     return new Date(schedule.publishedAt).getTime() >= weekAgo;
   });
 
   if (recentPublished.length === 0) {
-    return "No published posts yet this week. The first performance summary will appear after the first live posts land.";
+    return "No published posts yet this week. The first performance summary appears after the first live posts land.";
   }
 
   const totalEngagement = recentPublished.reduce((sum, schedule) => {
     const latestPoint = schedule.timeline?.[schedule.timeline.length - 1];
     return sum + (latestPoint?.totalEngagement ?? 0);
   }, 0);
-
   const syncedPosts = recentPublished.filter((schedule) => (schedule.timeline?.length ?? 0) > 0).length;
-  return `${recentPublished.length} published posts, ${syncedPosts} with live engagement tracking, ${totalEngagement} total engagements captured so far.`;
+
+  return `${recentPublished.length} published posts, ${syncedPosts} with live tracking, ${totalEngagement} total engagements captured so far.`;
 }
 
 function formatSchedule(value: string): string {
   const scheduledAt = new Date(value);
   return scheduledAt.toLocaleString(undefined, {
     weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function formatTimestamp(value: string): string {
+  return new Date(value).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     hour: "2-digit",
