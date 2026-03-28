@@ -4,9 +4,11 @@ import {
   answerOnboardingQuestion,
   activateOnboardingSession,
   approveOnboardingSession,
+  getCommunityInbox,
   updateOnboardingActivationDrafts,
   updateOnboardingActivationPlan,
   getLinkedInConnectionStatus,
+  getPublishingSchedules,
   getXConnectionStatus,
   getOnboardingSessions,
   runOnboardingAudit,
@@ -16,10 +18,12 @@ import { revalidatePath } from "next/cache";
 
 export default async function HomePage() {
   const apiBaseUrl = process.env.FEDEY_API_URL ?? "http://localhost:8080";
-  const [xConnectionStatus, linkedinConnectionStatus, onboardingSessions] = await Promise.all([
+  const [xConnectionStatus, linkedinConnectionStatus, onboardingSessions, schedules, communityItems] = await Promise.all([
     getXConnectionStatus(),
     getLinkedInConnectionStatus(),
-    getOnboardingSessions()
+    getOnboardingSessions(),
+    getPublishingSchedules(),
+    getCommunityInbox()
   ]);
 
   async function handleCreateOnboardingSession(formData: FormData) {
@@ -196,6 +200,8 @@ export default async function HomePage() {
       xConnectUrl={`${apiBaseUrl}/v1/integrations/x/connect`}
       linkedinConnectUrl={`${apiBaseUrl}/v1/integrations/linkedin/connect`}
       sessions={onboardingSessions}
+      schedules={schedules}
+      communityItems={communityItems}
       onCreateSession={handleCreateOnboardingSession}
       onAnswerQuestion={handleAnswerOnboardingQuestion}
       onUpdateReviewMode={handleUpdateOnboardingReviewMode}
