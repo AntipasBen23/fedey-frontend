@@ -71,10 +71,50 @@ export default function AnalysisPage() {
   if (error) {
     return (
       <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center' }}>
-        <div style={{ padding: '2rem', background: '#ffebee', borderRadius: '16px', color: '#b71c1c' }}>
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => router.push("/hire")} style={{ padding: '0.8rem 1.5rem', marginTop: '1rem', borderRadius: '8px', border: 0, cursor: 'pointer' }}>Go Back</button>
+        <div className="hero animate-fade-in-up" style={{ 
+          padding: '3rem', 
+          maxWidth: '500px', 
+          background: 'linear-gradient(145deg, #fff5f5, #ffffff)', 
+          border: '1px solid #ffcccc', 
+          borderRadius: '24px',
+          boxShadow: '0 15px 35px rgba(255, 0, 0, 0.05)'
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+          <h2 style={{ color: '#c53030', margin: '0 0 1rem' }}>Analysis Interrupted</h2>
+          <p style={{ color: '#742a2a', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+            {error}
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <button 
+              onClick={() => router.push("/hire")} 
+              style={{ 
+                padding: '0.9rem 1.8rem', 
+                borderRadius: '12px', 
+                border: '1px solid #ffcccc', 
+                background: 'white',
+                color: '#c53030',
+                fontWeight: '600',
+                cursor: 'pointer' 
+              }}
+            >
+              Go Back
+            </button>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="btn-pulse"
+              style={{ 
+                padding: '0.9rem 1.8rem', 
+                borderRadius: '12px', 
+                border: 0, 
+                background: 'linear-gradient(180deg, #feb2b2, #f56565)',
+                color: 'white',
+                fontWeight: '700',
+                cursor: 'pointer' 
+              }}
+            >
+              Retry Analysis
+            </button>
+          </div>
         </div>
       </div>
     );
