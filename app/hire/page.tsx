@@ -1,8 +1,25 @@
 "use client";
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function HirePage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const text = formData.get("jobDescription") as string;
+    
+    // Pass via localStorage so analysis page can pick it up locally
+    localStorage.setItem("furciJobDescription", text);
+    
+    router.push("/analysis");
+  }
+
   return (
     <div className="page" style={{ 
       display: 'flex', 
@@ -29,7 +46,7 @@ export default function HirePage() {
           </p>
         </div>
         
-        <form className="onboarding-form" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <form className="onboarding-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ display: 'grid', gap: '0.8rem' }}>
             <label htmlFor="jobDescription" style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text)' }}>
               Job Description
@@ -52,6 +69,7 @@ export default function HirePage() {
                 boxShadow: 'inset 0 2px 10px rgba(90, 178, 255, 0.05)'
               }}
               required
+              disabled={loading}
             />
           </div>
           
@@ -71,14 +89,17 @@ export default function HirePage() {
                 border: '1px solid #b7dbff',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                pointerEvents: loading ? 'none' : 'auto',
+                opacity: loading ? 0.6 : 1
               }}
             >
               Back
             </Link>
             <button 
               type="submit"
-              className="btn-pulse"
+              className={loading ? "" : "btn-pulse"}
+              disabled={loading}
               style={{
                 flex: 2,
                 border: '0',
@@ -88,15 +109,12 @@ export default function HirePage() {
                 fontWeight: '700',
                 fontSize: '1.1rem',
                 background: 'linear-gradient(180deg, #8fd1ff, var(--primary-strong))',
-                cursor: 'pointer',
-                boxShadow: '0 10px 20px rgba(90, 178, 255, 0.2)'
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                alert("This will submit to the backend once implemented! Awesome job description.");
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 10px 20px rgba(90, 178, 255, 0.2)',
+                opacity: loading ? 0.7 : 1
               }}
             >
-              Start Autopilot
+              {loading ? "Preparing..." : "Start Autopilot"}
             </button>
           </div>
         </form>
