@@ -1,0 +1,58 @@
+"use client";
+
+import Link from "next/link";
+import { useAutopilot } from "../context/AutopilotContext";
+
+export function Header() {
+  const { isAutopilot, toggleAutopilot } = useAutopilot();
+
+  return (
+    <header style={{ 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      padding: '1rem 2rem', 
+      background: 'rgba(255, 255, 255, 0.8)', 
+      borderBottom: '1px solid var(--border)',
+      backdropFilter: 'blur(10px)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100
+    }}>
+      <Link href="/" style={{ textDecoration: 'none', color: 'var(--text)', fontSize: '1.2rem', fontWeight: 800 }}>
+        Furci<span style={{ color: 'var(--primary-strong)' }}>.ai</span>
+      </Link>
+      
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isAutopilot ? 'var(--primary-strong)' : 'var(--muted)' }}>
+          {isAutopilot ? "🚀 Autopilot Active" : "✋ Review Mode"}
+        </span>
+        <button 
+          onClick={toggleAutopilot}
+          style={{
+            width: '50px',
+            height: '26px',
+            borderRadius: '999px',
+            background: isAutopilot ? 'var(--primary-strong)' : '#e2e8f0',
+            border: 'none',
+            position: 'relative',
+            cursor: 'pointer',
+            transition: 'background 0.3s'
+          }}
+        >
+          <div style={{
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            background: '#fff',
+            position: 'absolute',
+            top: '3px',
+            left: isAutopilot ? '27px' : '3px',
+            transition: 'left 0.3s',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }} />
+        </button>
+      </div>
+    </header>
+  );
+}
