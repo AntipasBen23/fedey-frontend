@@ -1,12 +1,14 @@
 "use client";
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function ConnectPage() {
+  const router = useRouter();
   const platforms = [
-    { name: "Twitter (X)", icon: "🐦", color: "#1DA1F2", bg: "#e8f5fe" },
-    { name: "LinkedIn", icon: "💼", color: "#0A66C2", bg: "#e6f0f9" },
-    { name: "TikTok", icon: "🎵", color: "#000000", bg: "#e5e5e5" }
+    { id: "twitter", name: "Twitter (X)", icon: "🐦", color: "#1DA1F2", bg: "#e8f5fe" },
+    { id: "linkedin", name: "LinkedIn", icon: "💼", color: "#0A66C2", bg: "#e6f0f9" },
+    { id: "tiktok", name: "TikTok", icon: "🎵", color: "#000000", bg: "#e5e5e5" }
   ];
 
   return (
@@ -37,7 +39,8 @@ export default function ConnectPage() {
         <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'minmax(0, 1fr)' }}>
           {platforms.map((p) => (
             <button 
-              key={p.name}
+              key={p.id}
+              onClick={() => router.push(`/connect/${p.id}`)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -53,7 +56,6 @@ export default function ConnectPage() {
               }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              onClick={() => alert(`OAuth flow for ${p.name} would launch here!`)}
             >
               <span style={{ fontSize: '2rem' }}>{p.icon}</span>
               <span style={{ fontSize: '1.3rem', fontWeight: '700', color: p.color }}>{p.name}</span>
