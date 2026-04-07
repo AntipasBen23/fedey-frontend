@@ -1,195 +1,35 @@
-import { HiringShell } from "@/components/hiring-shell";
-import {
-  createOnboardingSession,
-  activateOnboardingSession,
-  approveOnboardingSession,
-  getCommunityInbox,
-  updateOnboardingActivationDrafts,
-  updateOnboardingActivationPlan,
-  getLinkedInConnectionStatus,
-  getPublishingSchedules,
-  getXConnectionStatus,
-  getOnboardingSessions,
-  runOnboardingAudit,
-  updateOnboardingReviewMode
-} from "@/lib/api/client";
-import { revalidatePath } from "next/cache";
+import Link from 'next/link';
 
-export default async function HomePage() {
-  const apiBaseUrl = process.env.FEDEY_API_URL ?? "http://localhost:8080";
-  const [xConnectionStatus, linkedinConnectionStatus, onboardingSessions, schedules, communityItems] = await Promise.all([
-    getXConnectionStatus(),
-    getLinkedInConnectionStatus(),
-    getOnboardingSessions(),
-    getPublishingSchedules(),
-    getCommunityInbox()
-  ]);
-
-  async function handleCreateOnboardingSession(formData: FormData) {
-    "use server";
-
-    const title = String(formData.get("title") ?? "").trim();
-    const accountMode = String(formData.get("accountMode") ?? "").trim();
-    const brandName = String(formData.get("brandName") ?? "").trim();
-    const primaryPlatform = String(formData.get("primaryPlatform") ?? "").trim();
-    const objective = String(formData.get("objective") ?? "").trim();
-    const audience = String(formData.get("audience") ?? "").trim();
-    const reviewMode = String(formData.get("reviewMode") ?? "").trim();
-    const constraints = String(formData.get("constraints") ?? "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    const jobDescription = String(formData.get("jobDescription") ?? "").trim();
-    if (!jobDescription || !accountMode) {
-      return;
-    }
-
-    await createOnboardingSession({
-      title,
-      accountMode,
-      brandName,
-      primaryPlatform,
-      objective,
-      audience,
-      constraints,
-      reviewMode,
-      jobDescription
-    });
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
-  async function handleRunOnboardingAudit(formData: FormData) {
-    "use server";
-
-    const sessionId = String(formData.get("sessionId") ?? "").trim();
-    if (!sessionId) {
-      return;
-    }
-
-    await runOnboardingAudit(sessionId);
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
-  async function handleUpdateOnboardingReviewMode(formData: FormData) {
-    "use server";
-
-    const sessionId = String(formData.get("sessionId") ?? "").trim();
-    const reviewMode = String(formData.get("reviewMode") ?? "").trim();
-    if (!sessionId || !reviewMode) {
-      return;
-    }
-
-    await updateOnboardingReviewMode({
-      sessionId,
-      reviewMode
-    });
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
-  async function handleActivateOnboardingSession(formData: FormData) {
-    "use server";
-
-    const sessionId = String(formData.get("sessionId") ?? "").trim();
-    if (!sessionId) {
-      return;
-    }
-
-    await activateOnboardingSession(sessionId);
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
-  async function handleUpdateOnboardingActivationPlan(formData: FormData) {
-    "use server";
-
-    const sessionId = String(formData.get("sessionId") ?? "").trim();
-    const itemCount = Number(String(formData.get("itemCount") ?? "0").trim());
-    if (!sessionId || Number.isNaN(itemCount) || itemCount <= 0) {
-      return;
-    }
-
-    const weekPlan = Array.from({ length: itemCount }, (_, index) => ({
-      day: String(formData.get(`day-${index}`) ?? "").trim(),
-      channel: String(formData.get(`channel-${index}`) ?? "").trim(),
-      focus: String(formData.get(`focus-${index}`) ?? "").trim(),
-      format: String(formData.get(`format-${index}`) ?? "").trim(),
-      hypothesis: String(formData.get(`hypothesis-${index}`) ?? "").trim()
-    })).filter((item) => item.day && item.channel && item.focus && item.format && item.hypothesis);
-
-    if (weekPlan.length === 0) {
-      return;
-    }
-
-    await updateOnboardingActivationPlan({
-      sessionId,
-      weekPlan
-    });
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
-  async function handleUpdateOnboardingActivationDrafts(formData: FormData) {
-    "use server";
-
-    const sessionId = String(formData.get("sessionId") ?? "").trim();
-    const draftCount = Number(String(formData.get("draftCount") ?? "0").trim());
-    if (!sessionId || Number.isNaN(draftCount) || draftCount <= 0) {
-      return;
-    }
-
-    const drafts = Array.from({ length: draftCount }, (_, index) => ({
-      draftId: String(formData.get(`draftId-${index}`) ?? "").trim(),
-      channel: String(formData.get(`draftChannel-${index}`) ?? "").trim(),
-      hook: String(formData.get(`draftHook-${index}`) ?? "").trim(),
-      body: String(formData.get(`draftBody-${index}`) ?? "").trim(),
-      rationale: String(formData.get(`draftRationale-${index}`) ?? "").trim()
-    })).filter((item) => item.draftId && item.hook && item.body);
-
-    if (drafts.length === 0) {
-      return;
-    }
-
-    await updateOnboardingActivationDrafts({
-      sessionId,
-      drafts
-    });
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
-  async function handleApproveOnboardingSession(formData: FormData) {
-    "use server";
-
-    const sessionId = String(formData.get("sessionId") ?? "").trim();
-    if (!sessionId) {
-      return;
-    }
-
-    await approveOnboardingSession(sessionId);
-    revalidatePath("/");
-    revalidatePath("/ops");
-  }
-
+export default function HomePage() {
   return (
-    <HiringShell
-      apiBaseUrl={apiBaseUrl}
-      xConnectionStatus={xConnectionStatus}
-      linkedinConnectionStatus={linkedinConnectionStatus}
-      xConnectUrl={`${apiBaseUrl}/v1/integrations/x/connect`}
-      linkedinConnectUrl={`${apiBaseUrl}/v1/integrations/linkedin/connect`}
-      sessions={onboardingSessions}
-      schedules={schedules}
-      communityItems={communityItems}
-      onCreateSession={handleCreateOnboardingSession}
-      onUpdateReviewMode={handleUpdateOnboardingReviewMode}
-      onRunAudit={handleRunOnboardingAudit}
-      onActivate={handleActivateOnboardingSession}
-      onUpdateActivationPlan={handleUpdateOnboardingActivationPlan}
-      onUpdateActivationDrafts={handleUpdateOnboardingActivationDrafts}
-      onApprove={handleApproveOnboardingSession}
-    />
+    <div className="landing-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center' }}>
+      <div className="hero animate-fade-in-up" style={{ padding: '4rem 2rem', maxWidth: '800px', width: '100%', marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', lineHeight: '1.1', color: 'var(--text)', marginBottom: '1.5rem' }}>
+          Hi, I am Furci <span className="animate-float">🤖</span><br />
+          <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', color: 'var(--primary-strong)', display: 'block', marginTop: '0.5rem' }}>your professional social media manager.</span>
+        </h1>
+        <p style={{ fontSize: '1.2rem', color: 'var(--muted)', margin: '0 auto 2.5rem', maxWidth: '60ch' }}>
+          I handle your content, community, and strategy seamlessly—entirely on autopilot. 
+          Ready to scale your online presence to new heights?
+        </p>
+        <Link 
+          href="/hire" 
+          className="btn-pulse"
+          style={{
+            display: 'inline-block',
+            padding: '1.2rem 3.5rem',
+            fontSize: '1.3rem',
+            fontWeight: '700',
+            color: '#05345a',
+            background: 'linear-gradient(180deg, #8fd1ff, var(--primary-strong))',
+            borderRadius: '999px',
+            textDecoration: 'none',
+            transition: 'transform 0.2s',
+          }}
+        >
+          Hire me
+        </Link>
+      </div>
+    </div>
   );
 }

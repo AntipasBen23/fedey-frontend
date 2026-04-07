@@ -1023,3 +1023,33 @@ body {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* Furci Flow Animations */
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float-emoji {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(10deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(90, 178, 255, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(90, 178, 255, 0.8); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.animate-float {
+  display: inline-block;
+  animation: float-emoji 3s ease-in-out infinite;
+}
+
+.btn-pulse {
+  animation: pulse-glow 2s infinite;
+}
+
