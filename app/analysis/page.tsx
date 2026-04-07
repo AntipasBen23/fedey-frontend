@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { analyzeJobDescription } from "@/app/actions/analyze";
 
 type StrategyReport = {
   summary: string;
@@ -42,8 +41,22 @@ export default function AnalysisPage() {
           }
         }, 1500);
 
-        // Actual API call
-        const result = await analyzeJobDescription(textToAnalyze);
+        // Actual API call to live backend
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const response = await fetch(`${apiUrl}/v1/analyze`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ jobDescription: textToAnalyze }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to analyze job description");
+        }
+
+        const result = await response.json();
         
         clearInterval(interval);
         setReport(result as StrategyReport);
@@ -53,7 +66,7 @@ export default function AnalysisPage() {
     };
 
     doAnalysis();
-  }, []);
+  }, [router]);
 
   if (error) {
     return (
