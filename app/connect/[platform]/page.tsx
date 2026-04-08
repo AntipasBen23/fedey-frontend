@@ -35,11 +35,8 @@ export default function PlatformContextPage() {
     // Save selection
     localStorage.setItem(`furci_${platform}_context`, accountType);
     
-    // Proceed to actual Auth (Mocked for now until keys are added)
-    alert(`Redirecting to ${displayName} OAuth Login...\n(Note: This will require your Client ID/Secret in .env)`);
-    
-    // In a real flow, this would trigger signIn(platform) via NextAuth
-    // router.push('/strategy'); // Lead them to strategy after "auth"
+    // Proceed to Strategy page
+    router.push('/strategy');
   };
 
   return (
