@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAutopilot } from "@/app/context/AutopilotContext";
 import Link from "next/link";
 import SuccessModal from "@/components/SuccessModal";
+import SchedulingHub from "@/components/SchedulingHub";
 
 type CalendarItem = {
   day: number;
@@ -24,6 +25,7 @@ export default function CalendarGeneratePage() {
   const [revising, setRevising] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [showHub, setShowHub] = useState(false);
 
   useEffect(() => {
     const fetchCalendar = async () => {
@@ -83,16 +85,22 @@ export default function CalendarGeneratePage() {
     }
   };
 
-  const handleApprove = async () => {
+  const handleApprove = async (settings: any) => {
     setIsApproving(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
       const response = await fetch(`${apiUrl}/v1/calendar/approve`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schedulingMode: settings.mode,
+          staggerStrategy: settings.stagger
+        })
       });
 
       if (!response.ok) throw new Error("Failed to approve calendar");
       
+      setShowHub(false);
       setShowSuccess(true);
     } catch (err: any) {
       alert(err.message);
@@ -118,6 +126,13 @@ export default function CalendarGeneratePage() {
         onClose={() => setShowSuccess(false)} 
         title="Calendar Scheduled! 🚀" 
         message="Furci has successfully queued your 3-day content runway. Your dashboard is now active."
+      />
+
+      <SchedulingHub 
+        isOpen={showHub}
+        onConfirm={handleApprove}
+        onCancel={() => setShowHub(false)}
+        isApproving={isApproving}
       />
 
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
@@ -183,8 +198,7 @@ export default function CalendarGeneratePage() {
 
       <div style={{ marginTop: '4rem', textAlign: 'center' }}>
         <button
-          onClick={handleApprove}
-          disabled={isApproving}
+          onClick={() => setShowHub(true)}
           className="btn-pulse"
           style={{
             border: '0',
@@ -195,11 +209,10 @@ export default function CalendarGeneratePage() {
             fontSize: '1.5rem',
             background: 'linear-gradient(180deg, #8fd1ff, var(--primary-strong))',
             cursor: 'pointer',
-            boxShadow: '0 15px 40px rgba(90, 178, 255, 0.3)',
-            opacity: isApproving ? 0.7 : 1
+            boxShadow: '0 15px 40px rgba(90, 178, 255, 0.3)'
           }}
         >
-          {isApproving ? "Scheduling..." : "Approve & Start Scheduling"}
+          Approve & Configure Schedule
         </button>
       </div>
     </div>
