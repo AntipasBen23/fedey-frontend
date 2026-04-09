@@ -9,7 +9,7 @@ export default function HomePage() {
           <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', color: 'var(--primary-strong)', display: 'block', marginTop: '0.5rem' }}>your professional social media manager.</span>
         </h1>
         <p style={{ fontSize: '1.2rem', color: 'var(--muted)', margin: '0 auto 2.5rem', maxWidth: '60ch' }}>
-          I handle your content, community, and strategy seamlessly—entirely on autopilot. 
+          I handle your content, community, and strategy seamlessly entirely on autopilot. 
           Ready to scale your online presence to new heights?
         </p>
         <Link 
