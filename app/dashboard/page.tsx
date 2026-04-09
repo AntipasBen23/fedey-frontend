@@ -21,6 +21,7 @@ type DashboardData = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { data: session } = useSession() as any;
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
