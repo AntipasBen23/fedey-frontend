@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAutopilot } from "@/app/context/AutopilotContext";
 import Link from "next/link";
+import SuccessModal from "@/components/SuccessModal";
 
 type CalendarItem = {
   day: number;
@@ -21,6 +22,8 @@ export default function CalendarGeneratePage() {
   const [error, setError] = useState<string | null>(null);
   const [revisionFeedback, setRevisionFeedback] = useState("");
   const [revising, setRevising] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
 
   useEffect(() => {
     const fetchCalendar = async () => {
@@ -80,22 +83,47 @@ export default function CalendarGeneratePage() {
     }
   };
 
+  const handleApprove = async () => {
+    setIsApproving(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const response = await fetch(`${apiUrl}/v1/calendar/approve`, {
+        method: "POST",
+      });
+
+      if (!response.ok) throw new Error("Failed to approve calendar");
+      
+      setShowSuccess(true);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
         <div className="animate-float" style={{ fontSize: '4rem', marginBottom: '1rem' }}>📅</div>
-        <h2 style={{ color: 'var(--text)', fontSize: '2rem' }}>Drafting 14-Day Calendar...</h2>
-        <p style={{ color: 'var(--muted)' }}>Crafting hooks and content for your brand presence.</p>
+        <h2 style={{ color: 'var(--text)', fontSize: '2rem' }}>Drafting your 3-Day Trial...</h2>
+        <p style={{ color: 'var(--muted)' }}>Crafting hooks and content for your initial brand presence.</p>
       </div>
     );
   }
 
   return (
     <div className="page" style={{ padding: '3rem 1rem', maxWidth: '1100px', margin: '0 auto' }}>
+      <SuccessModal 
+        isOpen={showSuccess} 
+        onClose={() => setShowSuccess(false)} 
+        title="Calendar Scheduled! 🚀" 
+        message="Furci has successfully queued your 3-day content runway. Your dashboard is now active."
+      />
+
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.5rem', color: 'var(--text)', margin: '0' }}>14-Day Content Plan 🗓️</h1>
+        <h1 style={{ fontSize: '2.5rem', color: 'var(--text)', margin: '0' }}>3-Day Growth Runway 🗓️</h1>
         <p style={{ color: 'var(--muted)', fontSize: '1.2rem', marginTop: '0.5rem' }}>
-           Review, edit, and approve your initial content runway.
+           Review, edit, and approve your initial content trial.
         </p>
       </div>
 
@@ -155,7 +183,8 @@ export default function CalendarGeneratePage() {
 
       <div style={{ marginTop: '4rem', textAlign: 'center' }}>
         <button
-          onClick={() => alert("Calendar Approved! Posts would now be scheduled.")}
+          onClick={handleApprove}
+          disabled={isApproving}
           className="btn-pulse"
           style={{
             border: '0',
@@ -166,10 +195,11 @@ export default function CalendarGeneratePage() {
             fontSize: '1.5rem',
             background: 'linear-gradient(180deg, #8fd1ff, var(--primary-strong))',
             cursor: 'pointer',
-            boxShadow: '0 15px 40px rgba(90, 178, 255, 0.3)'
+            boxShadow: '0 15px 40px rgba(90, 178, 255, 0.3)',
+            opacity: isApproving ? 0.7 : 1
           }}
         >
-          Approve & Start Scheduling
+          {isApproving ? "Scheduling..." : "Approve & Start Scheduling"}
         </button>
       </div>
     </div>
