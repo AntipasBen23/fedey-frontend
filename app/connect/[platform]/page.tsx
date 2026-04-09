@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function PlatformContextPage() {
   const params = useParams();
@@ -16,7 +17,6 @@ export default function PlatformContextPage() {
     // Attempt to get product name from local storage analysis
     const stored = localStorage.getItem("furciJobDescription");
     if (stored) {
-      // Very simple extraction for display
       setProductName("your project");
     }
   }, []);
@@ -29,14 +29,14 @@ export default function PlatformContextPage() {
 
   const displayName = platformNames[platform] || platform;
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
     if (!accountType) return;
     
     // Save selection
     localStorage.setItem(`furci_${platform}_context`, accountType);
     
-    // Proceed to Strategy page
-    router.push('/strategy');
+    // Trigger real Auth flow
+    await signIn(platform, { callbackUrl: "/strategy" });
   };
 
   return (

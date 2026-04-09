@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type StrategyDetail = {
   trendMonitoring: string[];
@@ -11,9 +12,11 @@ type StrategyDetail = {
 
 export default function StrategyPage() {
   const router = useRouter();
+  const { data: session } = useSession() as any;
   const [strategy, setStrategy] = useState<StrategyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     const fetchStrategy = async () => {
@@ -21,6 +24,7 @@ export default function StrategyPage() {
         const productSummary = localStorage.getItem("furciJobDescription") || "your product";
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
         
+        // 1. Generate Strategy
         const response = await fetch(`${apiUrl}/v1/strategy`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -31,6 +35,24 @@ export default function StrategyPage() {
 
         const data = await response.json();
         setStrategy(data);
+
+        // 2. Handoff Token to Backend if session exists
+        if (session?.accessToken) {
+          setIsSyncing(true);
+          const platform = session.platform as string;
+          const accountType = localStorage.getItem(`furci_${platform}_context`) || "new";
+
+          await fetch(`${apiUrl}/v1/auth/callback`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              accessToken: session.accessToken,
+              platform: platform,
+              accountType: accountType
+            }),
+          });
+          setIsSyncing(false);
+        }
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -39,7 +61,7 @@ export default function StrategyPage() {
     };
 
     fetchStrategy();
-  }, []);
+  }, [session]);
 
   if (loading) {
     return (

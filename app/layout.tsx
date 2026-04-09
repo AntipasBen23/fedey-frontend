@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AutopilotProvider } from "./context/AutopilotContext";
 import { Header } from "./components/Header";
+import SessionWrapper from "./components/SessionWrapper";
 
 export const metadata: Metadata = {
   title: "Fedey",
@@ -16,10 +17,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
-        <AutopilotProvider>
-          <Header />
-          {children}
-        </AutopilotProvider>
+        <SessionWrapper>
+          <AutopilotProvider>
+            <Header />
+            {children}
+          </AutopilotProvider>
+        </SessionWrapper>
       </body>
     </html>
   );
