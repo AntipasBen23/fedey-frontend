@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 type StrategyDetail = {
+  identityAudit: string;
   trendMonitoring: string[];
   growthExperiments: string[];
   analyticsReporting: string[];
@@ -17,6 +18,7 @@ export default function StrategyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   useEffect(() => {
     const fetchStrategy = async () => {
@@ -24,11 +26,19 @@ export default function StrategyPage() {
         const productSummary = localStorage.getItem("furciJobDescription") || "your product";
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
         
-        // 1. Generate Strategy
+        // 1. Identify Platform and Context
+        const platform = session?.platform || "twitter";
+        const accountType = localStorage.getItem(`furci_${platform}_context`) || "new";
+
+        // 2. Generate Strategy with Audit
         const response = await fetch(`${apiUrl}/v1/strategy`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productSummary }),
+          body: JSON.stringify({ 
+            productSummary,
+            platform: platform,
+            accountType: accountType
+          }),
         });
 
         if (!response.ok) throw new Error("Failed to generate professional strategy");
@@ -63,12 +73,32 @@ export default function StrategyPage() {
     fetchStrategy();
   }, [session]);
 
+  const handleDisconnect = async () => {
+    if (!confirm("Are you sure you want to disconnect your account? This will wipe your tokens.")) return;
+    
+    setIsDisconnecting(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      await fetch(`${apiUrl}/v1/auth/disconnect`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform: session?.platform || "twitter" }),
+      });
+      
+      await signOut({ callbackUrl: "/connect" });
+    } catch (err) {
+      alert("Failed to disconnect correctly. Please try again.");
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-        <div className="animate-float" style={{ fontSize: '4rem', marginBottom: '1rem' }}>🧠</div>
-        <h2 style={{ color: 'var(--text)', fontSize: '2rem' }}>Building Growth Strategy...</h2>
-        <p style={{ color: 'var(--muted)' }}>Analyzing trends and growth experiments for your brand.</p>
+        <div className="animate-float" style={{ fontSize: '4rem', marginBottom: '1rem' }}>👁️</div>
+        <h2 style={{ color: 'var(--text)', fontSize: '2rem' }}>Furci is auditing your profile...</h2>
+        <p style={{ color: 'var(--muted)' }}>Analyzing your identity gap and preparing your pivot strategy.</p>
       </div>
     );
   }
@@ -85,7 +115,27 @@ export default function StrategyPage() {
 
   return (
     <div className="page" style={{ padding: '3rem 1rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '4rem', position: 'relative' }}>
+        <button 
+           onClick={handleDisconnect}
+           disabled={isDisconnecting}
+           style={{
+             position: 'absolute',
+             right: 0,
+             top: 0,
+             padding: '0.6rem 1rem',
+             borderRadius: '10px',
+             background: '#fff0f0',
+             border: '1px solid #ffcccc',
+             color: '#c53030',
+             fontSize: '0.8rem',
+             fontWeight: '700',
+             cursor: 'pointer'
+           }}
+        >
+          {isDisconnecting ? "Disconnecting..." : "Disconnect Account"}
+        </button>
+
         <h1 style={{ fontSize: '3rem', color: 'var(--text)', margin: '0 0 0.5rem' }}>Growth Engine Strategy ⚡</h1>
         <p style={{ color: 'var(--muted)', fontSize: '1.2rem', margin: 0 }}>
           Professional tactics designed to scale your presence autonomously.
@@ -93,6 +143,20 @@ export default function StrategyPage() {
       </div>
 
       <div style={{ display: 'grid', gap: '3rem' }}>
+        {/* Identity Audit Section */}
+        <div className="brand-card shadow-premium" style={{ 
+          padding: '2.5rem', 
+          borderRadius: '32px', 
+          background: 'linear-gradient(160deg, #fff9f0, #ffffff)',
+          border: '2px solid #ffead1' 
+        }}>
+          <h3 style={{ margin: '0 0 1rem', color: '#b25e09', fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <span>🕵️‍♂️</span> Identity Audit (Eyes On)
+          </h3>
+          <p style={{ fontSize: '1.2rem', lineHeight: '1.7', color: '#5f442b', margin: 0 }}>
+            {strategy.identityAudit}
+          </p>
+        </div>
         {/* Trend Monitoring */}
         <div className="brand-card" style={{ padding: '2.5rem', borderRadius: '24px', border: '1px solid var(--border)' }}>
           <h3 style={{ margin: '0 0 1.5rem', color: '#0c4e7b', fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
