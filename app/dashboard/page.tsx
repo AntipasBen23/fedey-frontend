@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import TrendingWidget from "@/components/TrendingWidget";
+import ReactionModal from "@/components/ReactionModal";
 
 type DashboardData = {
   calendar: any[];
@@ -27,6 +29,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [autopilot, setAutopilot] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+
+  // Trend Reaction State
+  const [selectedTrend, setSelectedTrend] = useState("");
+  const [trendReaction, setTrendReaction] = useState("");
+  const [loadingReaction, setLoadingReaction] = useState(false);
+  const [showReactionModal, setShowReactionModal] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -102,6 +110,47 @@ export default function DashboardPage() {
     }).format(d);
   };
 
+  const handleTrendReact = async (topic: string) => {
+    setSelectedTrend(topic);
+    setShowReactionModal(true);
+    setLoadingReaction(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const response = await fetch(`${apiUrl}/v1/trends/react`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic }),
+      });
+      if (!response.ok) throw new Error("Failed to generate take");
+      const json = await response.json();
+      setTrendReaction(json.reaction);
+    } catch (err) {
+      alert("Error generating trend reaction");
+    } finally {
+      setLoadingReaction(false);
+    }
+  };
+
+  const handleTrendApprove = async (content: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const response = await fetch(`${apiUrl}/v1/trends/react/schedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            content,
+            platform: session?.platform || "twitter"
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to schedule");
+      alert("Reaction scheduled! Heading to your queue...");
+      setShowReactionModal(false);
+      window.location.reload(); // Refresh to see the new item in queue
+    } catch (err) {
+      alert("Error scheduling reaction");
+    }
+  };
+
   if (loading) {
     return <div className="page center"><h2>Furci is preparing your command center...</h2></div>;
   }
@@ -132,6 +181,15 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <ReactionModal 
+        isOpen={showReactionModal}
+        onClose={() => setShowReactionModal(false)}
+        topic={selectedTrend}
+        reaction={trendReaction}
+        loading={loadingReaction}
+        onApprove={handleTrendApprove}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
         {/* Main Column: Content Queue */}
@@ -178,8 +236,10 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Sidebar: Widgets & Settings */}
         <aside style={{ display: 'grid', gap: '2rem', height: 'fit-content' }}>
+          {/* Trending Widget */}
+          <TrendingWidget onReact={handleTrendReact} />
+          
           {/* Identity Widget */}
           <div className="card highlight-border" style={{ padding: '2rem', borderRadius: '24px', background: '#fff9f0' }}>
              <h4 style={{ color: '#b25e09', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -196,6 +256,28 @@ export default function DashboardPage() {
              <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
                 Furci will post automatically to your connected accounts.
              </p>
+
+              <button 
+                onClick={() => router.push("/analytics")}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  background: '#f0f7ff',
+                  border: '2px solid var(--primary-strong)',
+                  color: 'var(--primary-strong)',
+                  borderRadius: '16px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                Detailed Impact Analytics 📊
+              </button>
+
              <div 
                onClick={toggleAutopilot}
                style={{ 
