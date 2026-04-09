@@ -96,7 +96,7 @@ export default function StrategyPage() {
     }
   };
 
-  const handleRefine = async () => {
+  const handleRefine = async (mode: "merge" | "replace") => {
     if (!refinementFeedback.trim()) return;
     setIsRevising(true);
     try {
@@ -109,7 +109,8 @@ export default function StrategyPage() {
         body: JSON.stringify({ 
           currentStrategy: strategy,
           feedback: refinementFeedback,
-          productSummary
+          productSummary,
+          refineMode: mode
         }),
       });
 
@@ -283,23 +284,60 @@ export default function StrategyPage() {
               placeholder="Your improvements and corrections here..."
               style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #bfe4ff', minHeight: '120px', fontSize: '1rem', marginBottom: '1.5rem', resize: 'vertical' }}
             />
-            <button
-               onClick={handleRefine}
-               disabled={isRevising || !refinementFeedback.trim()}
-               style={{
-                 width: '100%',
-                 padding: '1rem',
-                 borderRadius: '12px',
-                 background: 'var(--primary-strong)',
-                 color: 'white',
-                 fontWeight: '700',
-                 border: 0,
-                 cursor: 'pointer',
-                 opacity: isRevising ? 0.6 : 1
-               }}
-            >
-              {isRevising ? "Refining Strategy..." : "Update Strategy ✨"}
-            </button>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <button
+                onClick={() => handleRefine("replace")}
+                disabled={isRevising || !refinementFeedback.trim()}
+                style={{
+                  padding: '1.2rem',
+                  borderRadius: '16px',
+                  background: 'white',
+                  border: '2px solid #ffcccc',
+                  color: '#c53030',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  opacity: isRevising ? 0.6 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ fontSize: '1.5rem' }}>🔄</span>
+                <span>Replace Entirely</span>
+                <span style={{ fontSize: '0.7rem', fontWeight: 400, opacity: 0.7 }}>Discard old ideas & start fresh</span>
+              </button>
+
+              <button
+                onClick={() => handleRefine("merge")}
+                disabled={isRevising || !refinementFeedback.trim()}
+                style={{
+                  padding: '1.2rem',
+                  borderRadius: '16px',
+                  background: 'white',
+                  border: '2px solid #bfe4ff',
+                  color: 'var(--primary-strong)',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  opacity: isRevising ? 0.6 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span style={{ fontSize: '1.5rem' }}>🤝</span>
+                <span>Merge & Improve</span>
+                <span style={{ fontSize: '0.7rem', fontWeight: 400, opacity: 0.7 }}>Build on current strategy</span>
+              </button>
+            </div>
+
+            {isRevising && (
+              <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--primary-strong)', fontWeight: '600' }} className="animate-pulse">
+                Furci is reshaping your strategy...
+              </p>
+            )}
           </div>
         )}
       </div>
