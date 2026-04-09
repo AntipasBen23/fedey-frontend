@@ -69,6 +69,38 @@ export default function DashboardPage() {
     }
   };
 
+  const disconnectAccount = async (platform: string) => {
+    if (!window.confirm(`⚠️ Are you sure you want to disconnect Furci from ${platform.toUpperCase()}? This will wipe your tokens and stop all scheduled posts.`)) {
+      return;
+    }
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const response = await fetch(`${apiUrl}/v1/auth/disconnect`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform }),
+      });
+
+      if (!response.ok) throw new Error("Failed to disconnect");
+      
+      router.push("/");
+    } catch (err) {
+      alert("Error disconnecting account");
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(d);
+  };
+
   if (loading) {
     return <div className="page center"><h2>Furci is preparing your command center...</h2></div>;
   }
@@ -121,17 +153,20 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gap: '1rem' }}>
             {data.calendar.length > 0 ? data.calendar.map((item, i) => (
               <div key={i} className="queue-item card" style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', borderRadius: '20px', alignItems: 'center' }}>
-                <div style={{ textAlign: 'center', minWidth: '60px', padding: '0.5rem', background: '#f0f7ff', borderRadius: '12px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary-strong)' }}>DAY</span>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 900 }}>{item.day}</div>
+                <div style={{ textAlign: 'center', minWidth: '80px', padding: '0.8rem', background: '#f0f7ff', borderRadius: '16px' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary-strong)', display: 'block' }}>SCHEDULED</span>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 900, marginTop: '0.2rem' }}>{formatDate(item.scheduledAt)}</div>
                 </div>
                 <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, marginBottom: '0.3rem', color: '#093f67' }}>{item.hook}</div>
-                    <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 0 }}>{item.content.substring(0, 100)}...</p>
+                    <div style={{ fontWeight: 700, marginBottom: '0.3rem', color: '#093f67' }}>{item.content.split('\n')[0]}</div>
+                    <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 0 }}>{item.content.substring(0, 120)}...</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <span className="badge" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>{item.media}</span>
-                    <div style={{ fontSize: '0.8rem', color: 'green', fontWeight: 700 }}>● Scheduled</div>
+                    <span className="badge" style={{ marginBottom: '0.5rem', display: 'inline-block', textTransform: 'uppercase' }}>{item.platform}</span>
+                    <div style={{ fontSize: '0.75rem', color: '#5ec26a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <span style={{ width: '8px', height: '8px', background: '#5ec26a', borderRadius: '50%' }}></span>
+                        QUEUED
+                    </div>
                 </div>
               </div>
             )) : (
@@ -172,7 +207,8 @@ export default function DashboardPage() {
                  transition: 'all 0.3s ease',
                  display: 'flex',
                  alignItems: 'center',
-                 padding: '0 5px'
+                 padding: '0 5px',
+                 marginBottom: '1rem'
                }}
              >
                 <div style={{ 
@@ -203,6 +239,31 @@ export default function DashboardPage() {
                     </span>
                 )}
              </div>
+
+             <button 
+               onClick={() => disconnectAccount(session?.platform || "twitter")}
+               style={{
+                 width: '100%',
+                 padding: '1rem',
+                 background: 'transparent',
+                 border: '2px solid #ff4d4d',
+                 color: '#ff4d4d',
+                 borderRadius: '16px',
+                 fontWeight: 800,
+                 cursor: 'pointer',
+                 transition: 'all 0.2s ease'
+               }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.background = '#ff4d4d';
+                 e.currentTarget.style.color = 'white';
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.background = 'transparent';
+                 e.currentTarget.style.color = '#ff4d4d';
+               }}
+             >
+                Disconnect Account ✋
+             </button>
           </div>
 
           {/* Upgrade Card */}
