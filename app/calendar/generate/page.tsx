@@ -6,6 +6,7 @@ import { useAutopilot } from "@/app/context/AutopilotContext";
 import Link from "next/link";
 import SuccessModal from "@/components/SuccessModal";
 import SchedulingHub from "@/components/SchedulingHub";
+import ErrorModal from "@/components/ErrorModal";
 
 type CalendarItem = {
   day: number;
@@ -26,6 +27,8 @@ export default function CalendarGeneratePage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [showHub, setShowHub] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     const fetchCalendar = async () => {
@@ -106,7 +109,8 @@ export default function CalendarGeneratePage() {
       setShowHub(false);
       setShowSuccess(true);
     } catch (err: any) {
-      alert(err.message);
+      setErrorMsg(err.message);
+      setShowError(true);
     } finally {
       setIsApproving(false);
     }
@@ -136,6 +140,13 @@ export default function CalendarGeneratePage() {
         onConfirm={handleApprove}
         onCancel={() => setShowHub(false)}
         isApproving={isApproving}
+      />
+
+      <ErrorModal 
+        isOpen={showError} 
+        onClose={() => setShowError(false)} 
+        title="Scheduling Blocked 🛑" 
+        message={errorMsg}
       />
 
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
