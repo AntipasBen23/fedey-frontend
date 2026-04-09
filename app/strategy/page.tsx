@@ -19,6 +19,9 @@ export default function StrategyPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [showRefinementUI, setShowRefinementUI] = useState(false);
+  const [refinementFeedback, setRefinementFeedback] = useState("");
+  const [isRevising, setIsRevising] = useState(false);
 
   useEffect(() => {
     const fetchStrategy = async () => {
@@ -90,6 +93,36 @@ export default function StrategyPage() {
       alert("Failed to disconnect correctly. Please try again.");
     } finally {
       setIsDisconnecting(false);
+    }
+  };
+
+  const handleRefine = async () => {
+    if (!refinementFeedback.trim()) return;
+    setIsRevising(true);
+    try {
+      const productSummary = localStorage.getItem("furciJobDescription") || "your product";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      
+      const response = await fetch(`${apiUrl}/v1/strategy/refine`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          currentStrategy: strategy,
+          feedback: refinementFeedback,
+          productSummary
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to refine strategy");
+
+      const data = await response.json();
+      setStrategy(data);
+      setShowRefinementUI(false);
+      setRefinementFeedback("");
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsRevising(false);
     }
   };
 
@@ -201,24 +234,74 @@ export default function StrategyPage() {
         </div>
       </div>
 
-      <div style={{ marginTop: '5rem', textAlign: 'center' }}>
-        <button
-          onClick={() => router.push("/calendar/generate")}
-          className="btn-pulse"
-          style={{
-            border: '0',
-            borderRadius: '999px',
-            padding: '1.5rem 4rem',
-            color: '#05345a',
-            fontWeight: '800',
-            fontSize: '1.4rem',
-            background: 'linear-gradient(180deg, #8fd1ff, var(--primary-strong))',
-            cursor: 'pointer',
-            boxShadow: '0 15px 40px rgba(90, 178, 255, 0.3)'
-          }}
-        >
-          Approve Strategy & Generate Calendar
-        </button>
+      <div style={{ marginTop: '5rem', display: 'flex', gap: '2rem', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <button
+            onClick={() => router.push("/calendar/generate")}
+            className="btn-pulse"
+            style={{
+              border: '0',
+              borderRadius: '999px',
+              padding: '1.2rem 4rem',
+              color: '#05345a',
+              fontWeight: '800',
+              fontSize: '1.2rem',
+              background: 'linear-gradient(180deg, #8fd1ff, var(--primary-strong))',
+              cursor: 'pointer',
+              boxShadow: '0 15px 40px rgba(90, 178, 255, 0.3)'
+            }}
+          >
+            Approve Strategy & Generate Calendar
+          </button>
+
+          <button
+            onClick={() => setShowRefinementUI(!showRefinementUI)}
+            style={{
+              border: '2px solid #cfe6ff',
+              borderRadius: '999px',
+              padding: '1.2rem 3rem',
+              color: '#0c4e7b',
+              fontWeight: '700',
+              fontSize: '1.1rem',
+              background: 'white',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {showRefinementUI ? "Close Feedback" : "Disapprove & Critique"}
+          </button>
+        </div>
+
+        {/* Refinement UI */}
+        {showRefinementUI && (
+          <div className="animate-slide-up" style={{ width: '100%', maxWidth: '700px', marginTop: '2rem', padding: '2rem', background: '#f0f7ff', borderRadius: '24px', border: '1px solid #bfe4ff', textAlign: 'left' }}>
+            <h4 style={{ color: '#0c4e7b', margin: '0 0 0.5rem' }}>How can I improve this strategy? 🤔</h4>
+            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Tell Furci about specific corrections or shifts you want (e.g., "Make it more professional" or "Focus more on X").</p>
+            <textarea 
+              value={refinementFeedback}
+              onChange={(e) => setRefinementFeedback(e.target.value)}
+              placeholder="Your improvements and corrections here..."
+              style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #bfe4ff', minHeight: '120px', fontSize: '1rem', marginBottom: '1.5rem', resize: 'vertical' }}
+            />
+            <button
+               onClick={handleRefine}
+               disabled={isRevising || !refinementFeedback.trim()}
+               style={{
+                 width: '100%',
+                 padding: '1rem',
+                 borderRadius: '12px',
+                 background: 'var(--primary-strong)',
+                 color: 'white',
+                 fontWeight: '700',
+                 border: 0,
+                 cursor: 'pointer',
+                 opacity: isRevising ? 0.6 : 1
+               }}
+            >
+              {isRevising ? "Refining Strategy..." : "Update Strategy ✨"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
