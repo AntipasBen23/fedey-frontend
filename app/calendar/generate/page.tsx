@@ -98,7 +98,10 @@ export default function CalendarGeneratePage() {
         })
       });
 
-      if (!response.ok) throw new Error("Failed to approve calendar");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to approve calendar");
+      }
       
       setShowHub(false);
       setShowSuccess(true);
