@@ -26,7 +26,7 @@ export default function CalendarGeneratePage() {
     const fetchCalendar = async () => {
       try {
         const productSummary = localStorage.getItem("furciJobDescription") || "your product";
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
         
         const response = await fetch(`${apiUrl}/v1/calendar`, {
           method: "POST",
