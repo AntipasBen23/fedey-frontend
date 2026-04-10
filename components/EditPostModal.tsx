@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type EditPostModalProps = {
   isOpen: boolean;
@@ -13,11 +13,24 @@ type EditPostModalProps = {
   };
   onSave: (id: number, content: string, scheduledAt: string) => void;
   onDelete: (id: number) => void;
+  initialMode?: "content" | "time";
 };
 
-export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete }: EditPostModalProps) {
+export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete, initialMode }: EditPostModalProps) {
   const [content, setContent] = useState(post.content);
   const [scheduledAt, setScheduledAt] = useState(post.scheduledAt.split('.')[0]); // Strip ms for datetime-local
+
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+        setTimeout(() => {
+            if (initialMode === "content") contentRef.current?.focus();
+            else if (initialMode === "time") timeRef.current?.focus();
+        }, 100);
+    }
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
@@ -52,6 +65,7 @@ export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete 
         <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>PROPS & COPY</label>
             <textarea 
+                ref={contentRef}
                 value={content} 
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Write your viral hook here..."
@@ -72,6 +86,7 @@ export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete 
         <div style={{ marginBottom: '2.5rem' }}>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>TIMING PREFERENCE ({post.platform.toUpperCase()})</label>
             <input 
+                ref={timeRef}
                 type="datetime-local" 
                 value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}

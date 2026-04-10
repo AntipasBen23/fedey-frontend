@@ -38,9 +38,9 @@ export default function DashboardPage() {
   const [loadingReaction, setLoadingReaction] = useState(false);
   const [showReactionModal, setShowReactionModal] = useState(false);
 
-  // Edit Post State
   const [editingPost, setEditingPost] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editMode, setEditMode] = useState<"content" | "time">("content");
 
   // Action Menu State
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
@@ -243,6 +243,7 @@ export default function DashboardPage() {
           post={editingPost}
           onSave={handleUpdatePost}
           onDelete={handleDeletePost}
+          initialMode={editMode}
         />
       )}
 
@@ -300,16 +301,16 @@ export default function DashboardPage() {
                                     animation: 'fadeIn 0.2s ease'
                                 }}>
                                     <button 
-                                        onClick={() => { setEditingPost(item); setShowEditModal(true); }}
+                                        onClick={() => { setEditingPost(item); setEditMode("content"); setShowEditModal(true); }}
                                         style={{ width: '100%', textAlign: 'left', padding: '0.7rem', background: 'transparent', border: 0, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.9rem', fontWeight: 600, color: '#444' }}
                                     >
                                         <Edit2 size={16} /> Edit Content
                                     </button>
                                     <button 
-                                        onClick={() => { setEditingPost(item); setShowEditModal(true); }}
+                                        onClick={() => { setEditingPost(item); setEditMode("time"); setShowEditModal(true); }}
                                         style={{ width: '100%', textAlign: 'left', padding: '0.7rem', background: 'transparent', border: 0, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.9rem', fontWeight: 600, color: '#444' }}
                                     >
-                                        <Clock size={16} /> Change Time
+                                        <Clock size={16} /> Reschedule
                                     </button>
                                     <div style={{ height: '1px', background: '#f0f0f0', margin: '0.4rem 0' }}></div>
                                     <button 
