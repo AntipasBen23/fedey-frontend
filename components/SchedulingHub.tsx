@@ -13,6 +13,8 @@ export default function SchedulingHub({ isOpen, onConfirm, onCancel, isApproving
   const [step, setStep] = useState(1);
   const [mode, setMode] = useState("smart");
   const [stagger, setStagger] = useState("smart");
+  const [startHour, setStartHour] = useState(9); // Default 9 AM
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   if (!isOpen) return null;
 
@@ -25,7 +27,7 @@ export default function SchedulingHub({ isOpen, onConfirm, onCancel, isApproving
       title: "Manual Mode", 
       desc: "You control exactly when posts go live.", 
       icon: "⚙️", 
-      detail: "Set fixed time slots per day (like Buffer)." 
+      detail: "Set fixed time slots per day for total control." 
     },
     { 
       id: "smart", 
@@ -178,7 +180,7 @@ export default function SchedulingHub({ isOpen, onConfirm, onCancel, isApproving
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem' }}>
               <button onClick={handleBack} style={{ flex: 1, padding: '1.2rem', borderRadius: '16px', border: '2px solid #f0f0f0', background: 'transparent', fontWeight: 700, cursor: 'pointer' }}>Back</button>
               <button 
-                onClick={() => onConfirm({ mode, stagger })} 
+                onClick={() => onConfirm({ mode, stagger, startHour, saveAsDefault })} 
                 disabled={isApproving}
                 style={{ flex: 2, padding: '1.2rem', borderRadius: '16px', border: 0, background: 'var(--primary-strong)', color: 'white', fontWeight: 800, cursor: 'pointer', opacity: isApproving ? 0.6 : 1 }}
               >
@@ -186,6 +188,35 @@ export default function SchedulingHub({ isOpen, onConfirm, onCancel, isApproving
               </button>
             </div>
           </div>
+        )}
+
+        {step === 2 && (
+            <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#f8fbff', borderRadius: '20px', border: '1px solid #e6f4ff' }}>
+                <div style={{ fontWeight: 800, color: '#093f67', marginBottom: '1rem' }}>⏰ Timing Precision</div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <label style={{ fontSize: '0.9rem', color: 'var(--muted)', fontWeight: 700 }}>Daily Start Time:</label>
+                    <select 
+                        value={startHour} 
+                        onChange={(e) => setStartHour(parseInt(e.target.value))}
+                        style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid #ddd', fontWeight: 700 }}
+                    >
+                        {Array.from({length: 24}).map((_, i) => (
+                            <option key={i} value={i}>{i}:00 {i < 12 ? 'AM' : 'PM'}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
+                    <input 
+                        type="checkbox" 
+                        checked={saveAsDefault} 
+                        onChange={(e) => setSaveAsDefault(e.target.checked)} 
+                        style={{ width: '18px', height: '18px' }}
+                    />
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#093f67' }}>Save these settings as my default strategy</span>
+                </label>
+            </div>
         )}
 
         <style jsx>{`

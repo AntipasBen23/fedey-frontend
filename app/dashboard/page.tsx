@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import TrendingWidget from "@/components/TrendingWidget";
 import ReactionModal from "@/components/ReactionModal";
+import EditPostModal from "@/components/EditPostModal";
 
 type DashboardData = {
   calendar: any[];
@@ -35,6 +36,10 @@ export default function DashboardPage() {
   const [trendReaction, setTrendReaction] = useState("");
   const [loadingReaction, setLoadingReaction] = useState(false);
   const [showReactionModal, setShowReactionModal] = useState(false);
+
+  // Edit Post State
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -151,6 +156,36 @@ export default function DashboardPage() {
     }
   };
 
+  const handleUpdatePost = async (id: number, content: string, scheduledAt: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const response = await fetch(`${apiUrl}/v1/posts/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, scheduledAt }),
+      });
+      if (!response.ok) throw new Error("Failed to update post");
+      setShowEditModal(false);
+      window.location.reload();
+    } catch (err) {
+      alert("Error updating post");
+    }
+  };
+
+  const handleDeletePost = async (id: number) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const response = await fetch(`${apiUrl}/v1/posts/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete post");
+      setShowEditModal(false);
+      window.location.reload();
+    } catch (err) {
+      alert("Error deleting post");
+    }
+  };
+
   if (loading) {
     return <div className="page center"><h2>Furci is preparing your command center...</h2></div>;
   }
@@ -191,6 +226,16 @@ export default function DashboardPage() {
         onApprove={handleTrendApprove}
       />
 
+      {editingPost && (
+        <EditPostModal 
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          post={editingPost}
+          onSave={handleUpdatePost}
+          onDelete={handleDeletePost}
+        />
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
         {/* Main Column: Content Queue */}
         <section>
@@ -220,8 +265,22 @@ export default function DashboardPage() {
                     <div style={{ fontWeight: 700, marginBottom: '0.3rem', color: '#093f67' }}>{item.content.split('\n')[0]}</div>
                     <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 0 }}>{item.content.substring(0, 120)}...</p>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                    <span className="badge" style={{ marginBottom: '0.5rem', display: 'inline-block', textTransform: 'uppercase' }}>{item.platform}</span>
+                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                    <span className="badge" style={{ textTransform: 'uppercase' }}>{item.platform}</span>
+                    <button 
+                         onClick={() => { setEditingPost(item); setShowEditModal(true); }}
+                         style={{ 
+                            fontSize: '0.75rem', 
+                            padding: '0.3rem 0.6rem', 
+                            borderRadius: '8px', 
+                            border: '1px solid #ddd', 
+                            background: 'white',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                         }}
+                    >
+                        EDIT
+                    </button>
                     <div style={{ fontSize: '0.75rem', color: '#5ec26a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <span style={{ width: '8px', height: '8px', background: '#5ec26a', borderRadius: '50%' }}></span>
                         QUEUED
