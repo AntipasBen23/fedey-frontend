@@ -204,7 +204,8 @@ export default function DashboardPage() {
   if (!data) return <div className="page center"><h2>No active strategy found. Go to Strategy first!</h2></div>;
 
   return (
-    <div className="page dashboard-page" style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <>
+      <div className="page dashboard-page" style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Header & Stats */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem' }}>
         <div>
@@ -252,6 +253,8 @@ export default function DashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
         {/* Main Column: Content Queue */}
         <section>
+          <FurciChat />
+          
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.5rem' }}>📅 Content Queue</h3>
             <button style={{ 
@@ -483,8 +486,7 @@ export default function DashboardPage() {
           </div>
         </aside>
       </div>
-
-      <FurciChat />
+    </div>
 
       <style jsx>{`
         .stat-card {
@@ -521,6 +523,6 @@ export default function DashboardPage() {
         .page { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       `}</style>
-    </div>
+    </>
   );
 }
