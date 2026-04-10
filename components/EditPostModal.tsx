@@ -17,22 +17,43 @@ type EditPostModalProps = {
 };
 
 export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete, initialMode }: EditPostModalProps) {
-  const [content, setContent] = useState(post.content);
-  const [scheduledAt, setScheduledAt] = useState(post.scheduledAt.split('.')[0]); // Strip ms for datetime-local
+  const [content, setContent] = useState("");
+  const [scheduledAt, setScheduledAt] = useState("");
 
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const timeRef = useRef<HTMLInputElement>(null);
+
+  // Helper to format date for datetime-local (YYYY-MM-DDTHH:mm)
+  const formatForInput = (dateStr: string) => {
+    if (!dateStr) return "";
+    try {
+        const date = new Date(dateStr);
+        return date.toISOString().slice(0, 16);
+    } catch (e) {
+        return "";
+    }
+  };
+
+  useEffect(() => {
+    if (post) {
+        setContent(post.content);
+        setScheduledAt(formatForInput(post.scheduledAt));
+    }
+  }, [post]);
 
   useEffect(() => {
     if (isOpen) {
         setTimeout(() => {
             if (initialMode === "content") contentRef.current?.focus();
             else if (initialMode === "time") timeRef.current?.focus();
-        }, 100);
+        }, 150);
     }
   }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
+
+  const isContentMode = initialMode === "content";
+  const isTimeMode = initialMode === "time";
 
   return (
     <div style={{
@@ -58,48 +79,54 @@ export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete,
         animation: 'slideUp 0.3s ease'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.6rem', color: '#093f67', margin: 0 }}>Customize Your Strategy ⚙️</h2>
+            <h2 style={{ fontSize: '1.6rem', color: '#093f67', margin: 0 }}>
+                {isContentMode ? "Refine Content ✏️" : "Adjust Schedule 🕒"}
+            </h2>
             <button onClick={onClose} style={{ background: 'transparent', border: 0, fontSize: '1.5rem', cursor: 'pointer' }}>✕</button>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>PROPS & COPY</label>
-            <textarea 
-                ref={contentRef}
-                value={content} 
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your viral hook here..."
-                style={{ 
-                    width: '100%', 
-                    height: '150px', 
-                    padding: '1.2rem', 
-                    borderRadius: '16px', 
-                    border: '1px solid #e0e0e0',
-                    fontSize: '1rem',
-                    lineHeight: '1.5',
-                    fontFamily: 'inherit',
-                    resize: 'none'
-                }}
-            />
-        </div>
+        {isContentMode && (
+            <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>PROPS & COPY</label>
+                <textarea 
+                    ref={contentRef}
+                    value={content} 
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Write your viral hook here..."
+                    style={{ 
+                        width: '100%', 
+                        height: '150px', 
+                        padding: '1.2rem', 
+                        borderRadius: '16px', 
+                        border: '1px solid #e0e0e0',
+                        fontSize: '1rem',
+                        lineHeight: '1.5',
+                        fontFamily: 'inherit',
+                        resize: 'none'
+                    }}
+                />
+            </div>
+        )}
 
-        <div style={{ marginBottom: '2.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>TIMING PREFERENCE ({post.platform.toUpperCase()})</label>
-            <input 
-                ref={timeRef}
-                type="datetime-local" 
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                style={{ 
-                    width: '100%', 
-                    padding: '1rem', 
-                    borderRadius: '12px', 
-                    border: '1px solid #e0e0e0',
-                    fontSize: '1rem',
-                    fontWeight: 700
-                }}
-            />
-        </div>
+        {isTimeMode && (
+            <div style={{ marginBottom: '2.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>RESCHEDULE FOR ({post.platform.toUpperCase()})</label>
+                <input 
+                    ref={timeRef}
+                    type="datetime-local" 
+                    value={scheduledAt}
+                    onChange={(e) => setScheduledAt(e.target.value)}
+                    style={{ 
+                        width: '100%', 
+                        padding: '1rem', 
+                        borderRadius: '12px', 
+                        border: '1px solid #e0e0e0',
+                        fontSize: '1rem',
+                        fontWeight: 700
+                    }}
+                />
+            </div>
+        )}
 
         <div style={{ display: 'flex', gap: '1rem' }}>
             <button 

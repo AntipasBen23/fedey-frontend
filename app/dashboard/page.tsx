@@ -238,6 +238,7 @@ export default function DashboardPage() {
 
       {editingPost && (
         <EditPostModal 
+          key={editingPost.id}
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           post={editingPost}
