@@ -7,6 +7,7 @@ import TrendingWidget from "@/components/TrendingWidget";
 import ReactionModal from "@/components/ReactionModal";
 import EditPostModal from "@/components/EditPostModal";
 import { MoreVertical, Edit2, Clock, Trash2 } from "lucide-react";
+import FurciChat from "@/components/FurciChat";
 
 type DashboardData = {
   calendar: any[];
@@ -482,6 +483,8 @@ export default function DashboardPage() {
           </div>
         </aside>
       </div>
+
+      <FurciChat />
 
       <style jsx>{`
         .stat-card {
