@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import TrendingWidget from "@/components/TrendingWidget";
 import ReactionModal from "@/components/ReactionModal";
 import EditPostModal from "@/components/EditPostModal";
+import { MoreVertical, Edit2, Clock, Trash2 } from "lucide-react";
 
 type DashboardData = {
   calendar: any[];
@@ -40,6 +41,15 @@ export default function DashboardPage() {
   // Edit Post State
   const [editingPost, setEditingPost] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // Action Menu State
+  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMenuId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -261,26 +271,61 @@ export default function DashboardPage() {
                     <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary-strong)', display: 'block' }}>SCHEDULED</span>
                     <div style={{ fontSize: '0.9rem', fontWeight: 900, marginTop: '0.2rem' }}>{formatDate(item.scheduledAt)}</div>
                 </div>
-                <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, marginBottom: '0.3rem', color: '#093f67' }}>{item.content.split('\n')[0]}</div>
+                <div style={{ flex: 1, position: 'relative' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '0.3rem', color: '#093f67' }}>{item.content.split('\n')[0]}</div>
+                        <div style={{ position: 'relative' }}>
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMenuId(activeMenuId === item.id ? null : item.id);
+                                }}
+                                style={{ background: 'transparent', border: 0, cursor: 'pointer', padding: '0.5rem', color: 'var(--muted)' }}
+                            >
+                                <MoreVertical size={20} />
+                            </button>
+
+                            {activeMenuId === item.id && (
+                                <div className="dropdown" style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    right: 0,
+                                    width: '180px',
+                                    background: 'white',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                                    zIndex: 100,
+                                    padding: '0.5rem',
+                                    border: '1px solid #f0f0f0',
+                                    animation: 'fadeIn 0.2s ease'
+                                }}>
+                                    <button 
+                                        onClick={() => { setEditingPost(item); setShowEditModal(true); }}
+                                        style={{ width: '100%', textAlign: 'left', padding: '0.7rem', background: 'transparent', border: 0, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.9rem', fontWeight: 600, color: '#444' }}
+                                    >
+                                        <Edit2 size={16} /> Edit Content
+                                    </button>
+                                    <button 
+                                        onClick={() => { setEditingPost(item); setShowEditModal(true); }}
+                                        style={{ width: '100%', textAlign: 'left', padding: '0.7rem', background: 'transparent', border: 0, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.9rem', fontWeight: 600, color: '#444' }}
+                                    >
+                                        <Clock size={16} /> Change Time
+                                    </button>
+                                    <div style={{ height: '1px', background: '#f0f0f0', margin: '0.4rem 0' }}></div>
+                                    <button 
+                                        onClick={() => handleDeletePost(item.id)}
+                                        style={{ width: '100%', textAlign: 'left', padding: '0.7rem', background: 'transparent', border: 0, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.9rem', fontWeight: 600, color: '#ff4d4d' }}
+                                    >
+                                        <Trash2 size={16} /> Delete Post
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 0 }}>{item.content.substring(0, 120)}...</p>
                 </div>
                 <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
                     <span className="badge" style={{ textTransform: 'uppercase' }}>{item.platform}</span>
-                    <button 
-                         onClick={() => { setEditingPost(item); setShowEditModal(true); }}
-                         style={{ 
-                            fontSize: '0.75rem', 
-                            padding: '0.3rem 0.6rem', 
-                            borderRadius: '8px', 
-                            border: '1px solid #ddd', 
-                            background: 'white',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                         }}
-                    >
-                        EDIT
-                    </button>
                     <div style={{ fontSize: '0.75rem', color: '#5ec26a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <span style={{ width: '8px', height: '8px', background: '#5ec26a', borderRadius: '50%' }}></span>
                         QUEUED

@@ -45,15 +45,16 @@ export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete 
         animation: 'slideUp 0.3s ease'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.6rem', color: '#093f67', margin: 0 }}>Edit Scheduled Post ✏️</h2>
+            <h2 style={{ fontSize: '1.6rem', color: '#093f67', margin: 0 }}>Customize Your Strategy ⚙️</h2>
             <button onClick={onClose} style={{ background: 'transparent', border: 0, fontSize: '1.5rem', cursor: 'pointer' }}>✕</button>
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>CONTENT COPY</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>PROPS & COPY</label>
             <textarea 
                 value={content} 
                 onChange={(e) => setContent(e.target.value)}
+                placeholder="Write your viral hook here..."
                 style={{ 
                     width: '100%', 
                     height: '150px', 
@@ -69,7 +70,7 @@ export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete 
         </div>
 
         <div style={{ marginBottom: '2.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>SCHEDULED FOR ({post.platform.toUpperCase()})</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', marginBottom: '0.5rem' }}>TIMING PREFERENCE ({post.platform.toUpperCase()})</label>
             <input 
                 type="datetime-local" 
                 value={scheduledAt}
