@@ -23,7 +23,7 @@ export default function TrendingWidget({ onReact }: TrendingWidgetProps) {
         const response = await fetch(`${apiUrl}/v1/trends`);
         if (!response.ok) throw new Error("Failed to load trends");
         const json = await response.json();
-        setTrends(json.trends);
+        setTrends(json.trends || []);
       } catch (err) {
         console.error(err);
       } finally {
