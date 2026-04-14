@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+
 type CalendarItem = {
   day: number;
   hook: string;
@@ -15,6 +17,9 @@ type CalendarItem = {
   ctaText: string;
 };
 
+type SlideImage = { index: number; url: string; prompt: string };
+type VideoTask = { taskId: string; status: string; videoUrl?: string; message?: string };
+
 type Props = {
   item: CalendarItem;
   onClose: () => void;
@@ -22,6 +27,88 @@ type Props = {
 
 export default function ScriptModal({ item, onClose }: Props) {
   const [copied, setCopied] = useState<string | null>(null);
+
+  // Carousel image generation state
+  const [slideImages, setSlideImages] = useState<SlideImage[]>([]);
+  const [generatingImages, setGeneratingImages] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+
+  // Video generation state
+  const [videoTask, setVideoTask] = useState<VideoTask | null>(null);
+  const [generatingVideo, setGeneratingVideo] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [pollingVideo, setPollingVideo] = useState(false);
+
+  const generateCarouselImages = async () => {
+    setGeneratingImages(true);
+    setImageError(null);
+    try {
+      // Build one prompt per slide using visualPrompt as cover, slides as context
+      const prompts = item.slides.map((slide, i) =>
+        i === 0
+          ? (item.visualPrompt || `Cover slide for: ${slide}`)
+          : `Slide ${i + 1}: ${slide.slice(0, 120)}`
+      );
+      const res = await fetch(`${API_URL}/v1/carousel/images`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visualPrompts: prompts }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      const data = await res.json();
+      setSlideImages(data.images || []);
+    } catch (e: any) {
+      setImageError(e.message);
+    } finally {
+      setGeneratingImages(false);
+    }
+  };
+
+  const generateVideo = async () => {
+    setGeneratingVideo(true);
+    setVideoError(null);
+    setVideoTask(null);
+    try {
+      // Use first scene line as prompt text
+      const firstLine = item.script.split("\n")[0] || item.hook;
+      const res = await fetch(`${API_URL}/v1/video/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          promptText: firstLine,
+          duration: 5,
+          ratio: "768:1280",
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      const data = await res.json();
+      setVideoTask(data);
+      // Start polling
+      pollVideoStatus(data.taskId);
+    } catch (e: any) {
+      setVideoError(e.message);
+    } finally {
+      setGeneratingVideo(false);
+    }
+  };
+
+  const pollVideoStatus = (taskId: string) => {
+    setPollingVideo(true);
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/v1/video/status/${taskId}`);
+        const data: VideoTask = await res.json();
+        setVideoTask(data);
+        if (data.status === "SUCCEEDED" || data.status === "FAILED") {
+          clearInterval(interval);
+          setPollingVideo(false);
+        }
+      } catch {
+        clearInterval(interval);
+        setPollingVideo(false);
+      }
+    }, 5000);
+  };
 
   const copy = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -169,6 +256,107 @@ export default function ScriptModal({ item, onClose }: Props) {
               <button onClick={() => copy(item.visualPrompt, "visual")} style={copyBtnStyle}>
                 {copied === "visual" ? "Copied!" : "Copy Prompt"}
               </button>
+            </div>
+          )}
+
+          {/* ── CAROUSEL IMAGE GENERATION ── */}
+          {item.contentType === "carousel" && item.slides && item.slides.length > 0 && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: "#7b2ff7" }}>Slide Images</h3>
+                <button
+                  onClick={generateCarouselImages}
+                  disabled={generatingImages}
+                  style={{
+                    ...copyBtnStyle,
+                    background: generatingImages ? "#f0e8ff" : "#7b2ff7",
+                    color: generatingImages ? "#7b2ff7" : "#fff",
+                    border: "none", padding: "0.5rem 1.2rem",
+                  }}
+                >
+                  {generatingImages ? "Generating..." : slideImages.length > 0 ? "Regenerate Images" : "Generate with DALL-E 3"}
+                </button>
+              </div>
+              {imageError && (
+                <div style={{ fontSize: "0.85rem", color: "#d32f2f", marginBottom: "0.5rem" }}>{imageError}</div>
+              )}
+              {slideImages.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "0.75rem" }}>
+                  {slideImages.map((img) => (
+                    <a key={img.index} href={img.url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={img.url}
+                        alt={`Slide ${img.index}`}
+                        style={{ width: "100%", borderRadius: "10px", display: "block", aspectRatio: "1/1", objectFit: "cover" }}
+                      />
+                      <div style={{ fontSize: "0.72rem", color: "#888", textAlign: "center", marginTop: "0.25rem" }}>
+                        Slide {img.index}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+              {generatingImages && (
+                <div style={{ fontSize: "0.85rem", color: "#7b2ff7", textAlign: "center", padding: "1rem" }}>
+                  Generating {item.slides.length} slide images in parallel...
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── VIDEO GENERATION ── */}
+          {item.contentType === "video_script" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: "#d32f2f" }}>Video Generation</h3>
+                <button
+                  onClick={generateVideo}
+                  disabled={generatingVideo || pollingVideo}
+                  style={{
+                    ...copyBtnStyle,
+                    background: generatingVideo || pollingVideo ? "#fdecea" : "#d32f2f",
+                    color: generatingVideo || pollingVideo ? "#d32f2f" : "#fff",
+                    border: "none", padding: "0.5rem 1.2rem",
+                  }}
+                >
+                  {generatingVideo ? "Starting..." : pollingVideo ? "Processing..." : videoTask?.videoUrl ? "Regenerate Video" : "Generate with Runway ML"}
+                </button>
+              </div>
+              {videoError && (
+                <div style={{ fontSize: "0.85rem", color: "#d32f2f", marginBottom: "0.5rem" }}>
+                  {videoError.includes("not configured") ? "Set RUNWAY_API_KEY on the backend to enable video generation." : videoError}
+                </div>
+              )}
+              {videoTask && (
+                <div style={{ background: "#fdecea", borderRadius: "12px", padding: "1rem 1.2rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                    <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#d32f2f" }}>
+                      Status: {videoTask.status}
+                      {pollingVideo && " — checking every 5s..."}
+                    </span>
+                    <span style={{ fontSize: "0.75rem", color: "#999" }}>Task: {videoTask.taskId?.slice(0, 12)}...</span>
+                  </div>
+                  {videoTask.message && (
+                    <div style={{ fontSize: "0.85rem", color: "#555" }}>{videoTask.message}</div>
+                  )}
+                  {videoTask.videoUrl && (
+                    <div style={{ marginTop: "0.75rem" }}>
+                      <video
+                        src={videoTask.videoUrl}
+                        controls
+                        style={{ width: "100%", borderRadius: "10px", maxHeight: "320px" }}
+                      />
+                      <a
+                        href={videoTask.videoUrl}
+                        download
+                        style={{ display: "block", marginTop: "0.5rem", fontSize: "0.85rem", color: "#d32f2f", fontWeight: 700 }}
+                      >
+                        Download Video
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
