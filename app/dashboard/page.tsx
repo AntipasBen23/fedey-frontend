@@ -170,16 +170,21 @@ export default function DashboardPage() {
   const handleUpdatePost = async (id: number, content: string, scheduledAt: string) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      // datetime-local gives "YYYY-MM-DDTHH:mm" — convert to full ISO string so Go can parse it
+      const scheduledAtISO = scheduledAt ? new Date(scheduledAt).toISOString() : undefined;
       const response = await fetch(`${apiUrl}/v1/posts/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, scheduledAt }),
+        body: JSON.stringify({ content, scheduledAt: scheduledAtISO }),
       });
-      if (!response.ok) throw new Error("Failed to update post");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to update post");
+      }
       setShowEditModal(false);
       window.location.reload();
-    } catch (err) {
-      alert("Error updating post");
+    } catch (err: any) {
+      alert("Error updating post: " + err.message);
     }
   };
 
