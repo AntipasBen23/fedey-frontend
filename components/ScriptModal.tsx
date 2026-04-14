@@ -17,7 +17,7 @@ type CalendarItem = {
   ctaText: string;
 };
 
-type SlideImage = { index: number; url: string; prompt: string };
+type SlideImage = { index: number; url: string; prompt: string; permanent: boolean };
 type VideoTask = { taskId: string; status: string; videoUrl?: string; message?: string };
 
 type Props = {
@@ -283,14 +283,17 @@ export default function ScriptModal({ item, onClose }: Props) {
               {slideImages.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "0.75rem" }}>
                   {slideImages.map((img) => (
-                    <a key={img.index} href={img.url} target="_blank" rel="noopener noreferrer">
+                    <a key={img.index} href={img.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
                       <img
                         src={img.url}
                         alt={`Slide ${img.index}`}
                         style={{ width: "100%", borderRadius: "10px", display: "block", aspectRatio: "1/1", objectFit: "cover" }}
                       />
-                      <div style={{ fontSize: "0.72rem", color: "#888", textAlign: "center", marginTop: "0.25rem" }}>
-                        Slide {img.index}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.25rem" }}>
+                        <span style={{ fontSize: "0.72rem", color: "#888" }}>Slide {img.index}</span>
+                        <span style={{ fontSize: "0.65rem", fontWeight: 700, color: img.permanent ? "#15803d" : "#b45309", background: img.permanent ? "#f0fdf4" : "#fef9e7", borderRadius: "4px", padding: "0.1rem 0.35rem" }}>
+                          {img.permanent ? "Saved" : "Temp"}
+                        </span>
                       </div>
                     </a>
                   ))}
