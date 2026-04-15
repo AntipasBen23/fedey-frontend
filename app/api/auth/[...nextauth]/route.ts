@@ -2,13 +2,6 @@ import NextAuth from "next-auth"
 import Twitter from "next-auth/providers/twitter"
 import LinkedIn from "next-auth/providers/linkedin"
 
-// ── Startup diagnostics ─────────────────────────────────────────────────────
-console.log("[Auth] Initializing NextAuth...")
-console.log("[Auth] AUTH_URL:", process.env.AUTH_URL)
-console.log("[Auth] AUTH_TRUST_HOST:", process.env.AUTH_TRUST_HOST)
-console.log("[Auth] AUTH_TWITTER_ID set:", !!process.env.AUTH_TWITTER_ID, "len:", process.env.AUTH_TWITTER_ID?.length)
-console.log("[Auth] AUTH_TWITTER_SECRET set:", !!process.env.AUTH_TWITTER_SECRET, "len:", process.env.AUTH_TWITTER_SECRET?.length)
-
 const providers: any[] = []
 
 if (process.env.AUTH_TWITTER_ID && process.env.AUTH_TWITTER_SECRET) {
@@ -39,76 +32,82 @@ if (process.env.AUTH_LINKEDIN_ID && process.env.AUTH_LINKEDIN_SECRET) {
   )
 }
 
-let auth: any, handlers: any, signIn: any, signOut: any
-
-try {
-  const nextAuth = NextAuth({
-    providers,
-    debug: true, // verbose server-side logging — visible in Netlify function logs
-    logger: {
-      error(code, ...message) {
-        console.error("[NextAuth][error]", code, ...message)
-      },
-      warn(code, ...message) {
-        console.warn("[NextAuth][warn]", code, ...message)
-      },
-      debug(code, ...message) {
-        console.log("[NextAuth][debug]", code, ...message)
-      },
+const nextAuth = NextAuth({
+  providers,
+  // Custom error page — shows details in the browser
+  pages: {
+    error: "/auth/error",
+  },
+  debug: true,
+  logger: {
+    error(code, ...message) {
+      console.error("[NextAuth][error]", JSON.stringify(code), ...message)
     },
-    callbacks: {
-      async jwt({ token, account }) {
-        if (account) {
-          console.log("[Auth] jwt callback — account provider:", account.provider, "token_type:", account.token_type)
-          token.accessToken = account.access_token
-          token.refreshToken = account.refresh_token
-          token.platform = account.provider
-          token.tokenType = account.token_type
-        }
-        return token
-      },
-      async session({ session, token }: any) {
-        session.accessToken = token.accessToken
-        session.refreshToken = token.refreshToken
-        session.platform = token.platform
-        return session
-      },
+    warn(code, ...message) {
+      console.warn("[NextAuth][warn]", code, ...message)
     },
-  })
-  auth = nextAuth.auth
-  handlers = nextAuth.handlers
-  signIn = nextAuth.signIn
-  signOut = nextAuth.signOut
-  console.log("[Auth] NextAuth initialized successfully")
-} catch (err) {
-  console.error("[Auth] FATAL — NextAuth() threw during init:", err)
-  throw err
-}
+    debug(code, ...message) {
+      console.log("[NextAuth][debug]", code, ...message)
+    },
+  },
+  callbacks: {
+    async jwt({ token, account }) {
+      if (account) {
+        token.accessToken = account.access_token
+        token.refreshToken = account.refresh_token
+        token.platform = account.provider
+        token.tokenType = account.token_type
+      }
+      return token
+    },
+    async session({ session, token }: any) {
+      session.accessToken = token.accessToken
+      session.refreshToken = token.refreshToken
+      session.platform = token.platform
+      return session
+    },
+  },
+})
 
-export { auth, signIn, signOut }
+export const { auth, signIn, signOut } = nextAuth
 
 async function withLogging(req: Request, handler: (req: Request) => Promise<Response>) {
   const url = new URL(req.url)
-  console.log("[Auth] →", req.method, url.pathname + url.search)
+  const path = url.pathname + url.search
+
   try {
     const res = await handler(req)
     const location = res.headers.get("location") ?? ""
-    console.log("[Auth] ←", res.status, location ? `redirect → ${location}` : "")
-    // Flag if NextAuth is redirecting to the error page
-    if (location.includes("/api/auth/error")) {
-      console.error("[Auth] ERROR REDIRECT detected:", location)
+
+    // When NextAuth redirects to our custom error page, add request context as detail
+    if (location.includes("/auth/error")) {
+      const errorUrl = new URL(location, url.origin)
+      // Add the incoming query params as context so the error page can show them
+      const incoming = Object.fromEntries(url.searchParams.entries())
+      if (Object.keys(incoming).length > 0) {
+        errorUrl.searchParams.set("detail", JSON.stringify(incoming))
+      }
+      errorUrl.searchParams.set("path", path)
+      const headers = new Headers(res.headers)
+      headers.set("location", errorUrl.toString())
+      return new Response(null, { status: res.status, headers })
     }
+
     return res
-  } catch (err) {
-    console.error("[Auth] handler threw:", err)
-    throw err
+  } catch (err: any) {
+    console.error("[Auth] handler threw:", err?.message ?? err)
+    // Redirect to error page with the thrown error message
+    const errUrl = new URL("/auth/error", url.origin)
+    errUrl.searchParams.set("error", "ServerError")
+    errUrl.searchParams.set("detail", String(err?.message ?? err).substring(0, 300))
+    return Response.redirect(errUrl.toString(), 302)
   }
 }
 
 export async function GET(req: Request) {
-  return withLogging(req, (r) => handlers.GET(r))
+  return withLogging(req, (r) => nextAuth.handlers.GET(r))
 }
 
 export async function POST(req: Request) {
-  return withLogging(req, (r) => handlers.POST(r))
+  return withLogging(req, (r) => nextAuth.handlers.POST(r))
 }
