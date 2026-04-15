@@ -276,7 +276,16 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ display: 'grid', gap: '1rem' }}>
-            {data.calendar.length > 0 ? data.calendar.map((item, i) => (
+            {data.calendar.length > 0 ? data.calendar.map((item, i) => {
+              const typeMap: Record<string, { label: string; color: string; bg: string; icon: string }> = {
+                tweet:         { label: "Tweet",        color: "#1d9bf0", bg: "#e8f5fe", icon: "𝕏" },
+                thread:        { label: "Thread",       color: "#1565c0", bg: "#e3f0ff", icon: "🧵" },
+                carousel:      { label: "Carousel",     color: "#7b2ff7", bg: "#f3e8ff", icon: "🖼️" },
+                video_script:  { label: "Video Script", color: "#d32f2f", bg: "#fdecea", icon: "🎬" },
+                linkedin_post: { label: "LinkedIn",     color: "#0a66c2", bg: "#e8f0f9", icon: "💼" },
+              };
+              const tc = typeMap[item.contentType] || { label: "Post", color: "#555", bg: "#f5f5f5", icon: "📝" };
+              return (
               <div key={i} className="queue-item card" style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', borderRadius: '20px', alignItems: 'center' }}>
                 <div style={{ textAlign: 'center', minWidth: '80px', padding: '0.8rem', background: '#f0f7ff', borderRadius: '16px' }}>
                     <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary-strong)', display: 'block' }}>SCHEDULED</span>
@@ -284,7 +293,13 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ flex: 1, position: 'relative' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ fontWeight: 700, marginBottom: '0.3rem', color: '#093f67' }}>{item.content.split('\n')[0]}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+                        {/* Content type badge */}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', fontWeight: 700, color: tc.color, background: tc.bg, borderRadius: '999px', padding: '0.15rem 0.6rem', width: 'fit-content' }}>
+                          {tc.icon} {tc.label}
+                        </span>
+                        <div style={{ fontWeight: 700, color: '#093f67' }}>{item.content.split('\n')[0]}</div>
+                      </div>
                         <div style={{ position: 'relative' }}>
                             <button 
                                 onClick={(e) => {
@@ -343,7 +358,8 @@ export default function DashboardPage() {
                     </div>
                 </div>
               </div>
-            )) : (
+              );
+            }) : (
                 <div className="card center" style={{ padding: '4rem', textAlign: 'center' }}>
                     <p style={{ fontSize: '1.2rem', color: 'var(--muted)' }}>Nothing scheduled yet. Generate a calendar to start!</p>
                 </div>
