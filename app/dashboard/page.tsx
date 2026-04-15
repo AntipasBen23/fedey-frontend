@@ -46,6 +46,89 @@ export default function DashboardPage() {
   // Action Menu State
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
 
+  // Per-post media generation state
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+  const [mediaLoading, setMediaLoading]   = useState<Record<number, boolean>>({});
+  const [videoTasks,   setVideoTasks]     = useState<Record<number, { taskId: string; status: string; videoUrl?: string }>>({});
+  const [postMedia,    setPostMedia]      = useState<Record<number, { videoUrl?: string; imageUrls?: string[] }>>({});
+
+  const saveMediaToPost = async (postId: number, videoUrl?: string, imageUrls?: string[]) => {
+    try {
+      await fetch(`${API_URL}/v1/posts/${postId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          videoUrl:      videoUrl      || undefined,
+          imageUrlsJson: imageUrls     ? JSON.stringify(imageUrls) : undefined,
+        }),
+      });
+    } catch { /* non-critical — media is shown locally even if save fails */ }
+  };
+
+  const generateImagesForPost = async (post: any) => {
+    setMediaLoading(p => ({ ...p, [post.id]: true }));
+    try {
+      // Build prompts from slides JSON or fall back to a single visual prompt
+      let prompts: string[] = [];
+      if (post.slidesJson) {
+        try { prompts = JSON.parse(post.slidesJson); } catch { prompts = []; }
+      }
+      if (prompts.length === 0) prompts = [post.content?.slice(0, 200) || "Social media carousel"];
+
+      const res = await fetch(`${API_URL}/v1/carousel/images`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visualPrompts: prompts }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      const data = await res.json();
+      const urls: string[] = (data.images || []).map((img: any) => img.url);
+      setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], imageUrls: urls } }));
+      await saveMediaToPost(post.id, undefined, urls);
+    } catch (e: any) {
+      alert("Image generation failed: " + e.message);
+    } finally {
+      setMediaLoading(p => ({ ...p, [post.id]: false }));
+    }
+  };
+
+  const generateVideoForPost = async (post: any) => {
+    setMediaLoading(p => ({ ...p, [post.id]: true }));
+    try {
+      const promptText = post.script?.split("\n")[0] || post.content?.slice(0, 200) || post.hook || "Dynamic social media video";
+      const res = await fetch(`${API_URL}/v1/video/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promptText, duration: 5, ratio: "768:1280" }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      const taskData = await res.json();
+      setVideoTasks(p => ({ ...p, [post.id]: taskData }));
+      pollVideoForPost(post.id, taskData.taskId);
+    } catch (e: any) {
+      alert("Video generation failed: " + e.message);
+    } finally {
+      setMediaLoading(p => ({ ...p, [post.id]: false }));
+    }
+  };
+
+  const pollVideoForPost = (postId: number, taskId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/v1/video/status/${taskId}`);
+        const data = await res.json();
+        setVideoTasks(p => ({ ...p, [postId]: data }));
+        if (data.status === "SUCCEEDED" || data.status === "FAILED") {
+          clearInterval(interval);
+          if (data.status === "SUCCEEDED" && data.videoUrl) {
+            setPostMedia(p => ({ ...p, [postId]: { ...p[postId], videoUrl: data.videoUrl } }));
+            await saveMediaToPost(postId, data.videoUrl);
+          }
+        }
+      } catch { clearInterval(interval); }
+    }, 5000);
+  };
+
   useEffect(() => {
     const handleClickOutside = () => setActiveMenuId(null);
     window.addEventListener("click", handleClickOutside);
@@ -349,8 +432,74 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 0 }}>{item.content.substring(0, 120)}...</p>
+
+                    {/* ── Inline Media Section ── */}
+                    {(() => {
+                      const media    = postMedia[item.id] || {};
+                      const task     = videoTasks[item.id];
+                      const loading  = mediaLoading[item.id];
+                      // Prefer live state, fall back to values already saved in DB
+                      const videoUrl    = media.videoUrl    || item.videoUrl;
+                      const imageUrls: string[] = media.imageUrls || (() => {
+                        try { return item.imageUrlsJson ? JSON.parse(item.imageUrlsJson) : []; } catch { return []; }
+                      })();
+                      const isVideo    = item.contentType === "video_script";
+                      const isCarousel = item.contentType === "carousel";
+                      if (!isVideo && !isCarousel) return null;
+                      return (
+                        <div style={{ marginTop: '0.75rem', borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }}>
+                          {/* Video player */}
+                          {isVideo && videoUrl && (
+                            <video
+                              src={videoUrl}
+                              controls
+                              style={{ width: '100%', maxHeight: '220px', borderRadius: '12px', background: '#000', display: 'block' }}
+                            />
+                          )}
+                          {/* Video task status while generating */}
+                          {isVideo && task && !task.videoUrl && (
+                            <div style={{ fontSize: '0.8rem', color: '#d32f2f', fontWeight: 600, padding: '0.5rem 0' }}>
+                              {task.status === "SUCCEEDED" ? "Video ready!" : `Generating video… ${task.status}`}
+                            </div>
+                          )}
+                          {/* Carousel image strip */}
+                          {isCarousel && imageUrls.length > 0 && (
+                            <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+                              {imageUrls.map((url, idx) => (
+                                <a key={idx} href={url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0 }}>
+                                  <img
+                                    src={url}
+                                    alt={`Slide ${idx + 1}`}
+                                    style={{ width: '72px', height: '72px', borderRadius: '8px', objectFit: 'cover', display: 'block' }}
+                                  />
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                          {/* Generate buttons */}
+                          {isVideo && !videoUrl && !task && (
+                            <button
+                              onClick={() => generateVideoForPost(item)}
+                              disabled={loading}
+                              style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.45rem 1rem', borderRadius: '8px', border: '1.5px solid #d32f2f', color: loading ? '#999' : '#d32f2f', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.25rem' }}
+                            >
+                              {loading ? "Starting…" : "🎬 Generate Video"}
+                            </button>
+                          )}
+                          {isCarousel && imageUrls.length === 0 && (
+                            <button
+                              onClick={() => generateImagesForPost(item)}
+                              disabled={loading}
+                              style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.45rem 1rem', borderRadius: '8px', border: '1.5px solid #7b2ff7', color: loading ? '#999' : '#7b2ff7', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.25rem' }}
+                            >
+                              {loading ? "Generating…" : "🖼️ Generate Slide Images"}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                 </div>
-                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', minWidth: '80px' }}>
                     <span className="badge" style={{ textTransform: 'uppercase' }}>{item.platform}</span>
                     <div style={{ fontSize: '0.75rem', color: '#5ec26a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <span style={{ width: '8px', height: '8px', background: '#5ec26a', borderRadius: '50%' }}></span>
