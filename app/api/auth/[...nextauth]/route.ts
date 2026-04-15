@@ -9,11 +9,9 @@ if (process.env.AUTH_TWITTER_ID && process.env.AUTH_TWITTER_SECRET) {
     Twitter({
       clientId: process.env.AUTH_TWITTER_ID,
       clientSecret: process.env.AUTH_TWITTER_SECRET,
-      authorization: {
-        params: {
-          scope: "users.read tweet.read tweet.write offline.access",
-        },
-      },
+      // Pass authorization as a full string to avoid the string-vs-object
+      // merge bug in @auth/core (see TODO in providers.js)
+      authorization: "https://x.com/i/oauth2/authorize?scope=users.read+tweet.read+tweet.write+offline.access",
     })
   )
 }
