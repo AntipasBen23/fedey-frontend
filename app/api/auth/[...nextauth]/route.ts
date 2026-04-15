@@ -2,20 +2,24 @@ import NextAuth from "next-auth"
 import Twitter from "next-auth/providers/twitter"
 import LinkedIn from "next-auth/providers/linkedin"
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [
-    Twitter({
-      clientId: process.env.AUTH_TWITTER_ID,
-      clientSecret: process.env.AUTH_TWITTER_SECRET,
-      // Request write scope so Furci can post tweets on behalf of the user.
-      // IMPORTANT: Your Twitter app in the Developer Portal must have
-      // "OAuth 2.0" enabled with "Read and Write" permissions.
-      authorization: {
-        params: {
-          scope: "users.read tweet.read tweet.write offline.access",
-        },
+const providers = [
+  Twitter({
+    clientId: process.env.AUTH_TWITTER_ID,
+    clientSecret: process.env.AUTH_TWITTER_SECRET,
+    // Request write scope so Furci can post tweets on behalf of the user.
+    // IMPORTANT: Your Twitter app in the Developer Portal must have
+    // "OAuth 2.0" enabled with "Read and Write" permissions.
+    authorization: {
+      params: {
+        scope: "users.read tweet.read tweet.write offline.access",
       },
-    }),
+    },
+  }),
+]
+
+// Only include LinkedIn if credentials are configured
+if (process.env.AUTH_LINKEDIN_ID && process.env.AUTH_LINKEDIN_SECRET) {
+  providers.push(
     LinkedIn({
       clientId: process.env.AUTH_LINKEDIN_ID,
       clientSecret: process.env.AUTH_LINKEDIN_SECRET,
@@ -25,8 +29,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           scope: "openid profile email w_member_social",
         },
       },
-    }),
-  ],
+    }) as any
+  )
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers,
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
