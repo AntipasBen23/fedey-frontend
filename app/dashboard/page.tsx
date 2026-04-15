@@ -547,11 +547,14 @@ export default function DashboardPage() {
                       <div style={{ fontSize: '0.78rem', color: '#6b7280', marginTop: '0.2rem' }}>
                         {formatDate(item.scheduledAt)} · {item.platform?.toUpperCase()}
                         {item.externalId && (
-                          <span style={{ marginLeft: '0.5rem', color: '#6b7280' }}>
-                            · ID: {item.externalId}
-                          </span>
+                          <span style={{ marginLeft: '0.5rem' }}>· ID: {item.externalId}</span>
                         )}
                       </div>
+                      {!posted && item.failureReason && (
+                        <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.25rem', fontFamily: 'monospace', background: '#fee2e2', borderRadius: '6px', padding: '0.2rem 0.5rem' }}>
+                          {item.failureReason}
+                        </div>
+                      )}
                     </div>
 
                     {/* Status badge */}
