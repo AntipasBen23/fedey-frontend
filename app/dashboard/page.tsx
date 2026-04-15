@@ -11,6 +11,7 @@ import FurciChat from "@/components/FurciChat";
 
 type DashboardData = {
   calendar: any[];
+  history: any[];
   socialAccounts: any[];
   strategy: {
     identityAudit: string;
@@ -515,6 +516,62 @@ export default function DashboardPage() {
             )}
           </div>
         </section>
+
+        {/* ── Post History ──────────────────────────────────── */}
+        {data.history && data.history.length > 0 && (
+          <section style={{ marginTop: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text)' }}>
+              Post History
+            </h3>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {data.history.map((item: any, i: number) => {
+                const posted = item.status === "posted";
+                return (
+                  <div key={i} style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    padding: '1rem 1.25rem',
+                    borderRadius: '16px',
+                    background: posted ? '#f0fdf4' : '#fff5f5',
+                    border: `1px solid ${posted ? '#bbf7d0' : '#fecaca'}`,
+                    alignItems: 'center',
+                  }}>
+                    {/* Status icon */}
+                    <div style={{ fontSize: '1.4rem' }}>{posted ? '✅' : '❌'}</div>
+
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.content?.split('\n')[0]?.slice(0, 100) || '(no content)'}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#6b7280', marginTop: '0.2rem' }}>
+                        {formatDate(item.scheduledAt)} · {item.platform?.toUpperCase()}
+                        {item.externalId && (
+                          <span style={{ marginLeft: '0.5rem', color: '#6b7280' }}>
+                            · ID: {item.externalId}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status badge */}
+                    <div style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      color: posted ? '#15803d' : '#dc2626',
+                      background: posted ? '#dcfce7' : '#fee2e2',
+                      borderRadius: '999px',
+                      padding: '0.2rem 0.7rem',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {posted ? 'POSTED' : 'FAILED'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <aside style={{ display: 'grid', gap: '2rem', height: 'fit-content' }}>
           {/* Trending Widget */}
