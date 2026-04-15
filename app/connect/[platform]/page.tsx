@@ -35,21 +35,8 @@ export default function PlatformContextPage() {
     // Save selection
     localStorage.setItem(`furci_${platform}_context`, accountType);
 
-    console.log(`[Furci] Starting OAuth for platform: ${platform}`);
-
-    try {
-      // redirect: false so we can log the result before navigating
-      const result = await signIn(platform, { callbackUrl: "/strategy", redirect: false });
-      console.log("[Furci] signIn result:", result);
-      if (result?.error) {
-        console.error("[Furci] signIn error:", result.error);
-      } else if (result?.url) {
-        console.log("[Furci] Redirecting to OAuth URL:", result.url);
-        window.location.href = result.url;
-      }
-    } catch (err) {
-      console.error("[Furci] signIn threw:", err);
-    }
+    // Trigger OAuth flow
+    await signIn(platform, { callbackUrl: "/strategy" });
   };
 
   return (
