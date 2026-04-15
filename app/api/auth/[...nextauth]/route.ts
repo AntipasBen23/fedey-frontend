@@ -32,6 +32,8 @@ if (process.env.AUTH_LINKEDIN_ID && process.env.AUTH_LINKEDIN_SECRET) {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
+  trustHost: true,
+  secret: process.env.AUTH_SECRET,
   pages: {
     error: "/auth/error",
   },
