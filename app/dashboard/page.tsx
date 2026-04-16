@@ -10,6 +10,7 @@ import { MoreVertical, Edit2, Clock, Trash2 } from "lucide-react";
 import FurciChat from "@/components/FurciChat";
 import FollowerGrowthChart from "@/components/FollowerGrowthChart";
 import CustomPostModal from "@/components/CustomPostModal";
+import EngagementFeed from "@/components/EngagementFeed";
 
 type PostPerformance = {
   postId: number;
@@ -876,6 +877,9 @@ export default function DashboardPage() {
         )}
 
         <aside style={{ display: 'grid', gap: '2rem', height: 'fit-content' }}>
+          {/* Ghost Operator / Engagement Feed */}
+          <EngagementFeed />
+
           {/* Trending Widget */}
           <TrendingWidget onReact={handleTrendReact} />
           
