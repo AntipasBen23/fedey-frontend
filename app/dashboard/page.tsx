@@ -9,6 +9,30 @@ import EditPostModal from "@/components/EditPostModal";
 import { MoreVertical, Edit2, Clock, Trash2 } from "lucide-react";
 import FurciChat from "@/components/FurciChat";
 
+type PostPerformance = {
+  postId: number;
+  snippet: string;
+  platform: string;
+  contentType: string;
+  likes: number;
+  reposts: number;
+  comments: number;
+  impressions: number;
+  engRate: number;
+  postedAt: string;
+};
+
+type AnalyticsOverview = {
+  followerCount: number;
+  totalImpressions: number;
+  totalReactions: number;
+  avgEngRate: number;
+  postsAnalyzed: number;
+  topPosts: PostPerformance[];
+  lastSynced: string;
+  insight: string;
+};
+
 type DashboardData = {
   calendar: any[];
   history: any[];
@@ -25,6 +49,7 @@ type DashboardData = {
     impactScore: string;
   };
   plan: "free" | "pro";
+  analytics: AnalyticsOverview;
 };
 
 export default function DashboardPage() {
@@ -47,6 +72,25 @@ export default function DashboardPage() {
 
   // Action Menu State
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+
+  // Analytics sync
+  const [syncing, setSyncing] = useState(false);
+  const syncAnalytics = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch(`${API_URL}/v1/analytics/sync`, { method: "POST" });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Sync failed");
+      // Reload dashboard to get fresh analytics
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const fresh = await fetch(`${apiUrl}/v1/dashboard`);
+      if (fresh.ok) setData(await fresh.json());
+    } catch (e: any) {
+      alert("Sync failed: " + e.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   // Pro upgrade modal
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -391,6 +435,83 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Analytics Bar ─────────────────────────────────────────────── */}
+      {(() => {
+        const a = data.analytics;
+        const hasSynced = a.postsAnalyzed > 0;
+        const fmt = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : String(n);
+        const engColor = a.avgEngRate >= 5 ? '#16a34a' : a.avgEngRate >= 2 ? '#d97706' : '#6b7280';
+
+        return (
+          <div style={{ background: '#fff', borderRadius: '20px', padding: '1.25rem 1.5rem', marginBottom: '2rem', border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            {/* Header row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div>
+                <span style={{ fontWeight: 800, fontSize: '1rem', color: '#111' }}>📊 Performance</span>
+                {a.lastSynced && (
+                  <span style={{ fontSize: '0.72rem', color: '#9ca3af', marginLeft: '0.6rem' }}>
+                    Last synced {new Date(a.lastSynced).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={syncAnalytics}
+                disabled={syncing}
+                style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #4f46e5', color: syncing ? '#999' : '#4f46e5', background: syncing ? '#f5f5f5' : '#eef2ff', cursor: syncing ? 'not-allowed' : 'pointer' }}
+              >
+                {syncing ? 'Syncing…' : '🔄 Sync Now'}
+              </button>
+            </div>
+
+            {/* Metric tiles */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: hasSynced ? '1rem' : 0 }}>
+              {[
+                { label: 'Followers', value: fmt(a.followerCount), color: '#6366f1' },
+                { label: 'Impressions', value: fmt(a.totalImpressions), color: '#0ea5e9' },
+                { label: 'Reactions', value: fmt(a.totalReactions), color: '#f59e0b' },
+                { label: 'Avg Eng.', value: `${a.avgEngRate.toFixed(2)}%`, color: engColor },
+              ].map(tile => (
+                <div key={tile.label} style={{ textAlign: 'center', padding: '0.75rem 0.5rem', background: '#f9fafb', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: tile.color }}>{tile.value}</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginTop: '0.15rem' }}>{tile.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* AI insight */}
+            {a.insight && (
+              <div style={{ fontSize: '0.82rem', color: '#374151', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '0.6rem 0.9rem', marginBottom: hasSynced ? '1rem' : 0 }}>
+                💡 {a.insight}
+              </div>
+            )}
+
+            {/* Top posts table */}
+            {hasSynced && a.topPosts.length > 0 && (
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Top Posts</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {a.topPosts.slice(0, 3).map((p, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', background: '#f9fafb', borderRadius: '10px', fontSize: '0.82rem' }}>
+                      <span style={{ color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.snippet}</span>
+                      <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>❤️ {p.likes}</span>
+                      <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>🔁 {p.reposts}</span>
+                      <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>👁️ {fmt(p.impressions)}</span>
+                      <span style={{ fontWeight: 700, color: engColor, whiteSpace: 'nowrap' }}>{p.engRate.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!hasSynced && (
+              <p style={{ fontSize: '0.82rem', color: '#9ca3af', textAlign: 'center', margin: 0 }}>
+                Hit <strong>Sync Now</strong> after posting to pull live metrics from Twitter/X.
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       <ReactionModal
         isOpen={showReactionModal}
