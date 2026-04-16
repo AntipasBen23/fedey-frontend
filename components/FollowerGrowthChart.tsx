@@ -7,9 +7,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  defs,
-  linearGradient,
-  stop,
 } from "recharts";
 
 type Point = { date: string; count: number };
