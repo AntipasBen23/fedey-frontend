@@ -77,7 +77,7 @@ export default function ScriptModal({ item, onClose }: Props) {
         body: JSON.stringify({
           promptText: firstLine,
           duration: 5,
-          ratio: "768:1280",
+          ratio: "720:1280",
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed");

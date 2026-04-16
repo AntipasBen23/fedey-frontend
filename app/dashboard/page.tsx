@@ -100,7 +100,7 @@ export default function DashboardPage() {
       const res = await fetch(`${API_URL}/v1/video/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promptText, duration: 5, ratio: "768:1280" }),
+        body: JSON.stringify({ promptText, duration: 5, ratio: "720:1280" }),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
