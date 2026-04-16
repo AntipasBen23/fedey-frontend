@@ -105,7 +105,10 @@ export default function CalendarGeneratePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           schedulingMode: settings.mode,
-          staggerStrategy: settings.stagger
+          staggerStrategy: settings.stagger,
+          postSchedules: settings.postSchedules,
+          timeWindow: settings.timeWindow,
+          saveAsDefault: settings.saveAsDefault
         })
       });
 
@@ -163,6 +166,7 @@ export default function CalendarGeneratePage() {
         onConfirm={handleApprove}
         onCancel={() => setShowHub(false)}
         isApproving={isApproving}
+        items={calendar}
       />
 
       <ErrorModal
