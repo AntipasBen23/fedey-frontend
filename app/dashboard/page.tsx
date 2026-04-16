@@ -9,6 +9,7 @@ import EditPostModal from "@/components/EditPostModal";
 import { MoreVertical, Edit2, Clock, Trash2 } from "lucide-react";
 import FurciChat from "@/components/FurciChat";
 import FollowerGrowthChart from "@/components/FollowerGrowthChart";
+import CustomPostModal from "@/components/CustomPostModal";
 
 type PostPerformance = {
   postId: number;
@@ -74,6 +75,7 @@ export default function DashboardPage() {
   const [editingPost, setEditingPost] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editMode, setEditMode] = useState<"content" | "time">("content");
+  const [showCustomPostModal, setShowCustomPostModal] = useState(false);
 
   // Action Menu State
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
@@ -589,6 +591,13 @@ export default function DashboardPage() {
         />
       )}
 
+      <CustomPostModal
+        isOpen={showCustomPostModal}
+        onClose={() => setShowCustomPostModal(false)}
+        onSuccess={() => window.location.reload()}
+        connectedPlatforms={data.socialAccounts?.map((a: any) => a.platform) || []}
+      />
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
         {/* Main Column: Content Queue */}
         <section>
@@ -596,15 +605,17 @@ export default function DashboardPage() {
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.5rem' }}>📅 Content Queue</h3>
-            <button style={{ 
-               padding: '0.6rem 1.2rem', 
-               borderRadius: '12px', 
-               background: '#e6f4ff', 
-               color: 'var(--primary-strong)', 
-               border: 0, 
-               fontWeight: 700,
-               cursor: 'pointer' 
-            }}>
+            <button 
+              onClick={() => setShowCustomPostModal(true)}
+              style={{ 
+                padding: '0.6rem 1.2rem', 
+                borderRadius: '12px', 
+                background: '#e6f4ff', 
+                color: 'var(--primary-strong)', 
+                border: 0, 
+                fontWeight: 700,
+                cursor: 'pointer' 
+              }}>
               + Add Custom Post
             </button>
           </div>

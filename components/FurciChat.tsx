@@ -6,6 +6,7 @@ import { Send, Bot, Sparkles, Activity, Search, Brain, Zap } from "lucide-react"
 type Message = {
   role: "furci" | "user";
   text: string;
+  draft?: { content: string; platforms: string[] };
 };
 
 const QUICK_ACTIONS = [
@@ -78,7 +79,22 @@ export default function FurciChat() {
 
       if (!response.ok) throw new Error("Connection lost");
       const json = await response.json();
-      setMessages(prev => [...prev, { role: "furci", text: json.reply }]);
+      
+      let replyText = json.reply;
+      let draft: any = null;
+
+      // Parse [DRAFT_POST: {...}]
+      const draftMatch = replyText.match(/\[DRAFT_POST:\s*({.*?})\]/s);
+      if (draftMatch) {
+        try {
+          draft = JSON.parse(draftMatch[1]);
+          replyText = replyText.replace(draftMatch[0], "").trim();
+        } catch (e) {
+          console.error("Failed to parse draft JSON", e);
+        }
+      }
+
+      setMessages(prev => [...prev, { role: "furci", text: replyText, draft }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: "furci", text: "Sorry, my neural link is offline. I'm still monitoring your accounts in the background." }]);
     } finally {
@@ -144,6 +160,56 @@ export default function FurciChat() {
             border: msg.role === 'user' ? 'none' : '1px solid #e2e8f0'
           }}>
             {msg.text}
+
+            {msg.draft && (
+                <div style={{ marginTop: '1rem', padding: '1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#1e293b' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#4f46e5' }}>
+                        <Sparkles size={14} /> PROPOSED DRAFT
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.5, marginBottom: '1rem' }}>
+                        {msg.draft.content}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                         <button 
+                            onClick={async (e) => {
+                                const btn = e.currentTarget;
+                                btn.disabled = true;
+                                btn.innerText = "APPROVING...";
+                                try {
+                                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+                                    await fetch(`${apiUrl}/v1/posts`, {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                            content: msg.draft?.content,
+                                            platforms: msg.draft?.platforms,
+                                            timingMode: "smart"
+                                        })
+                                    });
+                                    btn.innerText = "QUEUED ✅";
+                                    btn.style.background = "#5ec26a";
+                                } catch (e) {
+                                    btn.disabled = false;
+                                    btn.innerText = "APPROVE";
+                                }
+                            }}
+                            style={{ 
+                                flex: 1,
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                background: 'var(--primary-strong)',
+                                color: 'white',
+                                border: 0,
+                                fontWeight: 800,
+                                fontSize: '0.75rem',
+                                cursor: 'pointer'
+                            }}
+                         >
+                             Approve to Queue
+                         </button>
+                    </div>
+                </div>
+            )}
           </div>
         ))}
         {loading && (

@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { TrendingUp, BarChart2, Zap, RefreshCw, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import PeakHourHeatmap from "@/components/PeakHourHeatmap";
 
 type AnalyticsData = {
   totalReach: number;
@@ -127,6 +128,8 @@ export default function AnalyticsPage() {
             <p className="sub">Relative to total impressions</p>
          </div>
       </div>
+
+      <PeakHourHeatmap />
 
       {/* Charts Section */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
