@@ -8,6 +8,7 @@ import ReactionModal from "@/components/ReactionModal";
 import EditPostModal from "@/components/EditPostModal";
 import { MoreVertical, Edit2, Clock, Trash2 } from "lucide-react";
 import FurciChat from "@/components/FurciChat";
+import FollowerGrowthChart from "@/components/FollowerGrowthChart";
 
 type PostPerformance = {
   postId: number;
@@ -22,8 +23,12 @@ type PostPerformance = {
   postedAt: string;
 };
 
+type FollowerPoint = { date: string; count: number };
+
 type AnalyticsOverview = {
   followerCount: number;
+  followerGrowth: number;
+  followerHistory: FollowerPoint[];
   totalImpressions: number;
   totalReactions: number;
   avgEngRate: number;
@@ -504,7 +509,18 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {!hasSynced && (
+            {/* Follower growth chart */}
+            {a.followerCount > 0 && (
+              <div style={{ marginTop: hasSynced ? '1rem' : 0 }}>
+                <FollowerGrowthChart
+                  data={a.followerHistory || []}
+                  currentCount={a.followerCount}
+                  growth={a.followerGrowth || 0}
+                />
+              </div>
+            )}
+
+            {!hasSynced && !a.followerCount && (
               <p style={{ fontSize: '0.82rem', color: '#9ca3af', textAlign: 'center', margin: 0 }}>
                 Hit <strong>Sync Now</strong> after posting to pull live metrics from Twitter/X.
               </p>
