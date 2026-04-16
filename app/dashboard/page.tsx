@@ -93,6 +93,29 @@ export default function DashboardPage() {
     }
   };
 
+  // Template video — FFmpeg-based, synchronous, no credits needed
+  const generateSlideVideoForPost = async (post: any) => {
+    setMediaLoading(p => ({ ...p, [post.id]: true }));
+    try {
+      const res = await fetch(`${API_URL}/v1/video/template`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post.id }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], videoUrl: data.videoUrl } }));
+      await saveMediaToPost(post.id, data.videoUrl);
+    } catch (e: any) {
+      alert("Slide video failed: " + e.message);
+    } finally {
+      setMediaLoading(p => ({ ...p, [post.id]: false }));
+    }
+  };
+
   const generateVideoForPost = async (post: any) => {
     setMediaLoading(p => ({ ...p, [post.id]: true }));
     try {
@@ -449,21 +472,20 @@ export default function DashboardPage() {
                       })();
                       const isVideo    = item.contentType === "video_script";
                       const isCarousel = item.contentType === "carousel";
-                      if (!isVideo && !isCarousel) return null;
                       return (
                         <div style={{ marginTop: '0.75rem', borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }}>
-                          {/* Video player */}
-                          {isVideo && videoUrl && (
+                          {/* Video player — shows for any post that has a video URL */}
+                          {videoUrl && (
                             <video
                               src={videoUrl}
                               controls
-                              style={{ width: '100%', maxHeight: '220px', borderRadius: '12px', background: '#000', display: 'block' }}
+                              style={{ width: '100%', maxHeight: '220px', borderRadius: '12px', background: '#000', display: 'block', marginBottom: '0.5rem' }}
                             />
                           )}
-                          {/* Video task status while generating */}
+                          {/* AI video task status while polling */}
                           {isVideo && task && !task.videoUrl && (
                             <div style={{ fontSize: '0.8rem', color: '#d32f2f', fontWeight: 600, padding: '0.5rem 0' }}>
-                              {task.status === "SUCCEEDED" ? "Video ready!" : `Generating video… ${task.status}`}
+                              {task.status === "SUCCEEDED" ? "Video ready!" : `Generating AI video… ${task.status}`}
                             </div>
                           )}
                           {/* Carousel image strip */}
@@ -480,21 +502,37 @@ export default function DashboardPage() {
                               ))}
                             </div>
                           )}
-                          {/* Generate buttons */}
-                          {isVideo && !videoUrl && !task && (
-                            <button
-                              onClick={() => generateVideoForPost(item)}
-                              disabled={loading}
-                              style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.45rem 1rem', borderRadius: '8px', border: '1.5px solid #d32f2f', color: loading ? '#999' : '#d32f2f', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.25rem' }}
-                            >
-                              {loading ? "Starting…" : "🎬 Generate Video"}
-                            </button>
+                          {/* ── Media action buttons ── */}
+                          {!videoUrl && (
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                              {/* Slide Video — free, works for all post types */}
+                              <button
+                                onClick={() => generateSlideVideoForPost(item)}
+                                disabled={loading}
+                                title="Generate a slide-style MP4 using FFmpeg — free, no AI credits needed"
+                                style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #4f46e5', color: loading ? '#999' : '#4f46e5', background: loading ? '#f5f5f5' : '#eef2ff', cursor: loading ? 'not-allowed' : 'pointer' }}
+                              >
+                                {loading ? "Building…" : "📽️ Slide Video (Free)"}
+                              </button>
+                              {/* AI Video — only for video_script, requires Runway credits */}
+                              {isVideo && !task && (
+                                <button
+                                  onClick={() => generateVideoForPost(item)}
+                                  disabled={loading}
+                                  title="Generate a cinematic AI video using Runway ML — uses credits"
+                                  style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #d32f2f', color: loading ? '#999' : '#d32f2f', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}
+                                >
+                                  {loading ? "Starting…" : "🎬 AI Video (Runway)"}
+                                </button>
+                              )}
+                            </div>
                           )}
+                          {/* Carousel images button */}
                           {isCarousel && imageUrls.length === 0 && (
                             <button
                               onClick={() => generateImagesForPost(item)}
                               disabled={loading}
-                              style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0.45rem 1rem', borderRadius: '8px', border: '1.5px solid #7b2ff7', color: loading ? '#999' : '#7b2ff7', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.25rem' }}
+                              style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #7b2ff7', color: loading ? '#999' : '#7b2ff7', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.25rem' }}
                             >
                               {loading ? "Generating…" : "🖼️ Generate Slide Images"}
                             </button>
