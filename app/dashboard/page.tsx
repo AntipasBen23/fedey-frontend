@@ -92,6 +92,28 @@ export default function DashboardPage() {
     } catch { /* non-critical — media is shown locally even if save fails */ }
   };
 
+  // Designed carousel slides via FFmpeg (no AI cost)
+  const designCarouselForPost = async (post: any) => {
+    setMediaLoading(p => ({ ...p, [post.id]: true }));
+    try {
+      const res = await fetch(`${API_URL}/v1/carousel/design`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post.id }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], imageUrls: data.imageUrls } }));
+    } catch (e: any) {
+      alert("Carousel design failed: " + e.message);
+    } finally {
+      setMediaLoading(p => ({ ...p, [post.id]: false }));
+    }
+  };
+
   const generateImagesForPost = async (post: any) => {
     setMediaLoading(p => ({ ...p, [post.id]: true }));
     try {
@@ -602,15 +624,28 @@ export default function DashboardPage() {
                               )}
                             </div>
                           )}
-                          {/* Carousel images button */}
+                          {/* Carousel buttons */}
                           {isCarousel && imageUrls.length === 0 && (
-                            <button
-                              onClick={() => generateImagesForPost(item)}
-                              disabled={loading}
-                              style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #7b2ff7', color: loading ? '#999' : '#7b2ff7', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.25rem' }}
-                            >
-                              {loading ? "Generating…" : "🖼️ Generate Slide Images"}
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                              {/* Designed slides — FFmpeg, free */}
+                              <button
+                                onClick={() => designCarouselForPost(item)}
+                                disabled={loading}
+                                title="Render designed slides with text + branding using FFmpeg — free"
+                                style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #4f46e5', color: loading ? '#999' : '#4f46e5', background: loading ? '#f5f5f5' : '#eef2ff', cursor: loading ? 'not-allowed' : 'pointer' }}
+                              >
+                                {loading ? "Designing…" : "🎨 Design Slides (Free)"}
+                              </button>
+                              {/* DALL-E image backgrounds */}
+                              <button
+                                onClick={() => generateImagesForPost(item)}
+                                disabled={loading}
+                                title="Generate AI image backgrounds with DALL-E 3 — uses OpenAI credits"
+                                style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #7b2ff7', color: loading ? '#999' : '#7b2ff7', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}
+                              >
+                                {loading ? "Generating…" : "🖼️ AI Image Backgrounds"}
+                              </button>
+                            </div>
                           )}
                         </div>
                       );
