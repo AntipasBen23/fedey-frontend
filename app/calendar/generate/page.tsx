@@ -39,11 +39,22 @@ export default function CalendarGeneratePage() {
   const [scriptItem, setScriptItem] = useState<CalendarItem | null>(null);
 
   useEffect(() => {
-    const fetchCalendar = async () => {
+    const checkStatusAndFetch = async () => {
       try {
-        const productSummary = localStorage.getItem("furciJobDescription") || "your product";
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
         
+        // 1. Pre-flight Status Check
+        const statusRes = await fetch(`${apiUrl}/v1/calendar/status`);
+        if (statusRes.ok) {
+          const { status } = await statusRes.json();
+          if (status === "scheduled") {
+            router.push("/dashboard");
+            return;
+          }
+        }
+
+        // 2. Fetch/Generate Calendar
+        const productSummary = localStorage.getItem("furciJobDescription") || "your product";
         const response = await fetch(`${apiUrl}/v1/calendar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -61,8 +72,8 @@ export default function CalendarGeneratePage() {
       }
     };
 
-    fetchCalendar();
-  }, []);
+    checkStatusAndFetch();
+  }, [router]);
 
   const handleEdit = (index: number, field: keyof CalendarItem, value: any) => {
     const next = [...calendar];
