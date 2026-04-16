@@ -102,7 +102,10 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ promptText, duration: 5, ratio: "768:1280" }),
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || errData.detail || `HTTP ${res.status}`);
+      }
       const taskData = await res.json();
       setVideoTasks(p => ({ ...p, [post.id]: taskData }));
       pollVideoForPost(post.id, taskData.taskId);
