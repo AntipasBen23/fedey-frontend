@@ -176,25 +176,45 @@ export default function SchedulingHub({ isOpen, onConfirm, onCancel, isApproving
                                 </div>
                                 <span style={{ fontWeight: 700, color: '#475569', fontSize: '0.9rem' }}>Post Slot</span>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <select 
-                                    value={slot.hour}
-                                    onChange={(e) => updatePostTime(idx, parseInt(e.target.value), slot.minute)}
-                                    style={{ padding: '0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700 }}
+                                    value={slot.hour === 0 ? 12 : slot.hour > 12 ? slot.hour - 12 : slot.hour}
+                                    onChange={(e) => {
+                                        const h12 = parseInt(e.target.value);
+                                        const isPM = slot.hour >= 12;
+                                        let h24 = h12;
+                                        if (isPM && h12 < 12) h24 += 12;
+                                        if (!isPM && h12 === 12) h24 = 0;
+                                        updatePostTime(idx, h24, slot.minute);
+                                    }}
+                                    style={{ padding: '0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, appearance: 'none', background: 'white', minWidth: '55px', textAlign: 'center' }}
                                 >
-                                    {Array.from({length: 24}).map((_, h) => (
-                                        <option key={h} value={h}>{h < 10 ? `0${h}` : h}</option>
+                                    {Array.from({length: 12}).map((_, h) => (
+                                        <option key={h+1} value={h+1}>{(h+1) < 10 ? `0${h+1}` : h+1}</option>
                                     ))}
                                 </select>
                                 <span style={{ fontWeight: 900, color: '#cbd5e1' }}>:</span>
                                 <select 
                                     value={slot.minute}
                                     onChange={(e) => updatePostTime(idx, slot.hour, parseInt(e.target.value))}
-                                    style={{ padding: '0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700 }}
+                                    style={{ padding: '0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, appearance: 'none', background: 'white', minWidth: '55px', textAlign: 'center' }}
                                 >
                                     {[0, 15, 30, 45].map(m => (
                                         <option key={m} value={m}>{m < 10 ? `0${m}` : m}</option>
                                     ))}
+                                </select>
+                                <select 
+                                    value={slot.hour >= 12 ? "PM" : "AM"}
+                                    onChange={(e) => {
+                                        const period = e.target.value;
+                                        let h24 = slot.hour % 12;
+                                        if (period === "PM") h24 += 12;
+                                        updatePostTime(idx, h24, slot.minute);
+                                    }}
+                                    style={{ padding: '0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 900, background: '#f8fafc', color: 'var(--primary-strong)' }}
+                                >
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
                                 </select>
                             </div>
                         </div>
