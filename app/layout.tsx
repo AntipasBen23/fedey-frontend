@@ -3,10 +3,12 @@ import "./globals.css";
 import { AutopilotProvider } from "./context/AutopilotContext";
 import { Header } from "./components/Header";
 import SessionWrapper from "./components/SessionWrapper";
+import { AuthProvider } from "@/context/AuthContext";
+import InactivityGuard from "@/components/InactivityGuard";
 
 export const metadata: Metadata = {
-  title: "Fedey",
-  description: "Hire an AI social media manager for X and LinkedIn"
+  title: "Furci.ai",
+  description: "Hire an AI social media manager for X and LinkedIn",
 };
 
 type RootLayoutProps = Readonly<{
@@ -18,10 +20,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en">
       <body>
         <SessionWrapper>
-          <AutopilotProvider>
-            <Header />
-            {children}
-          </AutopilotProvider>
+          <AuthProvider>
+            <AutopilotProvider>
+              <InactivityGuard />
+              <Header />
+              {children}
+            </AutopilotProvider>
+          </AuthProvider>
         </SessionWrapper>
       </body>
     </html>
