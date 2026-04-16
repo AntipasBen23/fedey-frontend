@@ -6,9 +6,30 @@ import { useRouter } from 'next/navigation';
 export default function ConnectPage() {
   const router = useRouter();
   const platforms = [
-    { id: "twitter", name: "Twitter (X)", icon: "🐦", color: "#1DA1F2", bg: "#e8f5fe" },
-    { id: "linkedin", name: "LinkedIn", icon: "💼", color: "#0A66C2", bg: "#e6f0f9" },
-    { id: "tiktok", name: "TikTok", icon: "🎵", color: "#000000", bg: "#e5e5e5" }
+    { 
+      id: "twitter", 
+      name: "Twitter (X)", 
+      logo: "https://upload.wikimedia.org/wikipedia/commons/5/53/X_logo_2023_original.svg", 
+      color: "#000000", 
+      bg: "#ffffff",
+      active: true 
+    },
+    { 
+      id: "linkedin", 
+      name: "LinkedIn", 
+      logo: "https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg", 
+      color: "#0A66C2", 
+      bg: "#ffffff",
+      active: false 
+    },
+    { 
+      id: "tiktok", 
+      name: "TikTok", 
+      logo: "https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg", 
+      color: "#000000", 
+      bg: "#ffffff",
+      active: false 
+    }
   ];
 
   return (
@@ -40,25 +61,54 @@ export default function ConnectPage() {
           {platforms.map((p) => (
             <button 
               key={p.id}
-              onClick={() => router.push(`/connect/${p.id}`)}
+              onClick={() => p.active ? router.push(`/connect/${p.id}`) : null}
+              disabled={!p.active}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1rem',
-                padding: '1.5rem',
-                borderRadius: '16px',
-                border: '1px solid #cfe6ff',
+                justifyContent: 'space-between',
+                padding: '1.5rem 2rem',
+                borderRadius: '20px',
+                border: p.active ? '1px solid #cfe6ff' : '1px solid #eee',
                 background: p.bg,
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-                width: '100%'
+                cursor: p.active ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s',
+                width: '100%',
+                opacity: p.active ? 1 : 0.7,
+                boxShadow: p.active ? '0 4px 12px rgba(90, 178, 255, 0.08)' : 'none'
               }}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseOver={(e) => p.active && (e.currentTarget.style.transform = 'scale(1.02)')}
+              onMouseOut={(e) => p.active && (e.currentTarget.style.transform = 'scale(1)')}
             >
-              <span style={{ fontSize: '2rem' }}>{p.icon}</span>
-              <span style={{ fontSize: '1.3rem', fontWeight: '700', color: p.color }}>{p.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  background: '#f9f9f9',
+                  borderRadius: '12px',
+                  padding: '8px'
+                }}>
+                  <img src={p.logo} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <span style={{ fontSize: '1.3rem', fontWeight: '800', color: p.active ? p.color : '#999' }}>{p.name}</span>
+              </div>
+              
+              {!p.active && (
+                <span style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: '800', 
+                  padding: '0.4rem 0.8rem', 
+                  background: '#f0f0f0', 
+                  color: '#999', 
+                  borderRadius: '999px',
+                  letterSpacing: '0.5px'
+                }}>
+                  COMING SOON
+                </span>
+              )}
             </button>
           ))}
         </div>
