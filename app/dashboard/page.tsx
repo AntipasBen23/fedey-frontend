@@ -24,6 +24,7 @@ type DashboardData = {
     activeExperiments: number;
     impactScore: string;
   };
+  plan: "free" | "pro";
 };
 
 export default function DashboardPage() {
@@ -46,6 +47,31 @@ export default function DashboardPage() {
 
   // Action Menu State
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+
+  // Pro upgrade modal
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeCode, setUpgradeCode] = useState("");
+  const [upgrading, setUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!upgradeCode.trim()) return;
+    setUpgrading(true);
+    try {
+      const res = await fetch(`${API_URL}/v1/plan/upgrade`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ upgradeCode }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Upgrade failed");
+      setShowUpgradeModal(false);
+      window.location.reload();
+    } catch (e: any) {
+      alert("Upgrade failed: " + e.message);
+    } finally {
+      setUpgrading(false);
+    }
+  };
 
   // Per-post media generation state
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
@@ -344,7 +370,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <ReactionModal 
+      <ReactionModal
         isOpen={showReactionModal}
         onClose={() => setShowReactionModal(false)}
         topic={selectedTrend}
@@ -352,6 +378,45 @@ export default function DashboardPage() {
         loading={loadingReaction}
         onApprove={handleTrendApprove}
       />
+
+      {/* Pro Upgrade Modal */}
+      {showUpgradeModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', padding: '2.5rem', maxWidth: '440px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🚀</div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.5rem' }}>Upgrade to Pro</h2>
+              <p style={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                AI Video generation (Runway ML) is a <strong>Pro plan</strong> feature.
+                Enter your upgrade code below to unlock it.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <input
+                type="text"
+                placeholder="Enter upgrade code"
+                value={upgradeCode}
+                onChange={e => setUpgradeCode(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleUpgrade()}
+                style={{ padding: '0.75rem 1rem', borderRadius: '10px', border: '1.5px solid #e5e7eb', fontSize: '0.95rem', outline: 'none' }}
+              />
+              <button
+                onClick={handleUpgrade}
+                disabled={upgrading || !upgradeCode.trim()}
+                style={{ padding: '0.75rem', borderRadius: '10px', background: upgrading ? '#e5e7eb' : '#4f46e5', color: upgrading ? '#999' : '#fff', fontWeight: 700, border: 0, cursor: upgrading ? 'not-allowed' : 'pointer', fontSize: '0.95rem' }}
+              >
+                {upgrading ? "Upgrading…" : "Activate Pro"}
+              </button>
+              <button
+                onClick={() => { setShowUpgradeModal(false); setUpgradeCode(""); }}
+                style={{ padding: '0.6rem', borderRadius: '10px', background: 'transparent', border: '1px solid #e5e7eb', color: '#666', cursor: 'pointer', fontSize: '0.9rem' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {editingPost && (
         <EditPostModal 
@@ -514,16 +579,26 @@ export default function DashboardPage() {
                               >
                                 {loading ? "Building…" : "📽️ Slide Video (Free)"}
                               </button>
-                              {/* AI Video — only for video_script, requires Runway credits */}
+                              {/* AI Video — Pro only, video_script posts only */}
                               {isVideo && !task && (
-                                <button
-                                  onClick={() => generateVideoForPost(item)}
-                                  disabled={loading}
-                                  title="Generate a cinematic AI video using Runway ML — uses credits"
-                                  style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #d32f2f', color: loading ? '#999' : '#d32f2f', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}
-                                >
-                                  {loading ? "Starting…" : "🎬 AI Video (Runway)"}
-                                </button>
+                                data?.plan === "pro" ? (
+                                  <button
+                                    onClick={() => generateVideoForPost(item)}
+                                    disabled={loading}
+                                    title="Generate a cinematic AI video using Runway ML — Pro feature"
+                                    style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px solid #d32f2f', color: loading ? '#999' : '#d32f2f', background: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}
+                                  >
+                                    {loading ? "Starting…" : "🎬 AI Video (Runway)"}
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => setShowUpgradeModal(true)}
+                                    title="AI Video requires Pro plan"
+                                    style={{ fontSize: '0.78rem', fontWeight: 700, padding: '0.4rem 0.9rem', borderRadius: '8px', border: '1.5px dashed #f59e0b', color: '#b45309', background: '#fffbeb', cursor: 'pointer' }}
+                                  >
+                                    🔒 AI Video — Pro Only
+                                  </button>
+                                )
                               )}
                             </div>
                           )}
