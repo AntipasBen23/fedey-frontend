@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAutopilot } from "@/app/context/AutopilotContext";
 import Link from "next/link";
 import SuccessModal from "@/components/SuccessModal";
@@ -24,6 +24,8 @@ type CalendarItem = {
 
 export default function CalendarGeneratePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isFresh = searchParams.get("fresh") === "1";
   const { isAutopilot } = useAutopilot();
   
   const [calendar, setCalendar] = useState<CalendarItem[]>([]);
@@ -43,13 +45,15 @@ export default function CalendarGeneratePage() {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
         
-        // 1. Pre-flight Status Check
-        const statusRes = await fetch(`${apiUrl}/v1/calendar/status`);
-        if (statusRes.ok) {
-          const { status } = await statusRes.json();
-          if (status === "scheduled") {
-            router.push("/dashboard");
-            return;
+        // 1. Pre-flight Status Check — skip if coming fresh from strategy approval
+        if (!isFresh) {
+          const statusRes = await fetch(`${apiUrl}/v1/calendar/status`);
+          if (statusRes.ok) {
+            const { status } = await statusRes.json();
+            if (status === "scheduled") {
+              router.push("/dashboard");
+              return;
+            }
           }
         }
 
@@ -73,7 +77,7 @@ export default function CalendarGeneratePage() {
     };
 
     checkStatusAndFetch();
-  }, [router]);
+  }, [router, isFresh]);
 
   const handleEdit = (index: number, field: keyof CalendarItem, value: any) => {
     const next = [...calendar];

@@ -238,7 +238,7 @@ export default function StrategyPage() {
       <div style={{ marginTop: '5rem', display: 'flex', gap: '2rem', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
         <div style={{ display: 'flex', gap: '1.5rem' }}>
           <button
-            onClick={() => router.push("/calendar/generate")}
+            onClick={() => router.push("/calendar/generate?fresh=1")}
             className="btn-pulse"
             style={{
               border: '0',
