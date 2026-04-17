@@ -242,8 +242,8 @@ export default function CalendarGeneratePage() {
                 />
               </div>
 
-              {/* Content body (tweet, linkedin_post) */}
-              {(item.contentType === "tweet" || item.contentType === "linkedin_post" || !item.contentType) && (
+              {/* Content body — show for any type that isn't thread/carousel/video_script */}
+              {!["thread", "carousel", "video_script"].includes(item.contentType) && (
                 <div style={{ display: 'grid', gap: '0.4rem' }}>
                   <label style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Content</label>
                   <textarea
