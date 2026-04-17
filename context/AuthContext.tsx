@@ -36,12 +36,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
-  // On mount — restore session from localStorage
+  // On mount — restore session from localStorage, then silently refresh
+  // to validate the token and get a fresh one if the access token expired
   useEffect(() => {
     const stored = localStorage.getItem("furci_user");
     const token = localStorage.getItem("furci_access_token");
+    const refreshToken = localStorage.getItem("furci_refresh_token");
+
     if (stored && token) {
       try {
+        // Restore immediately so the UI doesn't flash logged-out
         setUser(JSON.parse(stored));
         setAccessToken(token);
       } catch {
@@ -49,6 +53,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem("furci_access_token");
       }
     }
+
+    // If we have a refresh token, validate the session in the background.
+    // This handles the case where the access token expired while the user
+    // was away — they stay logged in seamlessly.
+    if (refreshToken) {
+      fetch(`${API_URL}/v1/user/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      })
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((data) => {
+          setUser(data.user);
+          setAccessToken(data.accessToken);
+          localStorage.setItem("furci_access_token", data.accessToken);
+          localStorage.setItem("furci_refresh_token", data.refreshToken);
+          localStorage.setItem("furci_user", JSON.stringify(data.user));
+        })
+        .catch(() => {
+          // Refresh token expired — clear everything and require re-login
+          setUser(null);
+          setAccessToken(null);
+          localStorage.removeItem("furci_access_token");
+          localStorage.removeItem("furci_refresh_token");
+          localStorage.removeItem("furci_user");
+        })
+        .finally(() => setReady(true));
+      return; // setReady will be called inside the promise chain
+    }
+
     setReady(true);
   }, []);
 
