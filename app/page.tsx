@@ -10,6 +10,7 @@ export default function HomePage() {
   const { isLoggedIn, user } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [returnUrl, setReturnUrl] = useState("/hire");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -17,7 +18,9 @@ export default function HomePage() {
     if (searchParams.get("sessionExpired") === "1") {
       setSessionExpired(true);
       setShowAuth(true);
-      // Clean up the URL
+      // Restore where they were before session expired
+      const saved = localStorage.getItem("furci_return_url");
+      if (saved) setReturnUrl(saved);
       router.replace("/");
     }
   }, [searchParams, router]);
@@ -136,9 +139,10 @@ export default function HomePage() {
 
       <AuthModal
         isOpen={showAuth}
-        onClose={() => { setShowAuth(false); setSessionExpired(false); }}
+        onClose={() => { setShowAuth(false); setSessionExpired(false); setReturnUrl("/hire"); }}
         initialView="login"
-        redirectTo="/hire"
+        redirectTo={returnUrl}
+        onSuccess={() => localStorage.removeItem("furci_return_url")}
       />
     </div>
   );

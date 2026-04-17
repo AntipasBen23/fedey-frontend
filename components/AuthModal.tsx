@@ -49,6 +49,8 @@ type Props = {
   initialView?: View;
   /** Where to redirect after a successful login/signup */
   redirectTo?: string;
+  /** Called immediately after a successful login/signup, before redirect */
+  onSuccess?: () => void;
 };
 
 export default function AuthModal({
@@ -56,6 +58,7 @@ export default function AuthModal({
   onClose,
   initialView = "login",
   redirectTo = "/hire",
+  onSuccess,
 }: Props) {
   const { login } = useAuth();
   const router = useRouter();
@@ -135,6 +138,7 @@ export default function AuthModal({
         throw new Error(data.error);
       }
       login(data.accessToken, data.refreshToken, data.user);
+      onSuccess?.();
       onClose();
       router.push(redirectTo);
     } catch (e: any) {
@@ -197,6 +201,7 @@ export default function AuthModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       login(data.accessToken, data.refreshToken, data.user);
+      onSuccess?.();
       onClose();
       router.push(redirectTo);
     } catch (e: any) {
@@ -250,6 +255,7 @@ export default function AuthModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       login(data.accessToken, data.refreshToken, data.user);
+      onSuccess?.();
       onClose();
       router.push(redirectTo);
     } catch (e: any) {

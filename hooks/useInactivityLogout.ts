@@ -26,6 +26,11 @@ export function useInactivityLogout() {
     const reset = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
+        // Save current page so we can return them here after re-login
+        const current = window.location.pathname + window.location.search;
+        if (current !== "/" && current !== "/?sessionExpired=1") {
+          localStorage.setItem("furci_return_url", current);
+        }
         logout();
         router.push("/?sessionExpired=1");
       }, INACTIVITY_TIMEOUT_MS);
