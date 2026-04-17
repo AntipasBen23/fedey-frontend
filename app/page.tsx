@@ -106,7 +106,12 @@ export default function HomePage() {
         ) : (
           // New / logged-out user — open auth modal
           <button
-            onClick={() => setShowAuth(true)}
+            onClick={() => {
+              // If user was mid-onboarding before being logged out, send them back there
+              const saved = localStorage.getItem("furci_return_url");
+              if (saved) setReturnUrl(saved);
+              setShowAuth(true);
+            }}
             className="btn-pulse"
             style={{
               display: "inline-block",
