@@ -86,6 +86,8 @@ export default function AuthModal({
   const [forgotEmail, setForgotEmail] = useState("");
 
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+  const googleInitialized = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -236,37 +238,56 @@ export default function AuthModal({
     }
   };
 
+  const handleGoogleCredential = async (response: { credential: string }) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_URL}/v1/user/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: response.credential, rememberMe }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      login(data.accessToken, data.refreshToken, data.user);
+      onClose();
+      router.push(redirectTo);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleSignIn = () => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
       setError("Google sign-in is not configured yet.");
       return;
     }
-    // Use Google Identity Services popup
-    (window as any).google?.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response: { credential: string }) => {
-        setLoading(true);
-        setError("");
-        try {
-          const res = await fetch(`${API_URL}/v1/user/google`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken: response.credential, rememberMe }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
-          login(data.accessToken, data.refreshToken, data.user);
-          onClose();
-          router.push(redirectTo);
-        } catch (e: any) {
-          setError(e.message);
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
-    (window as any).google?.accounts.id.prompt();
+    const g = (window as any).google;
+    if (!g) {
+      setError("Google sign-in failed to load. Please refresh.");
+      return;
+    }
+    // Initialize once, then render a hidden button and click it
+    // This uses the popup flow and avoids FedCM which can be blocked
+    if (!googleInitialized.current && googleBtnRef.current) {
+      g.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredential,
+        ux_mode: "popup",
+      });
+      g.accounts.id.renderButton(googleBtnRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+      });
+      googleInitialized.current = true;
+    }
+    // Click the hidden rendered Google button to trigger the popup
+    const hiddenBtn = googleBtnRef.current?.querySelector("div[role=button]") as HTMLElement | null;
+    hiddenBtn?.click();
   };
 
   // ── Shared styles ─────────────────────────────────────────────────────────
@@ -584,6 +605,8 @@ export default function AuthModal({
     <>
       {/* Google Identity Services script */}
       <script src="https://accounts.google.com/gsi/client" async defer />
+      {/* Hidden container for Google's rendered button — used to trigger popup flow */}
+      <div ref={googleBtnRef} style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 0, height: 0, overflow: "hidden" }} />
 
       {/* Backdrop */}
       <div
