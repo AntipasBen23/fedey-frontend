@@ -63,8 +63,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken }),
       })
-        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((res) => {
+          if (res.ok) return res.json();
+          // Only clear session on actual auth failure (token genuinely invalid)
+          if (res.status === 401 || res.status === 403) {
+            setUser(null);
+            setAccessToken(null);
+            localStorage.removeItem("furci_access_token");
+            localStorage.removeItem("furci_refresh_token");
+            localStorage.removeItem("furci_user");
+          }
+          // For other errors (500, network) keep the existing session as-is
+          return null;
+        })
         .then((data) => {
+          if (!data) return;
           setUser(data.user);
           setAccessToken(data.accessToken);
           localStorage.setItem("furci_access_token", data.accessToken);
@@ -72,12 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem("furci_user", JSON.stringify(data.user));
         })
         .catch(() => {
-          // Refresh token expired — clear everything and require re-login
-          setUser(null);
-          setAccessToken(null);
-          localStorage.removeItem("furci_access_token");
-          localStorage.removeItem("furci_refresh_token");
-          localStorage.removeItem("furci_user");
+          // Network error — keep existing session, don't log out
         })
         .finally(() => setReady(true));
       return; // setReady will be called inside the promise chain
