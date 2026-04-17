@@ -74,7 +74,7 @@ function ResetPasswordForm() {
       <div style={{ background: "#fff", borderRadius: "20px", padding: "2.5rem", width: "100%", maxWidth: "440px", boxShadow: "0 12px 40px rgba(0,0,0,0.1)" }}>
         <div style={{ marginBottom: "1.75rem" }}>
           <div style={{ fontWeight: 900, fontSize: "1.15rem", color: "#111", marginBottom: "0.25rem" }}>
-            Furci<span style={{ color: "#4f46e5" }}>.ai</span>
+            Furci<span style={{ color: "#2498ff" }}>.ai</span>
           </div>
           <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 800 }}>Set a new password</h2>
         </div>
@@ -116,7 +116,7 @@ function ResetPasswordForm() {
             <button
               type="submit"
               disabled={loading || !token}
-              style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", background: loading ? "#e5e7eb" : "linear-gradient(135deg, #6366f1, #4f46e5)", color: loading ? "#999" : "#fff", fontWeight: 700, fontSize: "0.95rem", border: 0, cursor: loading ? "not-allowed" : "pointer", marginTop: "0.5rem" }}
+              style={{ width: "100%", padding: "0.85rem", borderRadius: "10px", background: loading ? "#e5e7eb" : "linear-gradient(180deg, #8fd1ff, #2498ff)", color: loading ? "#999" : "#05345a", fontWeight: 700, fontSize: "0.95rem", border: 0, cursor: loading ? "not-allowed" : "pointer", marginTop: "0.5rem" }}
             >
               {loading ? "Updating…" : "Update Password"}
             </button>

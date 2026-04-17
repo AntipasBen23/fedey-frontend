@@ -287,8 +287,8 @@ export default function AuthModal({
     width: "100%",
     padding: "0.85rem",
     borderRadius: "10px",
-    background: loading ? "#e5e7eb" : "linear-gradient(135deg, #6366f1, #4f46e5)",
-    color: loading ? "#999" : "#fff",
+    background: loading ? "#e5e7eb" : "linear-gradient(180deg, #8fd1ff, #2498ff)",
+    color: loading ? "#999" : "#05345a",
     fontWeight: 700,
     fontSize: "0.95rem",
     border: 0,
@@ -299,7 +299,7 @@ export default function AuthModal({
   const linkBtn: React.CSSProperties = {
     background: "none",
     border: "none",
-    color: "#4f46e5",
+    color: "#2498ff",
     fontWeight: 600,
     cursor: "pointer",
     fontSize: "inherit",
@@ -606,7 +606,7 @@ export default function AuthModal({
           {/* Logo mark */}
           <div style={{ marginBottom: "1.5rem" }}>
             <div style={{ fontWeight: 900, fontSize: "1.15rem", color: "#111", marginBottom: "0.25rem" }}>
-              Furci<span style={{ color: "#4f46e5" }}>.ai</span>
+              Furci<span style={{ color: "#2498ff" }}>.ai</span>
             </div>
             <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 800, color: "#111" }}>
               {titles[view]}
