@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 const ACTIVITY_EVENTS = [
   "mousemove",
@@ -27,7 +27,7 @@ export function useInactivityLogout() {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         logout();
-        router.push("/");
+        router.push("/?sessionExpired=1");
       }, INACTIVITY_TIMEOUT_MS);
     };
 

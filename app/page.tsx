@@ -1,13 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
 export default function HomePage() {
   const { isLoggedIn, user } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get("sessionExpired") === "1") {
+      setSessionExpired(true);
+      setShowAuth(true);
+      // Clean up the URL
+      router.replace("/");
+    }
+  }, [searchParams, router]);
 
   return (
     <div
@@ -110,9 +123,20 @@ export default function HomePage() {
         )}
       </div>
 
+      {sessionExpired && !showAuth && (
+        <div style={{
+          position: "fixed", top: "1.5rem", left: "50%", transform: "translateX(-50%)",
+          background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "10px",
+          padding: "0.7rem 1.2rem", fontSize: "0.9rem", color: "#7a5800",
+          fontWeight: 600, zIndex: 999, whiteSpace: "nowrap",
+        }}>
+          Your session expired. Please sign in again.
+        </div>
+      )}
+
       <AuthModal
         isOpen={showAuth}
-        onClose={() => setShowAuth(false)}
+        onClose={() => { setShowAuth(false); setSessionExpired(false); }}
         initialView="login"
         redirectTo="/hire"
       />
