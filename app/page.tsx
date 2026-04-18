@@ -6,40 +6,46 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
-// Pages that count as "mid-onboarding" (public, no login required to view)
 const ONBOARDING_PAGES = ["/hire", "/analysis", "/connect", "/strategy", "/calendar/generate"];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
 
 export default function HomePage() {
-  const { isLoggedIn, user, ready } = useAuth();
+  const { isLoggedIn, user, ready, accessToken } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
-  const [returnUrl, setReturnUrl] = useState("/hire");
-  const [validReturnUrl, setValidReturnUrl] = useState<string | null>(null);
-  const [hasDashboard, setHasDashboard] = useState(false);
+  // null = still checking, true = done, false = not done
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
+  const [resumeUrl, setResumeUrl] = useState("/hire");
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  // Read localStorage on the client only
-  useEffect(() => {
-    const saved = localStorage.getItem("furci_return_url");
-    const valid = saved && ONBOARDING_PAGES.some((p) => saved.startsWith(p)) ? saved : null;
-    if (saved && !valid) localStorage.removeItem("furci_return_url"); // clean stale value
-    setValidReturnUrl(valid);
-
-    setHasDashboard(localStorage.getItem("furci_has_dashboard") === "1");
-  }, []);
 
   useEffect(() => {
     if (searchParams.get("sessionExpired") === "1") {
       setSessionExpired(true);
-      const saved = localStorage.getItem("furci_return_url");
-      const valid = saved && ONBOARDING_PAGES.some((p) => saved.startsWith(p)) ? saved : null;
-      if (valid) setReturnUrl(valid);
       router.replace("/");
     }
   }, [searchParams, router]);
 
-  if (!ready) return null;
+  // When logged in, check backend to know if onboarding is done
+  useEffect(() => {
+    if (!ready || !isLoggedIn || !accessToken) {
+      if (ready && !isLoggedIn) setOnboardingDone(null); // reset for logged-out
+      return;
+    }
+
+    // Check for a locally-saved specific onboarding page
+    const saved = localStorage.getItem("furci_return_url");
+    const validSaved = saved && ONBOARDING_PAGES.some((p) => saved.startsWith(p)) ? saved : null;
+    if (validSaved) setResumeUrl(validSaved);
+
+    // Ask the backend: has this user scheduled a calendar (= completed onboarding)?
+    fetch(`${API_URL}/v1/calendar/status`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.ok ? r.json() : { status: "none" })
+      .then((data) => setOnboardingDone(data?.status === "scheduled"))
+      .catch(() => setOnboardingDone(false));
+  }, [ready, isLoggedIn, accessToken]);
 
   const btnStyle: React.CSSProperties = {
     display: "inline-block",
@@ -55,17 +61,22 @@ export default function HomePage() {
     transition: "transform 0.2s",
   };
 
-  // ── Decide what button/state to show ─────────────────────────────────────
+  if (!ready) return null;
 
-  // CASE 1: Logged in user
+  // ── LOGGED IN ─────────────────────────────────────────────────────────────
   if (isLoggedIn) {
-    // If they have a specific onboarding page saved, or haven't reached dashboard yet
-    const destination = validReturnUrl || (!hasDashboard ? "/hire" : null);
+    // Still waiting for backend response — show nothing yet to avoid flash
+    if (onboardingDone === null) {
+      return renderPage(
+        <div style={{ height: "3.5rem" }} /> // placeholder while loading
+      );
+    }
 
-    if (destination) {
+    if (!onboardingDone) {
+      // Not done — send them to where they stopped (or /hire if fresh)
       return renderPage(
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-          <button className="btn-pulse" style={btnStyle} onClick={() => router.push(destination)}>
+          <button className="btn-pulse" style={btnStyle} onClick={() => router.push(resumeUrl)}>
             Continue Onboarding
           </button>
           <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
@@ -75,7 +86,7 @@ export default function HomePage() {
       );
     }
 
-    // Onboarding complete — go to dashboard
+    // Onboarding complete
     return renderPage(
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
         <Link href="/dashboard" className="btn-pulse" style={btnStyle}>
@@ -88,61 +99,23 @@ export default function HomePage() {
     );
   }
 
-  // CASE 2: Logged out, was mid-onboarding (public page — no login needed)
-  if (validReturnUrl) {
-    return renderPage(
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-        <button className="btn-pulse" style={btnStyle} onClick={() => {
-          router.push(validReturnUrl);
-        }}>
-          Pick Up Where You Left Off
-        </button>
-        <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
-          Your onboarding progress is waiting for you.
-        </p>
-      </div>
-    );
-  }
-
-  // CASE 3: Logged out, previously had a dashboard (needs to sign in)
-  if (hasDashboard) {
-    return renderPage(
-      <>
-        <button className="btn-pulse" style={btnStyle} onClick={() => {
-          setReturnUrl("/dashboard");
-          setShowAuth(true);
-        }}>
-          Sign In to Dashboard
-        </button>
-
-        {sessionExpired && !showAuth && (
-          <div style={{
-            position: "fixed", top: "1.5rem", left: "50%", transform: "translateX(-50%)",
-            background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "10px",
-            padding: "0.7rem 1.2rem", fontSize: "0.9rem", color: "#7a5800",
-            fontWeight: 600, zIndex: 999, whiteSpace: "nowrap",
-          }}>
-            Your session expired. Please sign in again.
-          </div>
-        )}
-
-        <AuthModal
-          isOpen={showAuth}
-          onClose={() => { setShowAuth(false); setSessionExpired(false); }}
-          initialView="login"
-          redirectTo={returnUrl}
-          onSuccess={() => localStorage.removeItem("furci_return_url")}
-        />
-      </>
-    );
-  }
-
-  // CASE 4: Brand new visitor — show Hire me + modal
+  // ── LOGGED OUT ────────────────────────────────────────────────────────────
   return renderPage(
     <>
       <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
         Hire me
       </button>
+
+      {sessionExpired && !showAuth && (
+        <div style={{
+          position: "fixed", top: "1.5rem", left: "50%", transform: "translateX(-50%)",
+          background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "10px",
+          padding: "0.7rem 1.2rem", fontSize: "0.9rem", color: "#7a5800",
+          fontWeight: 600, zIndex: 999, whiteSpace: "nowrap",
+        }}>
+          Your session expired. Please sign in again.
+        </div>
+      )}
 
       <AuthModal
         isOpen={showAuth}
@@ -157,54 +130,33 @@ export default function HomePage() {
 
 function renderPage(cta: React.ReactNode) {
   return (
-    <div
-      className="landing-page"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "80vh",
-        textAlign: "center",
-      }}
-    >
-      <div
-        className="hero animate-fade-in-up"
-        style={{ padding: "4rem 2rem", maxWidth: "800px", width: "100%", marginBottom: "2rem" }}
-      >
-        <h1
-          style={{
-            fontSize: "clamp(2.5rem, 8vw, 5rem)",
-            lineHeight: "1.1",
-            color: "var(--text)",
-            marginBottom: "1.5rem",
-          }}
-        >
+    <div className="landing-page" style={{
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", minHeight: "80vh", textAlign: "center",
+    }}>
+      <div className="hero animate-fade-in-up" style={{
+        padding: "4rem 2rem", maxWidth: "800px", width: "100%", marginBottom: "2rem",
+      }}>
+        <h1 style={{
+          fontSize: "clamp(2.5rem, 8vw, 5rem)", lineHeight: "1.1",
+          color: "var(--text)", marginBottom: "1.5rem",
+        }}>
           Hi, I am Furci <span className="animate-float">🤖</span>
           <br />
-          <span
-            style={{
-              fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
-              color: "var(--primary-strong)",
-              display: "block",
-              marginTop: "0.5rem",
-            }}
-          >
+          <span style={{
+            fontSize: "clamp(1.5rem, 4vw, 2.5rem)", color: "var(--primary-strong)",
+            display: "block", marginTop: "0.5rem",
+          }}>
             your professional social media manager.
           </span>
         </h1>
-        <p
-          style={{
-            fontSize: "1.2rem",
-            color: "var(--muted)",
-            margin: "0 auto 2.5rem",
-            maxWidth: "60ch",
-          }}
-        >
+        <p style={{
+          fontSize: "1.2rem", color: "var(--muted)",
+          margin: "0 auto 2.5rem", maxWidth: "60ch",
+        }}>
           I handle your content, community, and strategy seamlessly — entirely
           on autopilot. Ready to scale your online presence to new heights?
         </p>
-
         {cta}
       </div>
     </div>
