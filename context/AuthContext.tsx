@@ -14,7 +14,7 @@ type AuthContextType = {
   accessToken: string | null;
   isLoggedIn: boolean;
   login: (accessToken: string, refreshToken: string, user: AuthUser) => void;
-  logout: () => void;
+  logout: (deleted?: boolean) => void;
   refreshSession: () => Promise<boolean>;
 };
 
@@ -105,9 +105,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback((deleted = false) => {
     const refresh = localStorage.getItem("furci_refresh_token");
-    if (refresh) {
+    if (refresh && !deleted) {
       fetch(`${API_URL}/v1/user/logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,6 +119,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("furci_access_token");
     localStorage.removeItem("furci_refresh_token");
     localStorage.removeItem("furci_user");
+    localStorage.removeItem("furci_return_url");
+    if (deleted) {
+      // Account was deleted by admin — send to homepage to sign up fresh
+      window.location.href = "/";
+    }
   }, []);
 
   const refreshSession = useCallback(async (): Promise<boolean> => {
@@ -149,6 +154,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const interval = setInterval(refreshSession, 13 * 60 * 1000);
     return () => clearInterval(interval);
   }, [user, refreshSession]);
+
+  // Global fetch interceptor — auto-logout if backend says account was deleted
+  useEffect(() => {
+    if (!user) return;
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const res = await originalFetch(...args);
+      if (res.status === 401) {
+        const clone = res.clone();
+        clone.json().then((data) => {
+          if (data?.deleted === true) logout(true);
+        }).catch(() => {});
+      }
+      return res;
+    };
+    return () => { window.fetch = originalFetch; };
+  }, [user, logout]);
 
   if (!ready) return null;
 
