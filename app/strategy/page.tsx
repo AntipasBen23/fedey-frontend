@@ -23,6 +23,8 @@ export default function StrategyPage() {
   const [refinementFeedback, setRefinementFeedback] = useState("");
   const [isRevising, setIsRevising] = useState(false);
 
+  useEffect(() => { localStorage.setItem("furci_return_url", "/strategy"); }, []);
+
   useEffect(() => {
     const fetchStrategy = async () => {
       try {

@@ -16,6 +16,8 @@ export default function AnalysisPage() {
   const [report, setReport] = useState<StrategyReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => { localStorage.setItem("furci_return_url", "/analysis"); }, []);
+
   useEffect(() => {
     const doAnalysis = async () => {
       try {

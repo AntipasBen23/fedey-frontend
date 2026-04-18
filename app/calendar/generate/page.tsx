@@ -40,6 +40,8 @@ export default function CalendarGeneratePage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [scriptItem, setScriptItem] = useState<CalendarItem | null>(null);
 
+  useEffect(() => { localStorage.setItem("furci_return_url", "/calendar/generate"); }, []);
+
   useEffect(() => {
     const checkStatusAndFetch = async () => {
       try {

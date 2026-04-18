@@ -2,11 +2,16 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function HirePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  // Track onboarding position — so home page knows to show "Continue onboarding"
+  useEffect(() => {
+    localStorage.setItem("furci_return_url", "/hire");
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
