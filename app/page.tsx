@@ -25,7 +25,10 @@ export default function HomePage() {
     const valid = saved && ONBOARDING_PAGES.some((p) => saved.startsWith(p)) ? saved : null;
     if (saved && !valid) localStorage.removeItem("furci_return_url"); // clean stale value
     setValidReturnUrl(valid);
-    setHasDashboard(localStorage.getItem("furci_has_dashboard") === "1");
+
+    // Only consider onboarding complete if the user has submitted a job description
+    const jobDone = !!localStorage.getItem("furciJobDescription");
+    setHasDashboard(jobDone && localStorage.getItem("furci_has_dashboard") === "1");
   }, []);
 
   useEffect(() => {
@@ -58,23 +61,25 @@ export default function HomePage() {
 
   // CASE 1: Logged in user
   if (isLoggedIn) {
-    // If they were mid-onboarding and pressed back, take them back there
-    if (validReturnUrl) {
+    const jobDescription = typeof window !== "undefined" ? localStorage.getItem("furciJobDescription") : null;
+    const destination = validReturnUrl || (!jobDescription ? "/hire" : null);
+
+    if (destination) {
       return renderPage(
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
           <button className="btn-pulse" style={btnStyle} onClick={() => {
-            localStorage.removeItem("furci_return_url");
-            router.push(validReturnUrl);
+            router.push(destination);
           }}>
-            Continue Where You Left Off
+            Continue Onboarding
           </button>
           <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
-            Welcome back, <strong>{user?.name?.split(" ")[0]}</strong> — your progress is saved 👋
+            Welcome back, <strong>{user?.name?.split(" ")[0]}</strong> — let's pick up where you left off 👋
           </p>
         </div>
       );
     }
-    // Otherwise go to dashboard
+
+    // Onboarding complete — go to dashboard
     return renderPage(
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
         <Link href="/dashboard" className="btn-pulse" style={btnStyle}>
