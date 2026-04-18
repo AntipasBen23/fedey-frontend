@@ -14,31 +14,26 @@ export default function HomePage() {
   const [showAuth, setShowAuth] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [returnUrl, setReturnUrl] = useState("/hire");
+  const [validReturnUrl, setValidReturnUrl] = useState<string | null>(null);
+  const [hasDashboard, setHasDashboard] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Read saved state from localStorage
-  const savedReturnUrl = typeof window !== "undefined" ? localStorage.getItem("furci_return_url") : null;
-  const hasDashboard = typeof window !== "undefined" ? localStorage.getItem("furci_has_dashboard") === "1" : false;
-
-  // Validate saved URL — only use it if it's an onboarding page
-  const validReturnUrl = savedReturnUrl && ONBOARDING_PAGES.some((p) => savedReturnUrl.startsWith(p))
-    ? savedReturnUrl
-    : null;
-
-  // Clean up stale non-onboarding return URLs
+  // Read localStorage on the client only
   useEffect(() => {
-    if (savedReturnUrl && !validReturnUrl) {
-      localStorage.removeItem("furci_return_url");
-    }
+    const saved = localStorage.getItem("furci_return_url");
+    const valid = saved && ONBOARDING_PAGES.some((p) => saved.startsWith(p)) ? saved : null;
+    if (saved && !valid) localStorage.removeItem("furci_return_url"); // clean stale value
+    setValidReturnUrl(valid);
+    setHasDashboard(localStorage.getItem("furci_has_dashboard") === "1");
   }, []);
 
   useEffect(() => {
     if (searchParams.get("sessionExpired") === "1") {
       setSessionExpired(true);
-      if (validReturnUrl) {
-        setReturnUrl(validReturnUrl);
-      }
+      const saved = localStorage.getItem("furci_return_url");
+      const valid = saved && ONBOARDING_PAGES.some((p) => saved.startsWith(p)) ? saved : null;
+      if (valid) setReturnUrl(valid);
       router.replace("/");
     }
   }, [searchParams, router]);
