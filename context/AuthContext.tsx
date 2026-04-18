@@ -109,6 +109,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("furci_access_token", newAccessToken);
       localStorage.setItem("furci_refresh_token", refreshToken);
       localStorage.setItem("furci_user", JSON.stringify(newUser));
+      // Clear stale onboarding flags so the home page always shows the right button
+      localStorage.removeItem("furci_has_dashboard");
+      localStorage.removeItem("furci_return_url");
     },
     []
   );

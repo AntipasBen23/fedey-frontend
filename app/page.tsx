@@ -26,9 +26,7 @@ export default function HomePage() {
     if (saved && !valid) localStorage.removeItem("furci_return_url"); // clean stale value
     setValidReturnUrl(valid);
 
-    // Only consider onboarding complete if the user has submitted a job description
-    const jobDone = !!localStorage.getItem("furciJobDescription");
-    setHasDashboard(jobDone && localStorage.getItem("furci_has_dashboard") === "1");
+    setHasDashboard(localStorage.getItem("furci_has_dashboard") === "1");
   }, []);
 
   useEffect(() => {
@@ -61,15 +59,13 @@ export default function HomePage() {
 
   // CASE 1: Logged in user
   if (isLoggedIn) {
-    const jobDescription = typeof window !== "undefined" ? localStorage.getItem("furciJobDescription") : null;
-    const destination = validReturnUrl || (!jobDescription ? "/hire" : null);
+    // If they have a specific onboarding page saved, or haven't reached dashboard yet
+    const destination = validReturnUrl || (!hasDashboard ? "/hire" : null);
 
     if (destination) {
       return renderPage(
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-          <button className="btn-pulse" style={btnStyle} onClick={() => {
-            router.push(destination);
-          }}>
+          <button className="btn-pulse" style={btnStyle} onClick={() => router.push(destination)}>
             Continue Onboarding
           </button>
           <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
