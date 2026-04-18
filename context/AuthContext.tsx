@@ -65,13 +65,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
         .then((res) => {
           if (res.ok) return res.json();
-          // Only clear session on actual auth failure (token genuinely invalid)
           if (res.status === 401 || res.status === 403) {
-            setUser(null);
-            setAccessToken(null);
-            localStorage.removeItem("furci_access_token");
-            localStorage.removeItem("furci_refresh_token");
-            localStorage.removeItem("furci_user");
+            return res.json().then((data) => {
+              if (data?.deleted === true) {
+                logout(true); // account deleted — redirect home
+              } else {
+                setUser(null);
+                setAccessToken(null);
+                localStorage.removeItem("furci_access_token");
+                localStorage.removeItem("furci_refresh_token");
+                localStorage.removeItem("furci_user");
+              }
+              return null;
+            });
           }
           // For other errors (500, network) keep the existing session as-is
           return null;
@@ -154,6 +160,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const interval = setInterval(refreshSession, 13 * 60 * 1000);
     return () => clearInterval(interval);
   }, [user, refreshSession]);
+
+  // On mount, once session is restored, validate it against the backend.
+  // This catches deleted accounts immediately — even before any page API call.
+  useEffect(() => {
+    if (!ready || !user) return;
+    const token = localStorage.getItem("furci_access_token");
+    if (!token) return;
+    fetch(`${API_URL}/v1/user/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      if (res.status === 401) {
+        res.json().then((data) => {
+          if (data?.deleted === true) {
+            logout(true);
+          } else {
+            // Token expired — try refresh
+            refreshSession();
+          }
+        }).catch(() => {});
+      }
+    }).catch(() => {});
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Global fetch interceptor — auto-logout if backend says account was deleted
   useEffect(() => {
