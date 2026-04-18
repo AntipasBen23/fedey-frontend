@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
 
 type StrategyDetail = {
   identityAudit: string;
@@ -14,6 +17,7 @@ type StrategyDetail = {
 export default function StrategyPage() {
   const router = useRouter();
   const { data: session } = useSession() as any;
+  const { user, updateUser } = useAuth();
   const [strategy, setStrategy] = useState<StrategyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,27 +27,42 @@ export default function StrategyPage() {
   const [refinementFeedback, setRefinementFeedback] = useState("");
   const [isRevising, setIsRevising] = useState(false);
 
-  useEffect(() => { localStorage.setItem("furci_return_url", "/strategy"); }, []);
+  // Track onboarding position
+  useEffect(() => {
+    fetch(`${API_URL}/v1/user/onboarding`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ lastOnboardingStep: "/strategy" }),
+    }).catch(() => {});
+    updateUser({ lastOnboardingStep: "/strategy" });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const fetchStrategy = async () => {
       try {
-        const productSummary = localStorage.getItem("furciJobDescription") || "your product";
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
-        
-        // 1. Identify Platform and Context
-        const platform = session?.platform || "twitter";
-        const accountType = localStorage.getItem(`furci_${platform}_context`) || "new";
+        const productSummary = user?.jobDescription || "your product";
 
-        // 2. Generate Strategy with Audit
-        const response = await fetch(`${apiUrl}/v1/strategy`, {
+        // Parse platform context from user record
+        let platform = "twitter";
+        let accountType = "new";
+        if (user?.platformContext) {
+          try {
+            const ctx = JSON.parse(user.platformContext);
+            platform = ctx.platform || session?.platform || "twitter";
+            accountType = ctx.accountType || "new";
+          } catch {
+            platform = session?.platform || "twitter";
+          }
+        } else {
+          platform = session?.platform || "twitter";
+        }
+
+        const response = await fetch(`${API_URL}/v1/strategy`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            productSummary,
-            platform: platform,
-            accountType: accountType
-          }),
+          credentials: "include",
+          body: JSON.stringify({ productSummary, platform, accountType }),
         });
 
         if (!response.ok) throw new Error("Failed to generate professional strategy");
@@ -51,19 +70,17 @@ export default function StrategyPage() {
         const data = await response.json();
         setStrategy(data);
 
-        // 2. Handoff Token to Backend if session exists
+        // Handoff OAuth token to backend if session exists
         if (session?.accessToken) {
           setIsSyncing(true);
-          const platform = session.platform as string;
-          const accountType = localStorage.getItem(`furci_${platform}_context`) || "new";
-
-          await fetch(`${apiUrl}/v1/auth/callback`, {
+          await fetch(`${API_URL}/v1/auth/callback`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
+            credentials: "include",
+            body: JSON.stringify({
               accessToken: session.accessToken,
-              platform: platform,
-              accountType: accountType
+              platform,
+              accountType,
             }),
           });
           setIsSyncing(false);
@@ -76,20 +93,21 @@ export default function StrategyPage() {
     };
 
     fetchStrategy();
-  }, [session]);
+  }, [session, user?.jobDescription, user?.platformContext]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDisconnect = async () => {
     if (!confirm("Are you sure you want to disconnect your account? This will wipe your tokens.")) return;
-    
+
     setIsDisconnecting(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
-      await fetch(`${apiUrl}/v1/auth/disconnect`, {
+      const platform = session?.platform || "twitter";
+      await fetch(`${API_URL}/v1/auth/disconnect`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ platform: session?.platform || "twitter" }),
+        credentials: "include",
+        body: JSON.stringify({ platform }),
       });
-      
+
       await signOut({ callbackUrl: "/connect" });
     } catch (err) {
       alert("Failed to disconnect correctly. Please try again.");
@@ -102,13 +120,13 @@ export default function StrategyPage() {
     if (!refinementFeedback.trim()) return;
     setIsRevising(true);
     try {
-      const productSummary = localStorage.getItem("furciJobDescription") || "your product";
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
-      
-      const response = await fetch(`${apiUrl}/v1/strategy/refine`, {
+      const productSummary = user?.jobDescription || "your product";
+
+      const response = await fetch(`${API_URL}/v1/strategy/refine`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        credentials: "include",
+        body: JSON.stringify({
           currentStrategy: strategy,
           feedback: refinementFeedback,
           productSummary,
@@ -152,7 +170,7 @@ export default function StrategyPage() {
   return (
     <div className="page" style={{ padding: '3rem 1rem', maxWidth: '1000px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '4rem', position: 'relative' }}>
-        <button 
+        <button
            onClick={handleDisconnect}
            disabled={isDisconnecting}
            style={{
@@ -180,11 +198,11 @@ export default function StrategyPage() {
 
       <div style={{ display: 'grid', gap: '3rem' }}>
         {/* Identity Audit Section */}
-        <div className="brand-card shadow-premium" style={{ 
-          padding: '2.5rem', 
-          borderRadius: '32px', 
+        <div className="brand-card shadow-premium" style={{
+          padding: '2.5rem',
+          borderRadius: '32px',
           background: 'linear-gradient(160deg, #fff9f0, #ffffff)',
-          border: '2px solid #ffead1' 
+          border: '2px solid #ffead1'
         }}>
           <h3 style={{ margin: '0 0 1rem', color: '#b25e09', fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <span>🕵️‍♂️</span> Identity Audit (Eyes On)
@@ -280,7 +298,7 @@ export default function StrategyPage() {
           <div className="animate-slide-up" style={{ width: '100%', maxWidth: '700px', marginTop: '2rem', padding: '2rem', background: '#f0f7ff', borderRadius: '24px', border: '1px solid #bfe4ff', textAlign: 'left' }}>
             <h4 style={{ color: '#0c4e7b', margin: '0 0 0.5rem' }}>How can I improve this strategy? 🤔</h4>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Tell Furci about specific corrections or shifts you want (e.g., "Make it more professional" or "Focus more on X").</p>
-            <textarea 
+            <textarea
               value={refinementFeedback}
               onChange={(e) => setRefinementFeedback(e.target.value)}
               placeholder="Your improvements and corrections here..."

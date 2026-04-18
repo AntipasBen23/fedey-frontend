@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
 
 type StrategyReport = {
   summary: string;
@@ -11,17 +14,27 @@ type StrategyReport = {
 
 export default function AnalysisPage() {
   const router = useRouter();
-  
+  const { user, updateUser } = useAuth();
+
   const [analyzingState, setAnalyzingState] = useState<string>("Initializing intelligence...");
   const [report, setReport] = useState<StrategyReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { localStorage.setItem("furci_return_url", "/analysis"); }, []);
+  // Track onboarding position
+  useEffect(() => {
+    fetch(`${API_URL}/v1/user/onboarding`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ lastOnboardingStep: "/analysis" }),
+    }).catch(() => {});
+    updateUser({ lastOnboardingStep: "/analysis" });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const doAnalysis = async () => {
       try {
-        const textToAnalyze = localStorage.getItem("furciJobDescription");
+        const textToAnalyze = user?.jobDescription;
         if (!textToAnalyze) {
           setError("No job description found. Please go back and submit one.");
           return;
@@ -34,7 +47,6 @@ export default function AnalysisPage() {
           "Finalizing strategy..."
         ];
 
-        // Simulate reading stages visually
         let stageIndex = 0;
         const interval = setInterval(() => {
           if (stageIndex < stages.length) {
@@ -43,13 +55,10 @@ export default function AnalysisPage() {
           }
         }, 1500);
 
-        // Actual API call to live backend
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-        const response = await fetch(`${apiUrl}/v1/analyze`, {
+        const response = await fetch(`${API_URL}/v1/analyze`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ jobDescription: textToAnalyze }),
         });
 
@@ -59,7 +68,6 @@ export default function AnalysisPage() {
         }
 
         const result = await response.json();
-        
         clearInterval(interval);
         setReport(result as StrategyReport);
       } catch (err: any) {
@@ -67,17 +75,20 @@ export default function AnalysisPage() {
       }
     };
 
-    doAnalysis();
-  }, [router]);
+    // Wait until user is loaded before running analysis
+    if (user !== undefined) {
+      doAnalysis();
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (error) {
     return (
       <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center' }}>
-        <div className="hero animate-fade-in-up" style={{ 
-          padding: '3rem', 
-          maxWidth: '500px', 
-          background: 'linear-gradient(145deg, #fff5f5, #ffffff)', 
-          border: '1px solid #ffcccc', 
+        <div className="hero animate-fade-in-up" style={{
+          padding: '3rem',
+          maxWidth: '500px',
+          background: 'linear-gradient(145deg, #fff5f5, #ffffff)',
+          border: '1px solid #ffcccc',
           borderRadius: '24px',
           boxShadow: '0 15px 35px rgba(255, 0, 0, 0.05)'
         }}>
@@ -87,31 +98,31 @@ export default function AnalysisPage() {
             {error}
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <button 
-              onClick={() => router.push("/hire")} 
-              style={{ 
-                padding: '0.9rem 1.8rem', 
-                borderRadius: '12px', 
-                border: '1px solid #ffcccc', 
+            <button
+              onClick={() => router.push("/hire")}
+              style={{
+                padding: '0.9rem 1.8rem',
+                borderRadius: '12px',
+                border: '1px solid #ffcccc',
                 background: 'white',
                 color: '#c53030',
                 fontWeight: '600',
-                cursor: 'pointer' 
+                cursor: 'pointer'
               }}
             >
               Go Back
             </button>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="btn-pulse"
-              style={{ 
-                padding: '0.9rem 1.8rem', 
-                borderRadius: '12px', 
-                border: 0, 
+              style={{
+                padding: '0.9rem 1.8rem',
+                borderRadius: '12px',
+                border: 0,
                 background: 'linear-gradient(180deg, #feb2b2, #f56565)',
                 color: 'white',
                 fontWeight: '700',
-                cursor: 'pointer' 
+                cursor: 'pointer'
               }}
             >
               Retry Analysis

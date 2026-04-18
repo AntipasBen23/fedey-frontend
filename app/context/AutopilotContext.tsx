@@ -1,35 +1,25 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 type AutopilotContextType = {
   isAutopilot: boolean;
-  toggleAutopilot: () => void;
+  setAutopilotState: (enabled: boolean) => void;
 };
 
 const AutopilotContext = createContext<AutopilotContextType | undefined>(undefined);
 
 export function AutopilotProvider({ children }: { children: React.ReactNode }) {
+  // State only — dashboard reads the authoritative value from the backend
+  // and calls setAutopilotState after loading/toggling.
   const [isAutopilot, setIsAutopilot] = useState(false);
 
-  useEffect(() => {
-    // Load from local storage
-    const saved = localStorage.getItem("furciAutopilot");
-    if (saved) {
-      setIsAutopilot(JSON.parse(saved));
-    }
-  }, []);
-
-  const toggleAutopilot = () => {
-    setIsAutopilot((prev) => {
-      const next = !prev;
-      localStorage.setItem("furciAutopilot", JSON.stringify(next));
-      return next;
-    });
+  const setAutopilotState = (enabled: boolean) => {
+    setIsAutopilot(enabled);
   };
 
   return (
-    <AutopilotContext.Provider value={{ isAutopilot, toggleAutopilot }}>
+    <AutopilotContext.Provider value={{ isAutopilot, setAutopilotState }}>
       {children}
     </AutopilotContext.Provider>
   );

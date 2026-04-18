@@ -122,6 +122,7 @@ export default function AuthModal({
       const res = await fetch(`${API_URL}/v1/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           email: loginEmail,
           password: loginPassword,
@@ -137,7 +138,7 @@ export default function AuthModal({
         }
         throw new Error(data.error);
       }
-      login(data.accessToken, data.refreshToken, data.user);
+      login(data.user);
       onSuccess?.();
       onClose();
       router.push(redirectTo);
@@ -196,11 +197,12 @@ export default function AuthModal({
       const res = await fetch(`${API_URL}/v1/user/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ userId: pendingUserId, code: code.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      login(data.accessToken, data.refreshToken, data.user);
+      login(data.user);
       onSuccess?.();
       onClose();
       router.push(redirectTo);
@@ -250,11 +252,12 @@ export default function AuthModal({
       const res = await fetch(`${API_URL}/v1/user/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ idToken: response.credential, rememberMe }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      login(data.accessToken, data.refreshToken, data.user);
+      login(data.user);
       onSuccess?.();
       onClose();
       router.push(redirectTo);

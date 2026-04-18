@@ -279,10 +279,7 @@ export default function DashboardPage() {
         if (!response.ok) throw new Error("Failed to load dashboard");
         const json = await response.json();
         setData(json);
-        // Mark that this user has reached the dashboard, clear onboarding tracker
-        localStorage.setItem("furci_has_dashboard", "1");
-        localStorage.removeItem("furci_return_url");
-        
+
         // Find autopilot status for current platform
         const platform = session?.platform || "twitter";
         const account = json.socialAccounts.find((a: any) => a.platform === platform);

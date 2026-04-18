@@ -26,14 +26,8 @@ export function useInactivityLogout() {
     const reset = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
-        // Only save return URL for onboarding pages — not dashboard or post-onboarding
-        const current = window.location.pathname;
-        const onboardingPages = ["/hire", "/analysis", "/connect", "/strategy", "/calendar/generate"];
-        if (onboardingPages.some((p) => current.startsWith(p))) {
-          localStorage.setItem("furci_return_url", current);
-        } else {
-          localStorage.removeItem("furci_return_url");
-        }
+        // Each onboarding page already saved its position to the backend on mount,
+        // so no extra tracking is needed here before logout.
         logout();
         router.push("/?sessionExpired=1");
       }, INACTIVITY_TIMEOUT_MS);

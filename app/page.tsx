@@ -6,16 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
-const ONBOARDING_PAGES = ["/hire", "/analysis", "/connect", "/strategy", "/calendar/generate"];
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
-
 export default function HomePage() {
-  const { isLoggedIn, user, ready, accessToken } = useAuth();
+  const { isLoggedIn, user, ready } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
-  // null = still checking, true = done, false = not done
-  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
-  const [resumeUrl, setResumeUrl] = useState("/hire");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -25,27 +19,6 @@ export default function HomePage() {
       router.replace("/");
     }
   }, [searchParams, router]);
-
-  // When logged in, check backend to know if onboarding is done
-  useEffect(() => {
-    if (!ready || !isLoggedIn || !accessToken) {
-      if (ready && !isLoggedIn) setOnboardingDone(null); // reset for logged-out
-      return;
-    }
-
-    // Check for a locally-saved specific onboarding page
-    const saved = localStorage.getItem("furci_return_url");
-    const validSaved = saved && ONBOARDING_PAGES.some((p) => saved.startsWith(p)) ? saved : null;
-    if (validSaved) setResumeUrl(validSaved);
-
-    // Ask the backend: has this user scheduled a calendar (= completed onboarding)?
-    fetch(`${API_URL}/v1/calendar/status`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-      .then((r) => r.ok ? r.json() : { status: "none" })
-      .then((data) => setOnboardingDone(data?.status === "scheduled"))
-      .catch(() => setOnboardingDone(false));
-  }, [ready, isLoggedIn, accessToken]);
 
   const btnStyle: React.CSSProperties = {
     display: "inline-block",
@@ -64,23 +37,19 @@ export default function HomePage() {
   if (!ready) return null;
 
   // ── LOGGED IN ─────────────────────────────────────────────────────────────
-  if (isLoggedIn) {
-    // Still waiting for backend response — show nothing yet to avoid flash
-    if (onboardingDone === null) {
-      return renderPage(
-        <div style={{ height: "3.5rem" }} /> // placeholder while loading
-      );
-    }
+  if (isLoggedIn && user) {
+    const step = user.lastOnboardingStep;
+    const onboardingDone = step === "completed";
+    const resumeUrl = (!step || step === "completed") ? "/hire" : step;
 
     if (!onboardingDone) {
-      // Not done — send them to where they stopped (or /hire if fresh)
       return renderPage(
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
           <button className="btn-pulse" style={btnStyle} onClick={() => router.push(resumeUrl)}>
             Continue Onboarding
           </button>
           <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
-            Welcome back, <strong>{user?.name?.split(" ")[0]}</strong> — let's pick up where you left off 👋
+            Welcome back, <strong>{user.name?.split(" ")[0]}</strong> — let's pick up where you left off 👋
           </p>
         </div>
       );
@@ -93,7 +62,7 @@ export default function HomePage() {
           Open Dashboard
         </Link>
         <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
-          Welcome back, <strong>{user?.name?.split(" ")[0]}</strong> 👋
+          Welcome back, <strong>{user.name?.split(" ")[0]}</strong> 👋
         </p>
       </div>
     );
@@ -122,7 +91,6 @@ export default function HomePage() {
         onClose={() => { setShowAuth(false); setSessionExpired(false); }}
         initialView="login"
         redirectTo="/hire"
-        onSuccess={() => localStorage.removeItem("furci_return_url")}
       />
     </>
   );

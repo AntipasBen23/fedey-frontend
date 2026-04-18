@@ -3,39 +3,55 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
 
 export default function HirePage() {
   const router = useRouter();
+  const { updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  // Track onboarding position — so home page knows to show "Continue onboarding"
+  // Track onboarding position in backend
   useEffect(() => {
-    localStorage.setItem("furci_return_url", "/hire");
-  }, []);
+    fetch(`${API_URL}/v1/user/onboarding`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ lastOnboardingStep: "/hire" }),
+    }).catch(() => {});
+    updateUser({ lastOnboardingStep: "/hire" });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const text = formData.get("jobDescription") as string;
-    
-    // Pass via localStorage so analysis page can pick it up locally
-    localStorage.setItem("furciJobDescription", text);
-    
+
+    // Save job description to backend
+    await fetch(`${API_URL}/v1/user/onboarding`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ jobDescription: text, lastOnboardingStep: "/analysis" }),
+    }).catch(() => {});
+
+    updateUser({ jobDescription: text, lastOnboardingStep: "/analysis" });
     router.push("/analysis");
   }
 
   return (
-    <div className="page" style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '80vh' 
+    <div className="page" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '80vh'
     }}>
-      <div className="hero animate-fade-in-up" style={{ 
-        width: '100%', 
-        maxWidth: '700px', 
+      <div className="hero animate-fade-in-up" style={{
+        width: '100%',
+        maxWidth: '700px',
         padding: '3rem 2.5rem',
         background: 'linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(236, 247, 255, 0.98))',
         border: '1px solid var(--border)',
@@ -50,16 +66,16 @@ export default function HirePage() {
             Paste your job description or requirements below, and I'll get straight to work.
           </p>
         </div>
-        
+
         <form className="onboarding-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ display: 'grid', gap: '0.8rem' }}>
             <label htmlFor="jobDescription" style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text)' }}>
               Job Description
             </label>
-            <textarea 
+            <textarea
               id="jobDescription"
-              name="jobDescription" 
-              rows={8} 
+              name="jobDescription"
+              rows={8}
               placeholder="E.g., I need a social media manager to grow my tech startup's Twitter account..."
               style={{
                 width: '100%',
@@ -77,9 +93,9 @@ export default function HirePage() {
               disabled={loading}
             />
           </div>
-          
+
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-             <Link 
+             <Link
               href="/"
               style={{
                 flex: 1,
@@ -101,7 +117,7 @@ export default function HirePage() {
             >
               Back
             </Link>
-            <button 
+            <button
               type="submit"
               className={loading ? "" : "btn-pulse"}
               disabled={loading}

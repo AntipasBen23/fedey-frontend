@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAutopilot } from "@/app/context/AutopilotContext";
-import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import SuccessModal from "@/components/SuccessModal";
 import SchedulingHub from "@/components/SchedulingHub";
 import ErrorModal from "@/components/ErrorModal";
 import ScriptModal from "@/components/ScriptModal";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
 
 type CalendarItem = {
   day: number;
@@ -27,7 +29,8 @@ export default function CalendarGeneratePage() {
   const searchParams = useSearchParams();
   const isFresh = searchParams.get("fresh") === "1";
   const { isAutopilot } = useAutopilot();
-  
+  const { user, updateUser } = useAuth();
+
   const [calendar, setCalendar] = useState<CalendarItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,30 +43,32 @@ export default function CalendarGeneratePage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [scriptItem, setScriptItem] = useState<CalendarItem | null>(null);
 
-  useEffect(() => { localStorage.setItem("furci_return_url", "/calendar/generate"); }, []);
+  // Track onboarding position
+  useEffect(() => {
+    fetch(`${API_URL}/v1/user/onboarding`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ lastOnboardingStep: "/calendar/generate" }),
+    }).catch(() => {});
+    updateUser({ lastOnboardingStep: "/calendar/generate" });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const checkStatusAndFetch = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
-        
-        // 1. Pre-flight Status Check — skip if coming fresh from strategy approval
-        if (!isFresh) {
-          const statusRes = await fetch(`${apiUrl}/v1/calendar/status`);
-          if (statusRes.ok) {
-            const { status } = await statusRes.json();
-            if (status === "scheduled") {
-              router.push("/dashboard");
-              return;
-            }
-          }
+        // 1. Pre-flight: if already completed onboarding, go to dashboard
+        if (!isFresh && user?.lastOnboardingStep === "completed") {
+          router.push("/dashboard");
+          return;
         }
 
-        // 2. Fetch/Generate Calendar
-        const productSummary = localStorage.getItem("furciJobDescription") || "your product";
-        const response = await fetch(`${apiUrl}/v1/calendar`, {
+        // 2. Fetch/Generate Calendar using job description from user profile
+        const productSummary = user?.jobDescription || "your product";
+        const response = await fetch(`${API_URL}/v1/calendar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ productSummary }),
         });
 
@@ -79,7 +84,7 @@ export default function CalendarGeneratePage() {
     };
 
     checkStatusAndFetch();
-  }, [router, isFresh]);
+  }, [router, isFresh, user?.jobDescription]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleEdit = (index: number, field: keyof CalendarItem, value: any) => {
     const next = [...calendar];
@@ -91,13 +96,13 @@ export default function CalendarGeneratePage() {
     if (!revisionFeedback.trim()) return;
     setRevising(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-      const response = await fetch(`${apiUrl}/v1/revise`, {
+      const response = await fetch(`${API_URL}/v1/revise`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          currentCalendar: calendar, 
-          feedback: revisionFeedback 
+        credentials: "include",
+        body: JSON.stringify({
+          currentCalendar: calendar,
+          feedback: revisionFeedback
         }),
       });
 
@@ -116,10 +121,10 @@ export default function CalendarGeneratePage() {
   const handleApprove = async (settings: any) => {
     setIsApproving(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
-      const response = await fetch(`${apiUrl}/v1/calendar/approve`, {
+      const response = await fetch(`${API_URL}/v1/calendar/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           schedulingMode: settings.mode,
           staggerStrategy: settings.stagger,
@@ -133,7 +138,16 @@ export default function CalendarGeneratePage() {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to approve calendar");
       }
-      
+
+      // Mark onboarding as completed in backend + local context
+      await fetch(`${API_URL}/v1/user/onboarding`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ lastOnboardingStep: "completed" }),
+      }).catch(() => {});
+      updateUser({ lastOnboardingStep: "completed" });
+
       setShowHub(false);
       setShowSuccess(true);
     } catch (err: any) {
@@ -173,7 +187,7 @@ export default function CalendarGeneratePage() {
     <div className="page" style={{ padding: '3rem 1rem', maxWidth: '1100px', margin: '0 auto' }}>
       <SuccessModal
         isOpen={showSuccess}
-        onClose={() => setShowSuccess(false)}
+        onClose={() => { setShowSuccess(false); router.push("/dashboard"); }}
         title="Calendar Scheduled!"
         message="Furci has successfully queued your 3-day content runway. Your dashboard is now active."
       />
@@ -321,16 +335,16 @@ export default function CalendarGeneratePage() {
       <div style={{ marginTop: '4rem', padding: '3rem', background: 'linear-gradient(160deg, #f0f7ff, #ffffff)', borderRadius: '32px', border: '1px solid var(--border)', textAlign: 'center' }}>
         <h3 style={{ fontSize: '1.8rem', color: 'var(--text)', marginBottom: '1rem' }}>Not quite right? 🤔</h3>
         <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>Tell Furci what to change (e.g., "Make it more funny" or "Focus more on the tech side").</p>
-        
+
         <div style={{ display: 'flex', gap: '1rem', maxWidth: '800px', margin: '0 auto' }}>
-          <textarea 
+          <textarea
             value={revisionFeedback}
             onChange={(e) => setRevisionFeedback(e.target.value)}
             disabled={revising}
             placeholder="Type your complaints or suggestions here..."
             style={{ flex: 1, padding: '1.2rem', borderRadius: '16px', border: '1px solid #cfe6ff', fontSize: '1.1rem' }}
           />
-          <button 
+          <button
             onClick={handleRevise}
             disabled={revising || !revisionFeedback.trim()}
             style={{ padding: '0 2rem', borderRadius: '16px', background: 'var(--primary-strong)', color: 'white', fontWeight: 700, cursor: 'pointer', opacity: revising ? 0.6 : 1 }}

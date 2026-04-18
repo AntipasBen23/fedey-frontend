@@ -4,22 +4,30 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
 
 export default function PlatformContextPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, updateUser } = useAuth();
   const platform = params.platform as string;
-  
-  const [productName, setProductName] = useState<string>("your product");
+
   const [accountType, setAccountType] = useState<"old" | "new" | null>(null);
 
+  const productName = user?.jobDescription ? "your project" : "your product";
+
+  // Track onboarding position
   useEffect(() => {
-    // Attempt to get product name from local storage analysis
-    const stored = localStorage.getItem("furciJobDescription");
-    if (stored) {
-      setProductName("your project");
-    }
-  }, []);
+    fetch(`${API_URL}/v1/user/onboarding`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ lastOnboardingStep: `/connect/${platform}` }),
+    }).catch(() => {});
+    updateUser({ lastOnboardingStep: `/connect/${platform}` });
+  }, [platform]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const platformNames: Record<string, string> = {
     twitter: "Twitter (X)",
@@ -32,24 +40,37 @@ export default function PlatformContextPage() {
   const handleConnect = async () => {
     if (!accountType) return;
 
-    // Save selection
-    localStorage.setItem(`furci_${platform}_context`, accountType);
+    // Save platform context to backend before OAuth redirect
+    await fetch(`${API_URL}/v1/user/onboarding`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        platformContext: JSON.stringify({ platform, accountType }),
+        lastOnboardingStep: "/strategy",
+      }),
+    }).catch(() => {});
+
+    updateUser({
+      platformContext: JSON.stringify({ platform, accountType }),
+      lastOnboardingStep: "/strategy",
+    });
 
     // Trigger OAuth flow
     await signIn(platform, { callbackUrl: "/strategy" });
   };
 
   return (
-    <div className="page" style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '80vh' 
+    <div className="page" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '80vh'
     }}>
-      <div className="hero animate-fade-in-up" style={{ 
-        width: '100%', 
-        maxWidth: '700px', 
+      <div className="hero animate-fade-in-up" style={{
+        width: '100%',
+        maxWidth: '700px',
         padding: '3rem 2.5rem',
         background: 'linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(236, 247, 255, 0.98))',
         border: '1px solid var(--border)',
@@ -65,7 +86,7 @@ export default function PlatformContextPage() {
         </p>
 
         <div style={{ display: 'grid', gap: '1.5rem', marginBottom: '3rem' }}>
-          <button 
+          <button
             onClick={() => setAccountType("old")}
             style={{
               padding: '2rem',
@@ -86,7 +107,7 @@ export default function PlatformContextPage() {
             </div>
           </button>
 
-          <button 
+          <button
             onClick={() => setAccountType("new")}
             style={{
               padding: '2rem',
@@ -109,7 +130,7 @@ export default function PlatformContextPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <Link 
+          <Link
             href="/connect"
             style={{
               padding: '1.2rem 2.5rem',
@@ -123,7 +144,7 @@ export default function PlatformContextPage() {
           >
             Back
           </Link>
-          <button 
+          <button
             onClick={handleConnect}
             disabled={!accountType}
             className={accountType ? "btn-pulse" : ""}
