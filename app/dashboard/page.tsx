@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import TrendingWidget from "@/components/TrendingWidget";
 import ReactionModal from "@/components/ReactionModal";
 import EditPostModal from "@/components/EditPostModal";
@@ -62,6 +63,14 @@ type DashboardData = {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session } = useSession() as any;
+  const { isLoggedIn, ready } = useAuth() as any;
+
+  // Auth guard — redirect to home if not logged in
+  useEffect(() => {
+    if (ready && !isLoggedIn) {
+      router.replace("/");
+    }
+  }, [ready, isLoggedIn, router]);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [autopilot, setAutopilot] = useState(false);

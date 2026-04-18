@@ -13,6 +13,7 @@ type AuthContextType = {
   user: AuthUser | null;
   accessToken: string | null;
   isLoggedIn: boolean;
+  ready: boolean;
   login: (accessToken: string, refreshToken: string, user: AuthUser) => void;
   logout: (deleted?: boolean) => void;
   refreshSession: () => Promise<boolean>;
@@ -208,6 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         accessToken,
         isLoggedIn: !!user,
+        ready,
         login,
         logout,
         refreshSession,
