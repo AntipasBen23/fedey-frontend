@@ -128,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("furci_refresh_token");
     localStorage.removeItem("furci_user");
     localStorage.removeItem("furci_return_url");
+    localStorage.removeItem("furci_has_dashboard");
     if (deleted) {
       // Account was deleted by admin — send to homepage to sign up fresh
       window.location.href = "/";

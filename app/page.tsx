@@ -6,25 +6,160 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
+// Pages that count as "mid-onboarding" (public, no login required to view)
+const ONBOARDING_PAGES = ["/hire", "/analysis", "/connect", "/strategy", "/calendar/generate"];
+
 export default function HomePage() {
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user, ready } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [returnUrl, setReturnUrl] = useState("/hire");
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  // Read saved state from localStorage
+  const savedReturnUrl = typeof window !== "undefined" ? localStorage.getItem("furci_return_url") : null;
+  const hasDashboard = typeof window !== "undefined" ? localStorage.getItem("furci_has_dashboard") === "1" : false;
+
+  // Validate saved URL — only use it if it's an onboarding page
+  const validReturnUrl = savedReturnUrl && ONBOARDING_PAGES.some((p) => savedReturnUrl.startsWith(p))
+    ? savedReturnUrl
+    : null;
+
+  // Clean up stale non-onboarding return URLs
+  useEffect(() => {
+    if (savedReturnUrl && !validReturnUrl) {
+      localStorage.removeItem("furci_return_url");
+    }
+  }, []);
+
   useEffect(() => {
     if (searchParams.get("sessionExpired") === "1") {
       setSessionExpired(true);
-      setShowAuth(true);
-      // Restore where they were before session expired
-      const saved = localStorage.getItem("furci_return_url");
-      if (saved) setReturnUrl(saved);
+      if (validReturnUrl) {
+        setReturnUrl(validReturnUrl);
+      }
       router.replace("/");
     }
   }, [searchParams, router]);
 
+  if (!ready) return null;
+
+  const btnStyle: React.CSSProperties = {
+    display: "inline-block",
+    padding: "1.2rem 3.5rem",
+    fontSize: "1.3rem",
+    fontWeight: "700",
+    color: "#05345a",
+    background: "linear-gradient(180deg, #8fd1ff, var(--primary-strong))",
+    borderRadius: "999px",
+    border: "none",
+    cursor: "pointer",
+    textDecoration: "none",
+    transition: "transform 0.2s",
+  };
+
+  // ── Decide what button/state to show ─────────────────────────────────────
+
+  // CASE 1: Logged in user
+  if (isLoggedIn) {
+    // If they were mid-onboarding and pressed back, take them back there
+    if (validReturnUrl) {
+      return renderPage(
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+          <button className="btn-pulse" style={btnStyle} onClick={() => {
+            localStorage.removeItem("furci_return_url");
+            router.push(validReturnUrl);
+          }}>
+            Continue Where You Left Off
+          </button>
+          <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
+            Welcome back, <strong>{user?.name?.split(" ")[0]}</strong> — your progress is saved 👋
+          </p>
+        </div>
+      );
+    }
+    // Otherwise go to dashboard
+    return renderPage(
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+        <Link href="/dashboard" className="btn-pulse" style={btnStyle}>
+          Open Dashboard
+        </Link>
+        <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
+          Welcome back, <strong>{user?.name?.split(" ")[0]}</strong> 👋
+        </p>
+      </div>
+    );
+  }
+
+  // CASE 2: Logged out, was mid-onboarding (public page — no login needed)
+  if (validReturnUrl) {
+    return renderPage(
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+        <button className="btn-pulse" style={btnStyle} onClick={() => {
+          router.push(validReturnUrl);
+        }}>
+          Pick Up Where You Left Off
+        </button>
+        <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
+          Your onboarding progress is waiting for you.
+        </p>
+      </div>
+    );
+  }
+
+  // CASE 3: Logged out, previously had a dashboard (needs to sign in)
+  if (hasDashboard) {
+    return renderPage(
+      <>
+        <button className="btn-pulse" style={btnStyle} onClick={() => {
+          setReturnUrl("/dashboard");
+          setShowAuth(true);
+        }}>
+          Sign In to Dashboard
+        </button>
+
+        {sessionExpired && !showAuth && (
+          <div style={{
+            position: "fixed", top: "1.5rem", left: "50%", transform: "translateX(-50%)",
+            background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "10px",
+            padding: "0.7rem 1.2rem", fontSize: "0.9rem", color: "#7a5800",
+            fontWeight: 600, zIndex: 999, whiteSpace: "nowrap",
+          }}>
+            Your session expired. Please sign in again.
+          </div>
+        )}
+
+        <AuthModal
+          isOpen={showAuth}
+          onClose={() => { setShowAuth(false); setSessionExpired(false); }}
+          initialView="login"
+          redirectTo={returnUrl}
+          onSuccess={() => localStorage.removeItem("furci_return_url")}
+        />
+      </>
+    );
+  }
+
+  // CASE 4: Brand new visitor — show Hire me + modal
+  return renderPage(
+    <>
+      <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
+        Hire me
+      </button>
+
+      <AuthModal
+        isOpen={showAuth}
+        onClose={() => { setShowAuth(false); setSessionExpired(false); }}
+        initialView="login"
+        redirectTo="/hire"
+        onSuccess={() => localStorage.removeItem("furci_return_url")}
+      />
+    </>
+  );
+}
+
+function renderPage(cta: React.ReactNode) {
   return (
     <div
       className="landing-page"
@@ -39,12 +174,7 @@ export default function HomePage() {
     >
       <div
         className="hero animate-fade-in-up"
-        style={{
-          padding: "4rem 2rem",
-          maxWidth: "800px",
-          width: "100%",
-          marginBottom: "2rem",
-        }}
+        style={{ padding: "4rem 2rem", maxWidth: "800px", width: "100%", marginBottom: "2rem" }}
       >
         <h1
           style={{
@@ -79,79 +209,8 @@ export default function HomePage() {
           on autopilot. Ready to scale your online presence to new heights?
         </p>
 
-        {isLoggedIn ? (
-          // Returning user — go straight to dashboard
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-            <Link
-              href="/dashboard"
-              className="btn-pulse"
-              style={{
-                display: "inline-block",
-                padding: "1.2rem 3.5rem",
-                fontSize: "1.3rem",
-                fontWeight: "700",
-                color: "#05345a",
-                background: "linear-gradient(180deg, #8fd1ff, var(--primary-strong))",
-                borderRadius: "999px",
-                textDecoration: "none",
-                transition: "transform 0.2s",
-              }}
-            >
-              Open Dashboard
-            </Link>
-            <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
-              Welcome back, <strong>{user?.name?.split(" ")[0]}</strong> 👋
-            </p>
-          </div>
-        ) : (
-          // New / logged-out user — open auth modal
-          <button
-            onClick={() => {
-              // If user was mid-onboarding, go directly there (no login needed for public pages)
-              const saved = localStorage.getItem("furci_return_url");
-              if (saved) {
-                router.push(saved);
-                return;
-              }
-              setShowAuth(true);
-            }}
-            className="btn-pulse"
-            style={{
-              display: "inline-block",
-              padding: "1.2rem 3.5rem",
-              fontSize: "1.3rem",
-              fontWeight: "700",
-              color: "#05345a",
-              background: "linear-gradient(180deg, #8fd1ff, var(--primary-strong))",
-              borderRadius: "999px",
-              border: "none",
-              cursor: "pointer",
-              transition: "transform 0.2s",
-            }}
-          >
-            Hire me
-          </button>
-        )}
+        {cta}
       </div>
-
-      {sessionExpired && !showAuth && (
-        <div style={{
-          position: "fixed", top: "1.5rem", left: "50%", transform: "translateX(-50%)",
-          background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "10px",
-          padding: "0.7rem 1.2rem", fontSize: "0.9rem", color: "#7a5800",
-          fontWeight: 600, zIndex: 999, whiteSpace: "nowrap",
-        }}>
-          Your session expired. Please sign in again.
-        </div>
-      )}
-
-      <AuthModal
-        isOpen={showAuth}
-        onClose={() => { setShowAuth(false); setSessionExpired(false); setReturnUrl("/hire"); }}
-        initialView="login"
-        redirectTo={returnUrl}
-        onSuccess={() => localStorage.removeItem("furci_return_url")}
-      />
     </div>
   );
 }
