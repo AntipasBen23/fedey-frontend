@@ -114,7 +114,7 @@ function renderPage(cta: React.ReactNode) {
             src="/furciai-logo.png"
             alt="Furci"
             className="animate-float"
-            style={{ height: "1em", width: "auto", verticalAlign: "middle", display: "inline" }}
+            style={{ height: "3em", width: "auto", verticalAlign: "middle", display: "inline" }}
           />
           <br />
           <span style={{
