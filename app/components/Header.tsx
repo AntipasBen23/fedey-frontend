@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Inter } from "next/font/google";
 import { useAutopilot } from "../context/AutopilotContext";
+
+const inter = Inter({ subsets: ["latin"], weight: ["600"] });
 
 export function Header() {
   const { isAutopilot, setAutopilotState } = useAutopilot();
@@ -21,7 +24,7 @@ export function Header() {
       top: 0,
       zIndex: 100
     }}>
-      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.1rem' }}>
+      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0 }}>
         <Image
           src="/furciai-logo.png"
           alt="Furci.ai"
@@ -31,16 +34,25 @@ export function Header() {
           style={{ width: 'auto', height: '80px', objectFit: 'contain' }}
           priority
         />
-        <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+        <span
+          className={inter.className}
+          style={{
+            fontSize: '28px',
+            fontWeight: 600,
+            lineHeight: '110%',
+            letterSpacing: '0%',
+            color: 'var(--text)',
+          }}
+        >
           Furci<span style={{ color: 'var(--primary-strong)' }}>.ai</span>
         </span>
       </Link>
-      
+
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isAutopilot ? 'var(--primary-strong)' : 'var(--muted)' }}>
           {isAutopilot ? "🚀 Autopilot Active" : "✋ Review Mode"}
         </span>
-        <button 
+        <button
           onClick={() => setAutopilotState(!isAutopilot)}
           style={{
             width: '50px',
