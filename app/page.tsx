@@ -7,7 +7,7 @@ import { Manrope } from "next/font/google";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
-const manrope = Manrope({ subsets: ["latin"], weight: ["700", "800"] });
+const manrope = Manrope({ subsets: ["latin"], weight: ["300", "700", "800"] });
 
 const ROTATING_WORDS = [
   "content creation.",
@@ -162,7 +162,7 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
         </div>
 
         <p className={manrope.className} style={{
-          fontSize: "18px", color: "#4b5563", fontWeight: 400,
+          fontSize: "19px", color: "#4b5563", fontWeight: 300,
           margin: "0 auto 2.5rem", maxWidth: "56ch", lineHeight: "1.6",
         }}>
           I post, engage, and grow your audience. Every single day.
