@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Manrope } from "next/font/google";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
+
+const manrope = Manrope({ subsets: ["latin"], weight: ["700", "800"] });
 
 const ROTATING_WORDS = [
   "content creation.",
@@ -98,7 +101,7 @@ export default function HomePage() {
         Hire me
       </button>
       <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: "0.4rem 0 0" }}>
-        7-day free trial &nbsp;·&nbsp; Cancel anytime
+        3-day free trial &nbsp;·&nbsp; Cancel anytime
       </p>
 
       {sessionExpired && !showAuth && (
@@ -132,26 +135,15 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
       <div className="hero animate-fade-in-up" style={{
         padding: "4rem 2rem", maxWidth: "800px", width: "100%", marginBottom: "2rem",
       }}>
-        <h1 style={{
-          fontSize: "clamp(2.2rem, 7vw, 4.5rem)", lineHeight: "1.15",
-          color: "var(--text)", marginBottom: "0.5rem",
+        <h1 className={manrope.className} style={{
+          fontSize: "clamp(2rem, 5.5vw, 4rem)", lineHeight: "1.2",
+          color: "var(--text)", marginBottom: "0.5rem", fontWeight: 700,
         }}>
-          <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-            Hi, I am Furci AI
-            <img
-              src="/furciai-logo.png"
-              alt="Furci"
-              className="animate-float"
-              style={{ height: "1.1em", width: "auto" }}
-            />
-          </span>
-          <span style={{ display: "block", marginTop: "0.25rem" }}>
-            your assistant for
-          </span>
+          Hi, I&apos;m Furci AI, your assistant for
         </h1>
 
         {/* Rotating word */}
-        <div style={{
+        <div className={manrope.className} style={{
           fontSize: "clamp(2rem, 6vw, 4rem)",
           fontWeight: 800,
           color: "var(--primary-strong)",
