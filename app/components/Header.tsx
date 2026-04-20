@@ -44,7 +44,7 @@ export function Header() {
             color: 'var(--text)',
           }}
         >
-          Furci<span style={{ color: 'var(--primary-strong)' }}>.ai</span>
+          Furci<span style={{ color: 'var(--primary-strong)' }}> AI</span>
         </span>
       </Link>
 

@@ -100,8 +100,11 @@ export default function HomePage() {
       <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
         Hire me
       </button>
-      <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: "0.4rem 0 0" }}>
-        3-day free trial &nbsp;·&nbsp; Cancel anytime
+      <p className={manrope.className} style={{
+        fontSize: "0.88rem", color: "#64748b", margin: "0.6rem 0 0",
+        letterSpacing: "0.01em", fontWeight: 400,
+      }}>
+        3-day free trial &nbsp;•&nbsp; Cancel anytime
       </p>
 
       {sessionExpired && !showAuth && (
@@ -160,7 +163,7 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
           fontSize: "20px", color: "#0F3547", fontWeight: 400,
           margin: "0 auto 2.5rem", maxWidth: "56ch", lineHeight: "1.6",
         }}>
-          Furci AI posts, engages, and grows your audience. Every single day.
+          I post, engage, and grow your audience. Every single day.
         </p>
 
         {cta}
