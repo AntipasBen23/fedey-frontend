@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
 const manrope = Manrope({ subsets: ["latin"], weight: ["300", "700", "800"] });
-const inter = Inter({ subsets: ["latin"], weight: ["700"], style: ["normal", "italic"] });
+const inter = Inter({ subsets: ["latin"], weight: ["600", "700"], style: ["normal", "italic"] });
 
 const ROTATING_WORDS = [
   "content creation.",
@@ -150,8 +150,8 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
 
         {/* Rotating word */}
         <div className={inter.className} style={{
-          fontSize: "69px",
-          fontWeight: 700,
+          fontSize: "48px",
+          fontWeight: 600,
           fontStyle: "italic",
           lineHeight: "100%",
           letterSpacing: "0%",
