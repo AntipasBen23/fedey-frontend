@@ -21,7 +21,7 @@ export function Header() {
       top: 0,
       zIndex: 100
     }}>
-      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
         <Image
           src="/furciai-logo.png"
           alt="Furci.ai"
@@ -31,6 +31,9 @@ export function Header() {
           style={{ width: 'auto', height: '80px', objectFit: 'contain' }}
           priority
         />
+        <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+          Furci<span style={{ color: 'var(--primary-strong)' }}>.ai</span>
+        </span>
       </Link>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
