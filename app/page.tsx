@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
 const manrope = Manrope({ subsets: ["latin"], weight: ["300", "700", "800"] });
-const inter = Inter({ subsets: ["latin"], weight: ["700"], style: ["italic"] });
+const inter = Inter({ subsets: ["latin"], weight: ["700"], style: ["normal", "italic"] });
 
 const ROTATING_WORDS = [
   "content creation.",
