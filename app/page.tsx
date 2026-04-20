@@ -160,8 +160,7 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
           fontSize: "1.15rem", color: "var(--muted)",
           margin: "0 auto 2.5rem", maxWidth: "56ch", lineHeight: "1.6",
         }}>
-          Furci AI runs your social media like a world-class manager — creating content,
-          engaging your audience, and growing your presence entirely on autopilot.
+          Furci AI takes your social media off your plate — completely.
         </p>
 
         {cta}
