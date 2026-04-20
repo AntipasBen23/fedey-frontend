@@ -407,9 +407,9 @@ body {
 
 .hero {
   padding: 1.5rem;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 18px;
-  background: linear-gradient(140deg, var(--surface), var(--surface-strong));
+  background: transparent;
 }
 
 .hero h1 {

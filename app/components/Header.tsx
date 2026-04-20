@@ -17,9 +17,9 @@ export function Header() {
       alignItems: 'center',
       padding: '0 2rem',
       height: '90px',
-      background: 'rgba(255, 255, 255, 0.8)',
-      borderBottom: '1px solid var(--border)',
-      backdropFilter: 'blur(10px)',
+      background: 'transparent',
+      borderBottom: 'none',
+      backdropFilter: 'none',
       position: 'sticky',
       top: 0,
       zIndex: 100
