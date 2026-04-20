@@ -109,13 +109,15 @@ function renderPage(cta: React.ReactNode) {
           fontSize: "clamp(2.5rem, 8vw, 5rem)", lineHeight: "1.1",
           color: "var(--text)", marginBottom: "1.5rem",
         }}>
-          Hi, I am Furci{" "}
-          <img
-            src="/furciai-logo.png"
-            alt="Furci"
-            className="animate-float"
-            style={{ height: "3em", width: "auto", verticalAlign: "middle", display: "inline" }}
-          />
+          <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+            Hi, I am Furci
+            <img
+              src="/furciai-logo.png"
+              alt="Furci"
+              className="animate-float"
+              style={{ height: "1.1em", width: "auto" }}
+            />
+          </span>
           <br />
           <span style={{
             fontSize: "clamp(1.5rem, 4vw, 2.5rem)", color: "var(--primary-strong)",
