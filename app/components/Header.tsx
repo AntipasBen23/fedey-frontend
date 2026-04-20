@@ -1,26 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useAutopilot } from "../context/AutopilotContext";
 
 export function Header() {
-  const { isAutopilot, toggleAutopilot } = useAutopilot();
+  const { isAutopilot, setAutopilotState } = useAutopilot();
 
   return (
-    <header style={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      padding: '1rem 2rem', 
-      background: 'rgba(255, 255, 255, 0.8)', 
+    <header style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '1rem 2rem',
+      background: 'rgba(255, 255, 255, 0.8)',
       borderBottom: '1px solid var(--border)',
       backdropFilter: 'blur(10px)',
       position: 'sticky',
       top: 0,
       zIndex: 100
     }}>
-      <Link href="/" style={{ textDecoration: 'none', color: 'var(--text)', fontSize: '1.2rem', fontWeight: 800 }}>
-        Furci<span style={{ color: 'var(--primary-strong)' }}>.ai</span>
+      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+        <Image src="/furciai-logo.png" alt="Furci.ai" width={120} height={36} style={{ objectFit: 'contain' }} priority />
       </Link>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -28,7 +29,7 @@ export function Header() {
           {isAutopilot ? "🚀 Autopilot Active" : "✋ Review Mode"}
         </span>
         <button 
-          onClick={toggleAutopilot}
+          onClick={() => setAutopilotState(!isAutopilot)}
           style={{
             width: '50px',
             height: '26px',
