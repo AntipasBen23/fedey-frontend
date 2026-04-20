@@ -139,7 +139,7 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
           fontSize: "clamp(2rem, 5.5vw, 4rem)", lineHeight: "1.2",
           color: "var(--text)", marginBottom: "0.5rem", fontWeight: 700,
         }}>
-          Hi, I&apos;m Furci AI, your assistant for
+          Hi, I&apos;m Furci AI, your manager for
         </h1>
 
         {/* Rotating word */}
@@ -156,11 +156,11 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
           {ROTATING_WORDS[wordIndex]}
         </div>
 
-        <p style={{
-          fontSize: "1.15rem", color: "var(--muted)",
+        <p className={manrope.className} style={{
+          fontSize: "20px", color: "#0F3547", fontWeight: 400,
           margin: "0 auto 2.5rem", maxWidth: "56ch", lineHeight: "1.6",
         }}>
-          Furci AI takes your social media off your plate — completely.
+          Furci AI posts, engages, and grows your audience. Every single day.
         </p>
 
         {cta}
