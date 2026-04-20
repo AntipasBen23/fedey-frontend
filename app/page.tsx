@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Manrope } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
 const manrope = Manrope({ subsets: ["latin"], weight: ["300", "700", "800"] });
+const inter = Inter({ subsets: ["latin"], weight: ["700"], style: ["italic"] });
 
 const ROTATING_WORDS = [
   "content creation.",
@@ -148,11 +149,14 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
         </h1>
 
         {/* Rotating word */}
-        <div className={manrope.className} style={{
-          fontSize: "clamp(1.6rem, 4.5vw, 3rem)",
-          fontWeight: 800,
+        <div className={inter.className} style={{
+          fontSize: "69px",
+          fontWeight: 700,
+          fontStyle: "italic",
+          lineHeight: "100%",
+          letterSpacing: "0%",
           color: "var(--primary-strong)",
-          minHeight: "1.3em",
+          minHeight: "1.2em",
           marginBottom: "1.25rem",
           transition: "opacity 0.3s ease, transform 0.3s ease",
           opacity: visible ? 1 : 0,
