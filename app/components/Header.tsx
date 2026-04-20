@@ -12,7 +12,8 @@ export function Header() {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '1rem 2rem',
+      padding: '0 2rem',
+      height: '64px',
       background: 'rgba(255, 255, 255, 0.8)',
       borderBottom: '1px solid var(--border)',
       backdropFilter: 'blur(10px)',
@@ -21,7 +22,15 @@ export function Header() {
       zIndex: 100
     }}>
       <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-        <Image src="/furciai-logo.png" alt="Furci.ai" width={200} height={60} style={{ objectFit: 'contain' }} priority />
+        <Image
+          src="/furciai-logo.png"
+          alt="Furci.ai"
+          width={0}
+          height={0}
+          sizes="100vw"
+          style={{ width: 'auto', height: '52px', objectFit: 'contain' }}
+          priority
+        />
       </Link>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
