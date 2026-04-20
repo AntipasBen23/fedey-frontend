@@ -13,7 +13,7 @@ export function Header() {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '0 2rem',
-      height: '64px',
+      height: '90px',
       background: 'rgba(255, 255, 255, 0.8)',
       borderBottom: '1px solid var(--border)',
       backdropFilter: 'blur(10px)',
@@ -28,7 +28,7 @@ export function Header() {
           width={0}
           height={0}
           sizes="100vw"
-          style={{ width: 'auto', height: '52px', objectFit: 'contain' }}
+          style={{ width: 'auto', height: '80px', objectFit: 'contain' }}
           priority
         />
       </Link>
