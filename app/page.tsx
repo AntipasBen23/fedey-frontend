@@ -6,10 +6,23 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AuthModal from "@/components/AuthModal";
 
+const ROTATING_WORDS = [
+  "content creation.",
+  "community growth.",
+  "brand strategy.",
+  "post scheduling.",
+  "audience building.",
+  "social engagement.",
+  "LinkedIn presence.",
+  "X (Twitter) growth.",
+];
+
 export default function HomePage() {
   const { isLoggedIn, user, ready } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [wordIndex, setWordIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -19,6 +32,17 @@ export default function HomePage() {
       router.replace("/");
     }
   }, [searchParams, router]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setWordIndex(i => (i + 1) % ROTATING_WORDS.length);
+        setVisible(true);
+      }, 300);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const btnStyle: React.CSSProperties = {
     display: "inline-block",
@@ -36,7 +60,6 @@ export default function HomePage() {
 
   if (!ready) return null;
 
-  // ── LOGGED IN ─────────────────────────────────────────────────────────────
   if (isLoggedIn && user) {
     const step = user.lastOnboardingStep;
     const onboardingDone = step === "completed";
@@ -51,11 +74,11 @@ export default function HomePage() {
           <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
             Welcome back, <strong>{user.name?.split(" ")[0]}</strong> — let's pick up where you left off 👋
           </p>
-        </div>
+        </div>,
+        wordIndex, visible
       );
     }
 
-    // Onboarding complete
     return renderPage(
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
         <Link href="/dashboard" className="btn-pulse" style={btnStyle}>
@@ -64,16 +87,19 @@ export default function HomePage() {
         <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
           Welcome back, <strong>{user.name?.split(" ")[0]}</strong> 👋
         </p>
-      </div>
+      </div>,
+      wordIndex, visible
     );
   }
 
-  // ── LOGGED OUT ────────────────────────────────────────────────────────────
   return renderPage(
     <>
       <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
         Hire me
       </button>
+      <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: "0.4rem 0 0" }}>
+        7-day free trial &nbsp;·&nbsp; Cancel anytime
+      </p>
 
       {sessionExpired && !showAuth && (
         <div style={{
@@ -92,11 +118,12 @@ export default function HomePage() {
         initialView="login"
         redirectTo="/hire"
       />
-    </>
+    </>,
+    wordIndex, visible
   );
 }
 
-function renderPage(cta: React.ReactNode) {
+function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
   return (
     <div className="landing-page" style={{
       display: "flex", flexDirection: "column", alignItems: "center",
@@ -106,11 +133,11 @@ function renderPage(cta: React.ReactNode) {
         padding: "4rem 2rem", maxWidth: "800px", width: "100%", marginBottom: "2rem",
       }}>
         <h1 style={{
-          fontSize: "clamp(2.5rem, 8vw, 5rem)", lineHeight: "1.1",
-          color: "var(--text)", marginBottom: "1.5rem",
+          fontSize: "clamp(2.2rem, 7vw, 4.5rem)", lineHeight: "1.15",
+          color: "var(--text)", marginBottom: "0.5rem",
         }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-            Hi, I am Furci
+            Hi, I am Furci AI
             <img
               src="/furciai-logo.png"
               alt="Furci"
@@ -118,21 +145,33 @@ function renderPage(cta: React.ReactNode) {
               style={{ height: "1.1em", width: "auto" }}
             />
           </span>
-          <br />
-          <span style={{
-            fontSize: "clamp(1.5rem, 4vw, 2.5rem)", color: "var(--primary-strong)",
-            display: "block", marginTop: "0.5rem",
-          }}>
-            your professional social media manager.
+          <span style={{ display: "block", marginTop: "0.25rem" }}>
+            your assistant for
           </span>
         </h1>
-        <p style={{
-          fontSize: "1.2rem", color: "var(--muted)",
-          margin: "0 auto 2.5rem", maxWidth: "60ch",
+
+        {/* Rotating word */}
+        <div style={{
+          fontSize: "clamp(2rem, 6vw, 4rem)",
+          fontWeight: 800,
+          color: "var(--primary-strong)",
+          minHeight: "1.3em",
+          marginBottom: "1.25rem",
+          transition: "opacity 0.3s ease, transform 0.3s ease",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(8px)",
         }}>
-          I handle your content, community, and strategy seamlessly — entirely
-          on autopilot. Ready to scale your online presence to new heights?
+          {ROTATING_WORDS[wordIndex]}
+        </div>
+
+        <p style={{
+          fontSize: "1.15rem", color: "var(--muted)",
+          margin: "0 auto 2.5rem", maxWidth: "56ch", lineHeight: "1.6",
+        }}>
+          Furci AI runs your social media like a world-class manager — creating content,
+          engaging your audience, and growing your presence entirely on autopilot.
         </p>
+
         {cta}
       </div>
     </div>
