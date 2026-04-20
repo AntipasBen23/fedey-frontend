@@ -21,7 +21,7 @@ export function Header() {
       top: 0,
       zIndex: 100
     }}>
-      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.1rem' }}>
         <Image
           src="/furciai-logo.png"
           alt="Furci.ai"
