@@ -97,15 +97,17 @@ export default function HomePage() {
 
   return renderPage(
     <>
-      <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
-        Hire me
-      </button>
-      <p className={manrope.className} style={{
-        fontSize: "0.88rem", color: "#64748b", margin: "0.6rem 0 0",
-        letterSpacing: "0.01em", fontWeight: 400,
-      }}>
-        3-day free trial &nbsp;•&nbsp; Cancel anytime
-      </p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
+          Hire me
+        </button>
+        <p className={manrope.className} style={{
+          fontSize: "0.88rem", color: "#94a3b8", margin: "1rem 0 0",
+          letterSpacing: "0.01em", fontWeight: 400,
+        }}>
+          3-day free trial &nbsp;•&nbsp; Cancel anytime
+        </p>
+      </div>
 
       {sessionExpired && !showAuth && (
         <div style={{
@@ -160,7 +162,7 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
         </div>
 
         <p className={manrope.className} style={{
-          fontSize: "20px", color: "#0F3547", fontWeight: 400,
+          fontSize: "20px", color: "#94a3b8", fontWeight: 400,
           margin: "0 auto 2.5rem", maxWidth: "56ch", lineHeight: "1.6",
         }}>
           I post, engage, and grow your audience. Every single day.
