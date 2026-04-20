@@ -21,7 +21,7 @@ export function Header() {
       zIndex: 100
     }}>
       <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-        <Image src="/furciai-logo.png" alt="Furci.ai" width={120} height={36} style={{ objectFit: 'contain' }} priority />
+        <Image src="/furciai-logo.png" alt="Furci.ai" width={200} height={60} style={{ objectFit: 'contain' }} priority />
       </Link>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
