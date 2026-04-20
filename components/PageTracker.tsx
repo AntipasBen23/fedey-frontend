@@ -1,41 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://fedey-backend-production.up.railway.app";
 
-function getSessionId(): string {
-  let id = sessionStorage.getItem("furci_session_id");
-  if (!id) {
-    id = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    sessionStorage.setItem("furci_session_id", id);
-  }
-  return id;
-}
-
 export default function PageTracker() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const lastTrackedRef = useRef("");
 
   useEffect(() => {
-    // Fire and forget — never blocks the UI
-    try {
-      fetch(`${API_URL}/v1/track`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path: pathname,
-          referrer: document.referrer || "",
-          sessionId: getSessionId(),
-          userId: user?.id ?? null,
-        }),
-      }).catch(() => {}); // swallow all errors silently
-    } catch {}
-  }, [pathname, user?.id]);
+    const query = searchParams.toString();
+    const path = query ? `${pathname}?${query}` : pathname;
+
+    if (!path || lastTrackedRef.current === path) return;
+    lastTrackedRef.current = path;
+
+    void fetch(`${API_URL}/v1/track`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent,
+      }),
+      keepalive: true,
+      credentials: "include",
+    }).catch(() => {});
+  }, [pathname, searchParams]);
 
   return null;
 }

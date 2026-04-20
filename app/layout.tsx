@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { AutopilotProvider } from "./context/AutopilotContext";
 import { Header } from "./components/Header";
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <AuthProvider>
             <AutopilotProvider>
               <InactivityGuard />
-              <PageTracker />
+              <Suspense><PageTracker /></Suspense>
               <Header />
               {children}
             </AutopilotProvider>
