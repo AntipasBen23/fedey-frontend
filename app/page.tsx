@@ -149,7 +149,7 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
 
         {/* Rotating word */}
         <div className={manrope.className} style={{
-          fontSize: "clamp(2rem, 6vw, 4rem)",
+          fontSize: "clamp(1.6rem, 4.5vw, 3rem)",
           fontWeight: 800,
           color: "var(--primary-strong)",
           minHeight: "1.3em",
