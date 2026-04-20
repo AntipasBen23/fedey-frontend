@@ -162,7 +162,7 @@ function renderPage(cta: React.ReactNode, wordIndex: number, visible: boolean) {
         </div>
 
         <p className={manrope.className} style={{
-          fontSize: "20px", color: "#94a3b8", fontWeight: 400,
+          fontSize: "18px", color: "#4b5563", fontWeight: 400,
           margin: "0 auto 2.5rem", maxWidth: "56ch", lineHeight: "1.6",
         }}>
           I post, engage, and grow your audience. Every single day.
