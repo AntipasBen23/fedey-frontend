@@ -76,7 +76,7 @@ export default function HomePage() {
             Continue Onboarding
           </button>
           <p style={{ fontSize: "0.9rem", color: "var(--muted)", margin: 0 }}>
-            Welcome back, <strong>{user.name?.split(" ")[0]}</strong> — let's pick up where you left off 👋
+            Welcome back, <strong>{user.name?.split(" ")[0]}</strong>. Let's pick up where you left off 👋
           </p>
         </div>,
         wordIndex, visible
