@@ -87,6 +87,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Keep furci_hint cookie in sync with lastOnboardingStep.
+  // This is a non-sensitive JS-readable cookie that survives session expiry and logout,
+  // so the home page can show the right button even when the user is logged out.
+  useEffect(() => {
+    if (!user) return;
+    const step = user.lastOnboardingStep || "/hire";
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `furci_hint=${encodeURIComponent(step)}; Path=/; Max-Age=${365 * 24 * 3600}; SameSite=Lax${secure}`;
+  }, [user?.lastOnboardingStep, user?.id]);
+
   // On mount — call /v1/user/me to restore session from httpOnly cookie.
   // If the access token expired, the refresh token cookie triggers a silent renewal.
   useEffect(() => {

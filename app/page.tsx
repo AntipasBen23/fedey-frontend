@@ -21,14 +21,25 @@ const ROTATING_WORDS = [
   "X (Twitter) growth.",
 ];
 
+function getHintStep(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.split("; ").find(r => r.startsWith("furci_hint="));
+  return match ? decodeURIComponent(match.split("=")[1]) : "";
+}
+
 export default function HomePage() {
   const { isLoggedIn, user, ready } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [hintStep, setHintStep] = useState("");
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  useEffect(() => {
+    setHintStep(getHintStep());
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("sessionExpired") === "1") {
@@ -96,18 +107,38 @@ export default function HomePage() {
     );
   }
 
+  // Logged-out state — use furci_hint cookie to determine the right button
+  const hintDone = hintStep === "completed";
+  const hintOnboarding = hintStep && hintStep !== "completed";
+  const hintRedirectTo = hintDone ? "/dashboard" : (hintStep || "/hire");
+
   return renderPage(
     <>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
-          Hire me
-        </button>
-        <p className={manrope.className} style={{
-          fontSize: "0.88rem", color: "#94a3b8", margin: "1rem 0 0",
-          letterSpacing: "0.01em", fontWeight: 400,
-        }}>
-          3-day free trial &nbsp;•&nbsp; Cancel anytime
-        </p>
+        {hintDone ? (
+          // Known user — completed onboarding, session expired
+          <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
+            Return to Dashboard
+          </button>
+        ) : hintOnboarding ? (
+          // Known user — mid-onboarding, session expired
+          <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
+            Continue Onboarding
+          </button>
+        ) : (
+          // Brand new visitor
+          <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
+            Hire me
+          </button>
+        )}
+        {!hintStep && (
+          <p className={manrope.className} style={{
+            fontSize: "0.88rem", color: "#94a3b8", margin: "1rem 0 0",
+            letterSpacing: "0.01em", fontWeight: 400,
+          }}>
+            3-day free trial &nbsp;•&nbsp; Cancel anytime
+          </p>
+        )}
       </div>
 
       {sessionExpired && !showAuth && (
@@ -125,7 +156,7 @@ export default function HomePage() {
         isOpen={showAuth}
         onClose={() => { setShowAuth(false); setSessionExpired(false); }}
         initialView="login"
-        redirectTo="/hire"
+        redirectTo={hintRedirectTo}
       />
     </>,
     wordIndex, visible

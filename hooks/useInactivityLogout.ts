@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 const ACTIVITY_EVENTS = [
   "mousemove",
