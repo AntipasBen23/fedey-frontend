@@ -53,6 +53,13 @@ type Props = {
   onSuccess?: () => void;
 };
 
+function resolveRedirect(user: { lastOnboardingStep?: string }, fallback: string): string {
+  const step = user.lastOnboardingStep;
+  if (step === "completed") return "/dashboard";
+  if (step && step !== "") return step;
+  return fallback;
+}
+
 export default function AuthModal({
   isOpen,
   onClose,
@@ -141,7 +148,7 @@ export default function AuthModal({
       login(data.user);
       onSuccess?.();
       onClose();
-      router.push(redirectTo);
+      router.push(resolveRedirect(data.user, redirectTo));
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -205,7 +212,7 @@ export default function AuthModal({
       login(data.user);
       onSuccess?.();
       onClose();
-      router.push(redirectTo);
+      router.push(resolveRedirect(data.user, redirectTo));
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -260,7 +267,7 @@ export default function AuthModal({
       login(data.user);
       onSuccess?.();
       onClose();
-      router.push(redirectTo);
+      router.push(resolveRedirect(data.user, redirectTo));
     } catch (e: any) {
       setError(e.message);
     } finally {
