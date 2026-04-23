@@ -11,7 +11,7 @@ import PageTracker from "@/components/PageTracker";
 export const metadata: Metadata = {
   title: "Furci.ai",
   description: "Hire an AI social media manager for X and LinkedIn",
-  icons: { icon: "/furciai-logo.png", apple: "/furciai-logo.png" },
+  icons: { icon: "/furciai-logo.jpeg", apple: "/furciai-logo.jpeg" },
 };
 
 type RootLayoutProps = Readonly<{

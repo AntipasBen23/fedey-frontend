@@ -26,7 +26,7 @@ export function Header() {
     }}>
       <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0 }}>
         <Image
-          src="/furciai-logo.png"
+          src="/furciai-logo.jpeg"
           alt="Furci.ai"
           width={0}
           height={0}
