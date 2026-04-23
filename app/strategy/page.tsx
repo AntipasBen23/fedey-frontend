@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useAuth } from "@/context/AuthContext";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
 type StrategyDetail = {
   identityAudit: string;
@@ -17,7 +17,11 @@ type StrategyDetail = {
 export default function StrategyPage() {
   const router = useRouter();
   const { data: session } = useSession() as any;
-  const { user, updateUser } = useAuth();
+  const { user, isLoggedIn, ready, updateUser } = useAuth();
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/");
+  }, [ready, isLoggedIn, router]);
   const [strategy, setStrategy] = useState<StrategyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

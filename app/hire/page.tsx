@@ -5,12 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
 export default function HirePage() {
   const router = useRouter();
-  const { updateUser } = useAuth();
+  const { isLoggedIn, ready, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/");
+  }, [ready, isLoggedIn, router]);
 
   // Track onboarding position in backend
   useEffect(() => {

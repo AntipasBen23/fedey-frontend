@@ -9,7 +9,7 @@ import SchedulingHub from "@/components/SchedulingHub";
 import ErrorModal from "@/components/ErrorModal";
 import ScriptModal from "@/components/ScriptModal";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
 type CalendarItem = {
   day: number;
@@ -29,7 +29,11 @@ export default function CalendarGeneratePage() {
   const searchParams = useSearchParams();
   const isFresh = searchParams.get("fresh") === "1";
   const { isAutopilot } = useAutopilot();
-  const { user, updateUser } = useAuth();
+  const { user, isLoggedIn, ready, updateUser } = useAuth();
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/");
+  }, [ready, isLoggedIn, router]);
 
   const [calendar, setCalendar] = useState<CalendarItem[]>([]);
   const [loading, setLoading] = useState(true);

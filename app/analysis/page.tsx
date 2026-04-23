@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
 type StrategyReport = {
   summary: string;
@@ -14,7 +14,11 @@ type StrategyReport = {
 
 export default function AnalysisPage() {
   const router = useRouter();
-  const { user, updateUser } = useAuth();
+  const { user, isLoggedIn, ready, updateUser } = useAuth();
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/");
+  }, [ready, isLoggedIn, router]);
 
   const [analyzingState, setAnalyzingState] = useState<string>("Initializing intelligence...");
   const [report, setReport] = useState<StrategyReport | null>(null);

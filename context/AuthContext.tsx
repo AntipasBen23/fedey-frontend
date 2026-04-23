@@ -125,12 +125,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setReady(true));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-refresh access token every 13 minutes (access token lasts 15 min)
+  // Auto-refresh access token every 55 minutes (access token lasts 1 hour)
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(refreshSession, 55 * 60 * 1000);
     return () => clearInterval(interval);
   }, [user, refreshSession]);
+
+  // Heartbeat every 2 minutes — detect if admin deleted this account while user is active
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(async () => {
+      const res = await fetch(`${API_URL}/v1/user/me`, { credentials: "include" }).catch(() => null);
+      if (!res) return;
+      if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        if (data?.deleted === true) logout(true);
+      }
+    }, 2 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [user, logout]);
 
   // Global fetch interceptor — auto-logout if backend says account was deleted
   useEffect(() => {

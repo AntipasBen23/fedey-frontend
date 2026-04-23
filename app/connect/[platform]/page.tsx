@@ -6,12 +6,16 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useAuth } from "@/context/AuthContext";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
 export default function PlatformContextPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, updateUser } = useAuth();
+  const { user, isLoggedIn, ready, updateUser } = useAuth();
+
+  useEffect(() => {
+    if (ready && !isLoggedIn) router.replace("/");
+  }, [ready, isLoggedIn, router]);
   const platform = params.platform as string;
 
   const [accountType, setAccountType] = useState<"old" | "new" | null>(null);
