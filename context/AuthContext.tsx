@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [user, refreshSession]);
 
-  // Heartbeat every 2 minutes — detect if admin deleted this account while user is active
+  // Heartbeat every 5 seconds — detect if admin deleted this account while user is active
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(async () => {
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json().catch(() => ({}));
         if (data?.deleted === true) logout(true);
       }
-    }, 2 * 60 * 1000);
+    }, 5 * 1000);
     return () => clearInterval(interval);
   }, [user, logout]);
 
