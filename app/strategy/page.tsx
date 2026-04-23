@@ -77,7 +77,8 @@ export default function StrategyPage() {
         // Handoff OAuth token to backend if session exists
         if (session?.accessToken) {
           setIsSyncing(true);
-          await fetch(`${API_URL}/v1/auth/callback`, {
+          console.log("[AUTH] Handing off token for platform:", platform);
+          const syncRes = await fetch(`${API_URL}/v1/auth/callback`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -87,7 +88,16 @@ export default function StrategyPage() {
               accountType,
             }),
           });
+          
+          if (!syncRes.ok) {
+            const errData = await syncRes.json();
+            console.error("[AUTH] Sync failed:", errData.error);
+          } else {
+            console.log("[AUTH] Sync successful");
+          }
           setIsSyncing(false);
+        } else {
+          console.warn("[AUTH] No accessToken found in session yet");
         }
       } catch (err: any) {
         setError(err.message);
