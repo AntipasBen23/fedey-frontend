@@ -34,7 +34,7 @@ const AuthContext = createContext<AuthContextType>({
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://fedey-backend-production.up.railway.app";
+  "https://api.furciai.com";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -62,7 +62,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
 
     if (deleted) {
-      // Account was deleted by admin — send to homepage to sign up fresh
+      // Clear the hint cookie so the home page shows "Hire me" not "Return to Dashboard"
+      const secure = window.location.protocol === "https:" ? "; Secure" : "";
+      document.cookie = `furci_hint=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
       window.location.href = "/";
     }
   }, []);
