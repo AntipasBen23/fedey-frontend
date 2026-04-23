@@ -46,7 +46,7 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
-      const response = await fetch(`${apiUrl}/v1/analytics`);
+      const response = await fetch(`${apiUrl}/v1/analytics`, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to load analytics");
       const json = await response.json();
       setData(json);
@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
     setIsSyncing(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
-      const response = await fetch(`${apiUrl}/v1/analytics/sync`, { method: 'POST' });
+      const response = await fetch(`${apiUrl}/v1/analytics/sync`, { method: 'POST', credentials: "include" });
       if (!response.ok) throw new Error("Sync failed");
       await fetchAnalytics();
       alert("Intelligence Sync Complete! Your impact score has been updated.");

@@ -148,7 +148,11 @@ export default function AuthModal({
       login(data.user);
       onSuccess?.();
       onClose();
-      router.push(resolveRedirect(data.user, redirectTo));
+      if (!data.user.username) {
+        router.push("/username");
+      } else {
+        router.push(resolveRedirect(data.user, redirectTo));
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -212,7 +216,11 @@ export default function AuthModal({
       login(data.user);
       onSuccess?.();
       onClose();
-      router.push(resolveRedirect(data.user, redirectTo));
+      if (!data.user.username) {
+        router.push("/username");
+      } else {
+        router.push(resolveRedirect(data.user, redirectTo));
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -267,7 +275,11 @@ export default function AuthModal({
       login(data.user);
       onSuccess?.();
       onClose();
-      router.push(resolveRedirect(data.user, redirectTo));
+      if (!data.user.username) {
+        router.push("/username");
+      } else {
+        router.push(resolveRedirect(data.user, redirectTo));
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {

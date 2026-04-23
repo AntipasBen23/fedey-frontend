@@ -4,11 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import { useAutopilot } from "../context/AutopilotContext";
+import { useAuth } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"], weight: ["600"] });
 
 export function Header() {
   const { isAutopilot, setAutopilotState } = useAutopilot();
+  const { user, isLoggedIn } = useAuth();
 
   return (
     <header style={{
@@ -49,6 +51,11 @@ export function Header() {
       </Link>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {isLoggedIn && user && (
+          <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {user.username ? `@${user.username}` : user.name}
+          </span>
+        )}
         <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isAutopilot ? 'var(--primary-strong)' : 'var(--muted)' }}>
           {isAutopilot ? "🚀 Autopilot Active" : "✋ Review Mode"}
         </span>

@@ -21,7 +21,7 @@ export default function PeakHourHeatmap() {
     const fetchData = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
-        const res = await fetch(`${apiUrl}/v1/analytics/peak-hours`);
+        const res = await fetch(`${apiUrl}/v1/analytics/peak-hours`, { credentials: "include" });
         if (!res.ok) throw new Error("Failed to load heatmap data");
         const json = await res.json();
         setData(json);

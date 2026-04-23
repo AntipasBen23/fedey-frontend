@@ -31,6 +31,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
       const res = await fetch(`${apiUrl}/v1/posts/polish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ content, style })
       });
       const data = await res.json();
@@ -56,6 +57,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
       const res = await fetch(`${apiUrl}/v1/posts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           content,
           platforms: selectedPlatforms,

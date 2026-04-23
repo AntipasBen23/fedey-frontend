@@ -52,6 +52,7 @@ export default function ScriptModal({ item, onClose }: Props) {
       const res = await fetch(`${API_URL}/v1/carousel/images`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ visualPrompts: prompts }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed");
@@ -74,6 +75,7 @@ export default function ScriptModal({ item, onClose }: Props) {
       const res = await fetch(`${API_URL}/v1/video/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           promptText: firstLine,
           duration: 5,
@@ -96,7 +98,7 @@ export default function ScriptModal({ item, onClose }: Props) {
     setPollingVideo(true);
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${API_URL}/v1/video/status/${taskId}`);
+        const res = await fetch(`${API_URL}/v1/video/status/${taskId}`, { credentials: "include" });
         const data: VideoTask = await res.json();
         setVideoTask(data);
         if (data.status === "SUCCEEDED" || data.status === "FAILED") {

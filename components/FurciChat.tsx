@@ -74,6 +74,7 @@ export default function FurciChat() {
       const response = await fetch(`${apiUrl}/v1/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ message: userMsg }),
       });
 
@@ -180,6 +181,7 @@ export default function FurciChat() {
                                     await fetch(`${apiUrl}/v1/posts`, {
                                         method: "POST",
                                         headers: { "Content-Type": "application/json" },
+                                        credentials: "include",
                                         body: JSON.stringify({
                                             content: msg.draft?.content,
                                             platforms: msg.draft?.platforms,

@@ -25,7 +25,7 @@ export default function EngagementFeed() {
 
   const fetchEngagements = async () => {
     try {
-      const res = await fetch(`${API_URL}/v1/engagements`);
+      const res = await fetch(`${API_URL}/v1/engagements`, { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         setEvents(data);
@@ -49,6 +49,7 @@ export default function EngagementFeed() {
       const res = await fetch(`${API_URL}/v1/settings/ghost-mode`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ enabled: !ghostMode }),
       });
       if (res.ok) {
@@ -63,7 +64,7 @@ export default function EngagementFeed() {
 
   const approveReply = async (id: number) => {
     try {
-      const res = await fetch(`${API_URL}/v1/engagements/${id}/approve`, { method: "POST" });
+      const res = await fetch(`${API_URL}/v1/engagements/${id}/approve`, { method: "POST", credentials: "include" });
       if (res.ok) {
         setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "sent" } : e));
       } else {

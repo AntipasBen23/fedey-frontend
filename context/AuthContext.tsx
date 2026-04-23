@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 export type AuthUser = {
   id: number;
   name: string;
+  username?: string;
   email: string;
   plan: "free" | "pro";
   jobDescription?: string;

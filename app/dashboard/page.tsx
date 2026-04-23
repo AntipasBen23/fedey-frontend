@@ -63,7 +63,7 @@ type DashboardData = {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session } = useSession() as any;
-  const { isLoggedIn, ready } = useAuth() as any;
+  const { isLoggedIn, ready, user } = useAuth() as any;
 
   // Auth guard — redirect to home if not logged in
   useEffect(() => {
@@ -95,12 +95,12 @@ export default function DashboardPage() {
   const syncAnalytics = async () => {
     setSyncing(true);
     try {
-      const res = await fetch(`${API_URL}/v1/analytics/sync`, { method: "POST" });
+      const res = await fetch(`${API_URL}/v1/analytics/sync`, { method: "POST", credentials: "include" });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Sync failed");
       // Reload dashboard to get fresh analytics
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
-      const fresh = await fetch(`${apiUrl}/v1/dashboard`);
+      const fresh = await fetch(`${apiUrl}/v1/dashboard`, { credentials: "include" });
       if (fresh.ok) setData(await fresh.json());
     } catch (e: any) {
       alert("Sync failed: " + e.message);
@@ -121,6 +121,7 @@ export default function DashboardPage() {
       const res = await fetch(`${API_URL}/v1/plan/upgrade`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ upgradeCode }),
       });
       const result = await res.json();
@@ -145,6 +146,7 @@ export default function DashboardPage() {
       await fetch(`${API_URL}/v1/posts/${postId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           videoUrl:      videoUrl      || undefined,
           imageUrlsJson: imageUrls     ? JSON.stringify(imageUrls) : undefined,
@@ -160,6 +162,7 @@ export default function DashboardPage() {
       const res = await fetch(`${API_URL}/v1/carousel/design`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ postId: post.id }),
       });
       if (!res.ok) {
@@ -188,6 +191,7 @@ export default function DashboardPage() {
       const res = await fetch(`${API_URL}/v1/carousel/images`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ visualPrompts: prompts }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed");
@@ -209,6 +213,7 @@ export default function DashboardPage() {
       const res = await fetch(`${API_URL}/v1/video/template`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ postId: post.id }),
       });
       if (!res.ok) {
@@ -232,6 +237,7 @@ export default function DashboardPage() {
       const res = await fetch(`${API_URL}/v1/video/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ promptText, duration: 5, ratio: "720:1280" }),
       });
       if (!res.ok) {
@@ -251,7 +257,7 @@ export default function DashboardPage() {
   const pollVideoForPost = (postId: number, taskId: string) => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${API_URL}/v1/video/status/${taskId}`);
+        const res = await fetch(`${API_URL}/v1/video/status/${taskId}`, { credentials: "include" });
         const data = await res.json();
         setVideoTasks(p => ({ ...p, [postId]: data }));
         if (data.status === "SUCCEEDED" || data.status === "FAILED") {
@@ -275,7 +281,7 @@ export default function DashboardPage() {
     const fetchDashboard = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
-        const response = await fetch(`${apiUrl}/v1/dashboard`);
+        const response = await fetch(`${apiUrl}/v1/dashboard`, { credentials: "include" });
         if (!response.ok) throw new Error("Failed to load dashboard");
         const json = await response.json();
         setData(json);
@@ -300,9 +306,10 @@ export default function DashboardPage() {
       await fetch(`${apiUrl}/v1/settings/autopilot`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        credentials: "include",
+        body: JSON.stringify({
           platform: session?.platform || "twitter",
-          enabled: !autopilot 
+          enabled: !autopilot
         }),
       });
       setAutopilot(!autopilot);
@@ -323,6 +330,7 @@ export default function DashboardPage() {
       const response = await fetch(`${apiUrl}/v1/auth/disconnect`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ platform }),
       });
 
@@ -354,6 +362,7 @@ export default function DashboardPage() {
       const response = await fetch(`${apiUrl}/v1/trends/react`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ topic }),
       });
       if (!response.ok) throw new Error("Failed to generate take");
@@ -372,7 +381,8 @@ export default function DashboardPage() {
       const response = await fetch(`${apiUrl}/v1/trends/react/schedule`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        credentials: "include",
+        body: JSON.stringify({
             content,
             platform: session?.platform || "twitter"
         }),
@@ -394,6 +404,7 @@ export default function DashboardPage() {
       const response = await fetch(`${apiUrl}/v1/posts/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ content, scheduledAt: scheduledAtISO }),
       });
       if (!response.ok) {
@@ -412,6 +423,7 @@ export default function DashboardPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/posts/${id}`, {
         method: "DELETE",
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to delete post");
       setShowEditModal(false);
@@ -427,17 +439,26 @@ export default function DashboardPage() {
 
   if (!data) return <div className="page center"><h2>No active strategy found. Go to Strategy first!</h2></div>;
 
+  const hourOfDay = new Date().getHours();
+  const greeting = hourOfDay < 12 ? "Good morning" : hourOfDay < 17 ? "Good afternoon" : "Good evening";
+  const firstName = user?.name?.split(" ")[0] || "there";
+
   return (
     <>
-      <div className="page dashboard-page" style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
-      {/* Header & Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem' }}>
-        <div>
-          <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Autonomous Growth Engine ⚡</h1>
-          <p style={{ color: 'var(--muted)', fontSize: '1.1rem' }}>Your brand is scaling on autopilot.</p>
+      <div className="page dashboard-page" style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', overflowX: 'hidden' }}>
+      {/* Greeting & Stats */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: '2rem', marginBottom: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {greeting}, {firstName} ⚡
+          </h1>
+          {user?.username && (
+            <p style={{ color: 'var(--primary-strong)', fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>@{user.username}</p>
+          )}
+          <p style={{ color: 'var(--muted)', fontSize: '1rem', margin: '0.25rem 0 0' }}>Your brand is scaling on autopilot.</p>
         </div>
-        
-        <div style={{ display: 'flex', gap: '2rem' }}>
+
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div className="stat-card">
             <label>QUEUE</label>
             <div className="value">{data.stats.totalPosts} Posts</div>
@@ -481,17 +502,18 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Metric tiles */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: hasSynced ? '1rem' : 0 }}>
+            {/* Metric tiles — Buffer-style summary row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.6rem', marginBottom: hasSynced ? '1rem' : 0 }}>
               {[
-                { label: 'Followers', value: fmt(a.followerCount), color: '#6366f1' },
-                { label: 'Impressions', value: fmt(a.totalImpressions), color: '#0ea5e9' },
+                { label: 'Posts', value: String(a.postsAnalyzed || data.stats.totalPosts), color: '#6366f1' },
                 { label: 'Reactions', value: fmt(a.totalReactions), color: '#f59e0b' },
-                { label: 'Avg Eng.', value: `${a.avgEngRate.toFixed(2)}%`, color: engColor },
+                { label: 'Comments', value: fmt(0), color: '#ec4899' },
+                { label: 'Avg Eng Rate', value: `${a.avgEngRate.toFixed(2)}%`, color: engColor },
+                { label: 'Impressions', value: fmt(a.totalImpressions), color: '#0ea5e9' },
               ].map(tile => (
-                <div key={tile.label} style={{ textAlign: 'center', padding: '0.75rem 0.5rem', background: '#f9fafb', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: tile.color }}>{tile.value}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginTop: '0.15rem' }}>{tile.label}</div>
+                <div key={tile.label} style={{ textAlign: 'center', padding: '0.65rem 0.4rem', background: '#f9fafb', borderRadius: '12px', minWidth: 0 }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 900, color: tile.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.value}</div>
+                  <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginTop: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.label}</div>
                 </div>
               ))}
             </div>
@@ -503,18 +525,28 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Top posts table */}
+            {/* Top posts table — Buffer-style */}
             {hasSynced && a.topPosts.length > 0 && (
               <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Top Posts</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  {a.topPosts.slice(0, 3).map((p, i) => (
-                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', background: '#f9fafb', borderRadius: '10px', fontSize: '0.82rem' }}>
-                      <span style={{ color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.snippet}</span>
-                      <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>❤️ {p.likes}</span>
-                      <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>🔁 {p.reposts}</span>
-                      <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>👁️ {fmt(p.impressions)}</span>
-                      <span style={{ fontWeight: 700, color: engColor, whiteSpace: 'nowrap' }}>{p.engRate.toFixed(1)}%</span>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Top Posts</div>
+                {/* Header row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 60px 70px 60px', gap: '0.5rem', padding: '0.3rem 0.75rem', fontSize: '0.65rem', fontWeight: 800, color: '#c0c4cc', textTransform: 'uppercase' }}>
+                  <span>Post</span>
+                  <span style={{ textAlign: 'center' }}>Platform</span>
+                  <span style={{ textAlign: 'center' }}>Reactions</span>
+                  <span style={{ textAlign: 'center' }}>Comments</span>
+                  <span style={{ textAlign: 'center' }}>Impressions</span>
+                  <span style={{ textAlign: 'center' }}>Eng Rate</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  {a.topPosts.slice(0, 5).map((p, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 60px 70px 60px', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: '#f9fafb', borderRadius: '10px', fontSize: '0.82rem', minWidth: 0 }}>
+                      <span style={{ color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{p.snippet?.slice(0, 100) || ''}</span>
+                      <span style={{ textAlign: 'center', fontSize: '0.7rem', fontWeight: 700, color: '#6366f1', background: '#ede9fe', borderRadius: '6px', padding: '0.1rem 0.3rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.platform || '—'}</span>
+                      <span style={{ textAlign: 'center', color: '#f59e0b', fontWeight: 700 }}>❤️ {p.likes + p.reposts}</span>
+                      <span style={{ textAlign: 'center', color: '#6b7280' }}>💬 {p.comments}</span>
+                      <span style={{ textAlign: 'center', color: '#0ea5e9' }}>👁️ {fmt(p.impressions)}</span>
+                      <span style={{ textAlign: 'center', fontWeight: 800, color: engColor }}>{p.engRate.toFixed(1)}%</span>
                     </div>
                   ))}
                 </div>
@@ -608,9 +640,9 @@ export default function DashboardPage() {
         connectedPlatforms={data.socialAccounts?.map((a: any) => a.platform) || []}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
-        {/* Main Column: Content Queue */}
-        <section>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', minWidth: 0 }}>
+        {/* Main Column: Content Queue + Post History */}
+        <section style={{ minWidth: 0, overflow: 'hidden' }}>
           <FurciChat />
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -641,14 +673,14 @@ export default function DashboardPage() {
               };
               const tc = typeMap[item.contentType] || { label: "Post", color: "#555", bg: "#f5f5f5", icon: "📝" };
               return (
-              <div key={i} className="queue-item card" style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', borderRadius: '20px', alignItems: 'center' }}>
+              <div key={i} className="queue-item card" style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', borderRadius: '20px', alignItems: 'center', minWidth: 0, overflow: 'hidden' }}>
                 <div style={{ textAlign: 'center', minWidth: '80px', padding: '0.8rem', background: '#f0f7ff', borderRadius: '16px' }}>
                     <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary-strong)', display: 'block' }}>SCHEDULED</span>
                     <div style={{ fontSize: '0.9rem', fontWeight: 900, marginTop: '0.2rem' }}>{formatDate(item.scheduledAt)}</div>
                 </div>
-                <div style={{ flex: 1, position: 'relative' }}>
+                <div style={{ flex: 1, position: 'relative', minWidth: 0, overflow: 'hidden' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, minWidth: 0 }}>
                         {/* Content type badge */}
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', fontWeight: 700, color: tc.color, background: tc.bg, borderRadius: '999px', padding: '0.15rem 0.6rem', width: 'fit-content' }}>
                           {tc.icon} {tc.label}
@@ -703,7 +735,7 @@ export default function DashboardPage() {
                             )}
                         </div>
                     </div>
-                    <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 0 }}>{item.content.substring(0, 120)}...</p>
+                    <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.content.substring(0, 100)}{item.content.length > 100 ? '...' : ''}</p>
 
                     {/* ── Inline Media Section ── */}
                     {(() => {
@@ -824,68 +856,70 @@ export default function DashboardPage() {
                 </div>
             )}
           </div>
-        </section>
+          {/* ── Post History — inside main column, below content queue ── */}
+          {data.history && data.history.length > 0 && (
+            <section style={{ marginTop: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text)' }}>
+                Post History
+              </h3>
+              <div style={{ display: 'grid', gap: '0.6rem' }}>
+                {data.history.map((item: any, i: number) => {
+                  const posted = item.status === "posted";
+                  return (
+                    <div key={i} style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      padding: '0.85rem 1rem',
+                      borderRadius: '14px',
+                      background: posted ? '#f0fdf4' : '#fff5f5',
+                      border: `1px solid ${posted ? '#bbf7d0' : '#fecaca'}`,
+                      alignItems: 'center',
+                      minWidth: 0,
+                      overflow: 'hidden',
+                    }}>
+                      {/* Status icon */}
+                      <div style={{ fontSize: '1.1rem', flexShrink: 0 }}>{posted ? '✅' : '❌'}</div>
 
-        {/* ── Post History ──────────────────────────────────── */}
-        {data.history && data.history.length > 0 && (
-          <section style={{ marginTop: '2rem' }}>
-            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text)' }}>
-              Post History
-            </h3>
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {data.history.map((item: any, i: number) => {
-                const posted = item.status === "posted";
-                return (
-                  <div key={i} style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    padding: '1rem 1.25rem',
-                    borderRadius: '16px',
-                    background: posted ? '#f0fdf4' : '#fff5f5',
-                    border: `1px solid ${posted ? '#bbf7d0' : '#fecaca'}`,
-                    alignItems: 'center',
-                  }}>
-                    {/* Status icon */}
-                    <div style={{ fontSize: '1.4rem' }}>{posted ? '✅' : '❌'}</div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.content?.split('\n')[0]?.slice(0, 100) || '(no content)'}
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: '#6b7280', marginTop: '0.2rem' }}>
-                        {formatDate(item.scheduledAt)} · {item.platform?.toUpperCase()}
-                        {item.externalId && (
-                          <span style={{ marginLeft: '0.5rem' }}>· ID: {item.externalId}</span>
+                      {/* Content */}
+                      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.content?.split('\n')[0]?.slice(0, 100) || '(no content)'}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {formatDate(item.scheduledAt)} · {item.platform?.toUpperCase()}
+                          {item.externalId && (
+                            <span style={{ marginLeft: '0.4rem' }}>· ID: {item.externalId}</span>
+                          )}
+                        </div>
+                        {!posted && item.failureReason && (
+                          <div style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: '0.2rem', fontFamily: 'monospace', background: '#fee2e2', borderRadius: '5px', padding: '0.15rem 0.4rem', overflow: 'hidden', wordBreak: 'break-all' }}>
+                            <div style={{ overflow: 'hidden', wordBreak: 'break-all' }}>{item.failureReason}</div>
+                          </div>
                         )}
                       </div>
-                      {!posted && item.failureReason && (
-                        <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.25rem', fontFamily: 'monospace', background: '#fee2e2', borderRadius: '6px', padding: '0.2rem 0.5rem' }}>
-                          {item.failureReason}
-                        </div>
-                      )}
-                    </div>
 
-                    {/* Status badge */}
-                    <div style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 800,
-                      color: posted ? '#15803d' : '#dc2626',
-                      background: posted ? '#dcfce7' : '#fee2e2',
-                      borderRadius: '999px',
-                      padding: '0.2rem 0.7rem',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {posted ? 'POSTED' : 'FAILED'}
+                      {/* Status badge */}
+                      <div style={{
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        color: posted ? '#15803d' : '#dc2626',
+                        background: posted ? '#dcfce7' : '#fee2e2',
+                        borderRadius: '999px',
+                        padding: '0.2rem 0.6rem',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}>
+                        {posted ? 'POSTED' : 'FAILED'}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </section>
 
-        <aside style={{ display: 'grid', gap: '2rem', height: 'fit-content' }}>
+        <aside style={{ display: 'grid', gap: '2rem', height: 'fit-content', minWidth: 0 }}>
           {/* Ghost Operator / Engagement Feed */}
           <EngagementFeed />
 
