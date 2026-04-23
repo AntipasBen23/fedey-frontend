@@ -685,7 +685,7 @@ export default function AuthModal({
           {/* Logo mark */}
           <div style={{ marginBottom: "1.5rem" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/furciai-logo.jpeg" alt="Furci.ai" style={{ height: "32px", objectFit: "contain", marginBottom: "0.75rem", display: "block" }} />
+            <img src="/furciai-logo.png" alt="Furci.ai" style={{ height: "32px", objectFit: "contain", marginBottom: "0.75rem", display: "block" }} />
             <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 800, color: "#111" }}>
               {titles[view]}
             </h2>
