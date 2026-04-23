@@ -136,17 +136,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [user, refreshSession]);
 
-  // Heartbeat every 5 seconds — detect if admin deleted this account while user is active
+  // Heartbeat every 3 seconds — detect if admin deleted this account while user is active
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(async () => {
-      const res = await fetch(`${API_URL}/v1/user/me`, { credentials: "include" }).catch(() => null);
-      if (!res) return;
-      if (res.status === 401) {
-        const data = await res.json().catch(() => ({}));
-        if (data?.deleted === true) logout(true);
+      try {
+        const res = await fetch(`${API_URL}/v1/user/me`, { credentials: "include" });
+        if (res.status === 401) {
+          const data = await res.json().catch(() => ({}));
+          // Explicitly check for the deleted flag from our middleware
+          if (data?.deleted === true) {
+            console.warn("[AUTH] Account deleted. Redirecting...");
+            logout(true);
+          }
+        }
+      } catch (e) {
+        // Silent fail on network issues
       }
-    }, 5 * 1000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [user, logout]);
 
