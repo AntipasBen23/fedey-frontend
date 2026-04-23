@@ -194,15 +194,17 @@ export default function SchedulingHub({ isOpen, onConfirm, onCancel, isApproving
                                     ))}
                                 </select>
                                 <span style={{ fontWeight: 900, color: '#cbd5e1' }}>:</span>
-                                <select 
-                                    value={slot.minute}
-                                    onChange={(e) => updatePostTime(idx, slot.hour, parseInt(e.target.value))}
-                                    style={{ padding: '0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, appearance: 'none', background: 'white', minWidth: '55px', textAlign: 'center' }}
-                                >
-                                    {[0, 15, 30, 45].map(m => (
-                                        <option key={m} value={m}>{m < 10 ? `0${m}` : m}</option>
-                                    ))}
-                                </select>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={59}
+                                    value={slot.minute === 0 ? "00" : slot.minute < 10 ? `0${slot.minute}` : slot.minute}
+                                    onChange={(e) => {
+                                        const val = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                        updatePostTime(idx, slot.hour, val);
+                                    }}
+                                    style={{ padding: '0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, background: 'white', width: '55px', textAlign: 'center' }}
+                                />
                                 <select 
                                     value={slot.hour >= 12 ? "PM" : "AM"}
                                     onChange={(e) => {
