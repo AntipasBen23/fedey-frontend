@@ -99,7 +99,7 @@ export default function DashboardPage() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Sync failed");
       // Reload dashboard to get fresh analytics
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const fresh = await fetch(`${apiUrl}/v1/dashboard`);
       if (fresh.ok) setData(await fresh.json());
     } catch (e: any) {
@@ -135,7 +135,7 @@ export default function DashboardPage() {
   };
 
   // Per-post media generation state
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
   const [mediaLoading, setMediaLoading]   = useState<Record<number, boolean>>({});
   const [videoTasks,   setVideoTasks]     = useState<Record<number, { taskId: string; status: string; videoUrl?: string }>>({});
   const [postMedia,    setPostMedia]      = useState<Record<number, { videoUrl?: string; imageUrls?: string[] }>>({});
@@ -274,7 +274,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
         const response = await fetch(`${apiUrl}/v1/dashboard`);
         if (!response.ok) throw new Error("Failed to load dashboard");
         const json = await response.json();
@@ -296,7 +296,7 @@ export default function DashboardPage() {
   const toggleAutopilot = async () => {
     setIsToggling(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       await fetch(`${apiUrl}/v1/settings/autopilot`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -319,7 +319,7 @@ export default function DashboardPage() {
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/auth/disconnect`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -350,7 +350,7 @@ export default function DashboardPage() {
     setShowReactionModal(true);
     setLoadingReaction(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/trends/react`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -368,7 +368,7 @@ export default function DashboardPage() {
 
   const handleTrendApprove = async (content: string) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/trends/react/schedule`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -388,7 +388,7 @@ export default function DashboardPage() {
 
   const handleUpdatePost = async (id: number, content: string, scheduledAt: string) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       // datetime-local gives "YYYY-MM-DDTHH:mm" — convert to full ISO string so Go can parse it
       const scheduledAtISO = scheduledAt ? new Date(scheduledAt).toISOString() : undefined;
       const response = await fetch(`${apiUrl}/v1/posts/${id}`, {
@@ -409,7 +409,7 @@ export default function DashboardPage() {
 
   const handleDeletePost = async (id: number) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/posts/${id}`, {
         method: "DELETE",
       });

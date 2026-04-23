@@ -70,7 +70,7 @@ export default function FurciChat() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -176,7 +176,7 @@ export default function FurciChat() {
                                 btn.disabled = true;
                                 btn.innerText = "APPROVING...";
                                 try {
-                                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+                                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
                                     await fetch(`${apiUrl}/v1/posts`, {
                                         method: "POST",
                                         headers: { "Content-Type": "application/json" },

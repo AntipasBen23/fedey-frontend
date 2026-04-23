@@ -21,7 +21,7 @@ export default function EngagementFeed() {
   const [ghostMode, setGhostMode] = useState(false);
   const [toggling, setToggling] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
   const fetchEngagements = async () => {
     try {

@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
 
   const fetchAnalytics = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/analytics`);
       if (!response.ok) throw new Error("Failed to load analytics");
       const json = await response.json();
@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
   const syncData = async () => {
     setIsSyncing(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/analytics/sync`, { method: 'POST' });
       if (!response.ok) throw new Error("Sync failed");
       await fetchAnalytics();

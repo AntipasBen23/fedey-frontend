@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://fedey-backend-production.up.railway.app";
+  "https://api.furciai.com";
 
 const requirements = [
   { test: (p: string) => p.length >= 8, label: "At least 8 characters" },

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
 type CalendarItem = {
   day: number;

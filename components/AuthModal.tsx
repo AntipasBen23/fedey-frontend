@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://fedey-backend-production.up.railway.app";
+  "https://api.furciai.com";
 
 type View = "login" | "signup" | "verify" | "forgot" | "reset-sent";
 

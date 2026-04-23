@@ -27,7 +27,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
     setIsPolishing(true);
     setShowTonePicker(false);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const res = await fetch(`${apiUrl}/v1/posts/polish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,7 +52,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
 
     setIsSubmitting(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const res = await fetch(`${apiUrl}/v1/posts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -20,7 +20,7 @@ export default function PeakHourHeatmap() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
         const res = await fetch(`${apiUrl}/v1/analytics/peak-hours`);
         if (!res.ok) throw new Error("Failed to load heatmap data");
         const json = await res.json();

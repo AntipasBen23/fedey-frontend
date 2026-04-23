@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://fedey-backend-production.up.railway.app";
+  "https://api.furciai.com";
 
 export default function PageTracker() {
   const pathname = usePathname();

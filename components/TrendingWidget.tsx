@@ -23,7 +23,7 @@ export default function TrendingWidget({ onReact }: TrendingWidgetProps) {
     else setIsRefreshing(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://fedey-backend-production.up.railway.app";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const response = await fetch(`${apiUrl}/v1/trends`);
       if (!response.ok) throw new Error("Failed to load trends");
       const json = await response.json();
