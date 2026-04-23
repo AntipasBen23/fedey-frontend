@@ -856,64 +856,108 @@ export default function DashboardPage() {
                 </div>
             )}
           </div>
-          {/* ── Post History — inside main column, below content queue ── */}
+          {/* ── Performance per Post — high-fidelity table ── */}
           {data.history && data.history.length > 0 && (
-            <section style={{ marginTop: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text)' }}>
-                Post History
-              </h3>
-              <div style={{ display: 'grid', gap: '0.6rem' }}>
-                {data.history.map((item: any, i: number) => {
-                  const posted = item.status === "posted";
-                  return (
-                    <div key={i} style={{
-                      display: 'flex',
-                      gap: '0.75rem',
-                      padding: '0.85rem 1rem',
-                      borderRadius: '14px',
-                      background: posted ? '#f0fdf4' : '#fff5f5',
-                      border: `1px solid ${posted ? '#bbf7d0' : '#fecaca'}`,
-                      alignItems: 'center',
-                      minWidth: 0,
-                      overflow: 'hidden',
-                    }}>
-                      {/* Status icon */}
-                      <div style={{ fontSize: '1.1rem', flexShrink: 0 }}>{posted ? '✅' : '❌'}</div>
+            <section style={{ marginTop: '3rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.5rem', margin: 0 }}>📊 Performance per Post</h3>
+                <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600 }}>Showing last 20 posts</span>
+              </div>
+              
+              <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #f0f0f0', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                {/* Table Header */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'minmax(200px, 2fr) 100px 90px 90px 90px 100px 100px', 
+                  padding: '1.25rem 1.5rem', 
+                  background: '#f9fafb', 
+                  borderBottom: '1px solid #f0f0f0',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  color: '#9ca3af',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  <span>Post Details</span>
+                  <span style={{ textAlign: 'center' }}>Status</span>
+                  <span style={{ textAlign: 'center' }}>Likes</span>
+                  <span style={{ textAlign: 'center' }}>Reposts</span>
+                  <span style={{ textAlign: 'center' }}>Comments</span>
+                  <span style={{ textAlign: 'center' }}>Impressions</span>
+                  <span style={{ textAlign: 'center' }}>Eng. Rate</span>
+                </div>
 
-                      {/* Content */}
-                      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                        <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {item.content?.split('\n')[0]?.slice(0, 100) || '(no content)'}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {formatDate(item.scheduledAt)} · {item.platform?.toUpperCase()}
-                          {item.externalId && (
-                            <span style={{ marginLeft: '0.4rem' }}>· ID: {item.externalId}</span>
-                          )}
-                        </div>
-                        {!posted && item.failureReason && (
-                          <div style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: '0.2rem', fontFamily: 'monospace', background: '#fee2e2', borderRadius: '5px', padding: '0.15rem 0.4rem', overflow: 'hidden', wordBreak: 'break-all' }}>
-                            <div style={{ overflow: 'hidden', wordBreak: 'break-all' }}>{item.failureReason}</div>
-                          </div>
-                        )}
-                      </div>
+                {/* Table Body */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {data.history.map((item: any, i: number) => {
+                    const posted = item.status === "posted";
+                    const a = item.analytics || {};
+                    const engColor = (a.engagementRate || 0) >= 5 ? '#16a34a' : (a.engagementRate || 0) >= 2 ? '#d97706' : '#6b7280';
+                    const fmt = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : String(n || 0);
 
-                      {/* Status badge */}
-                      <div style={{
-                        fontSize: '0.68rem',
-                        fontWeight: 800,
-                        color: posted ? '#15803d' : '#dc2626',
-                        background: posted ? '#dcfce7' : '#fee2e2',
-                        borderRadius: '999px',
-                        padding: '0.2rem 0.6rem',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
+                    return (
+                      <div key={i} className="history-row" style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'minmax(200px, 2fr) 100px 90px 90px 90px 100px 100px', 
+                        alignItems: 'center', 
+                        padding: '1.25rem 1.5rem',
+                        borderBottom: i === data.history.length - 1 ? 'none' : '1px solid #f8f9fa',
+                        transition: 'background 0.2s ease',
                       }}>
-                        {posted ? 'POSTED' : 'FAILED'}
+                        {/* 1. Post Details */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 0 }}>
+                           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {item.content?.split('\n')[0]?.slice(0, 80) || '(no content)'}
+                           </div>
+                           <div style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span style={{ color: '#6366f1', fontWeight: 700 }}>{item.platform?.toUpperCase()}</span>
+                              <span>•</span>
+                              <span>{formatDate(item.createdAt)}</span>
+                           </div>
+                        </div>
+
+                        {/* 2. Status */}
+                        <div style={{ textAlign: 'center' }}>
+                           <span style={{ 
+                              fontSize: '0.65rem', 
+                              fontWeight: 900, 
+                              padding: '0.25rem 0.6rem', 
+                              borderRadius: '999px',
+                              background: posted ? '#dcfce7' : '#fee2e2',
+                              color: posted ? '#15803d' : '#dc2626'
+                           }}>
+                              {posted ? 'POSTED' : 'FAILED'}
+                           </span>
+                        </div>
+
+                        {/* 3. Likes */}
+                        <div style={{ textAlign: 'center', fontWeight: 700, color: '#374151' }}>
+                           {fmt(a.likes)}
+                        </div>
+
+                        {/* 4. Reposts (User specific request) */}
+                        <div style={{ textAlign: 'center', fontWeight: 700, color: '#6366f1' }}>
+                           {fmt(a.reposts)}
+                        </div>
+
+                        {/* 5. Comments */}
+                        <div style={{ textAlign: 'center', fontWeight: 700, color: '#374151' }}>
+                           {fmt(a.comments)}
+                        </div>
+
+                        {/* 6. Impressions */}
+                        <div style={{ textAlign: 'center', fontWeight: 700, color: '#0ea5e9' }}>
+                           {fmt(a.impressions)}
+                        </div>
+
+                        {/* 7. Engagement Rate */}
+                        <div style={{ textAlign: 'center', fontWeight: 900, color: engColor }}>
+                           {(a.engagementRate || 0).toFixed(1)}%
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </section>
           )}
