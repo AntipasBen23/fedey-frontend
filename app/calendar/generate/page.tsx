@@ -221,7 +221,7 @@ export default function CalendarGeneratePage() {
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <h1 style={{ fontSize: '2.5rem', color: 'var(--text)', margin: '0' }}>3-Day Growth Runway</h1>
         <p style={{ color: 'var(--muted)', fontSize: '1.2rem', marginTop: '0.5rem' }}>
-          Scripts, carousels, and posts — ready to publish.
+          Scripts, carousels, and posts ready to publish.
         </p>
       </div>
 
