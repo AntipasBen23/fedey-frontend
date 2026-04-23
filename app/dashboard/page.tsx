@@ -904,15 +904,46 @@ export default function DashboardPage() {
                         borderBottom: i === data.history.length - 1 ? 'none' : '1px solid #f8f9fa',
                         transition: 'background 0.2s ease',
                       }}>
-                        {/* 1. Post Details */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 0 }}>
-                           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {item.content?.split('\n')[0]?.slice(0, 80) || '(no content)'}
+                        {/* 1. Post Details + Thumbnail */}
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', minWidth: 0 }}>
+                           {/* Thumbnail */}
+                           <div style={{ 
+                              width: '44px', 
+                              height: '44px', 
+                              borderRadius: '8px', 
+                              background: '#f3f4f6', 
+                              flexShrink: 0, 
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: '1px solid #eee'
+                           }}>
+                              {(() => {
+                                 let thumbUrl = "";
+                                 try {
+                                    const images = item.imageUrlsJson ? JSON.parse(item.imageUrlsJson) : [];
+                                    if (images.length > 0) thumbUrl = images[0];
+                                    else if (item.videoUrl) return <span style={{ fontSize: '1.2rem' }}>🎬</span>;
+                                 } catch { /* ignore */ }
+                                 
+                                 return thumbUrl ? (
+                                    <img src={thumbUrl} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                 ) : (
+                                    <span style={{ fontSize: '1.2rem' }}>📝</span>
+                                 );
+                              })()}
                            </div>
-                           <div style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <span style={{ color: '#6366f1', fontWeight: 700 }}>{item.platform?.toUpperCase()}</span>
-                              <span>•</span>
-                              <span>{formatDate(item.createdAt)}</span>
+
+                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 0 }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                 {item.content?.split('\n')[0]?.slice(0, 80) || '(no content)'}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                 <span style={{ color: '#6366f1', fontWeight: 700 }}>{item.platform?.toUpperCase()}</span>
+                                 <span>•</span>
+                                 <span>{formatDate(item.createdAt)}</span>
+                              </div>
                            </div>
                         </div>
 
