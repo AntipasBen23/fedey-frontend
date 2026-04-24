@@ -66,10 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clear the hint cookie so the home page shows "Hire me" not "Return to Dashboard"
       const secure = window.location.protocol === "https:" ? "; Secure" : "";
       document.cookie = `furci_hint=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
-      // Only redirect if not already on "/" — avoids infinite reload loop
-      if (window.location.pathname !== "/") {
-        window.location.href = "/";
-      }
+      // Always do a full reload to "/" so no stale React state remains
+      window.location.replace("/");
     }
   }, []);
 

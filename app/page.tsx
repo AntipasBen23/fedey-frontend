@@ -39,7 +39,7 @@ export default function HomePage() {
 
   useEffect(() => {
     setHintStep(getHintStep());
-  }, []);
+  }, [isLoggedIn, ready]);
 
   useEffect(() => {
     if (searchParams.get("sessionExpired") === "1") {
