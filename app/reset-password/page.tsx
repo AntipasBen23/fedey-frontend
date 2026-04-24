@@ -49,7 +49,7 @@ function ResetPasswordForm() {
         body: JSON.stringify({ token, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error?.message ?? data?.error ?? "Something went wrong.");
       setSuccess(true);
       setTimeout(() => router.push("/"), 3000);
     } catch (e: any) {

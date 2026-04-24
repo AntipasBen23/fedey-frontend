@@ -55,7 +55,7 @@ export default function ScriptModal({ item, onClose }: Props) {
         credentials: "include",
         body: JSON.stringify({ visualPrompts: prompts }),
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      if (!res.ok) { const e = await res.json(); throw new Error(e?.error?.message ?? e?.error ?? "Failed."); }
       const data = await res.json();
       setSlideImages(data.images || []);
     } catch (e: any) {
@@ -82,7 +82,7 @@ export default function ScriptModal({ item, onClose }: Props) {
           ratio: "720:1280",
         }),
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      if (!res.ok) { const e = await res.json(); throw new Error(e?.error?.message ?? e?.error ?? "Failed."); }
       const data = await res.json();
       setVideoTask(data);
       // Start polling

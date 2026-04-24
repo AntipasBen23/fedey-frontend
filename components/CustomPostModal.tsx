@@ -36,7 +36,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
       });
       const data = await res.json();
       if (res.ok) setContent(data.polishedContent);
-      else throw new Error(data.error);
+      else throw new Error(data?.error?.message ?? data?.error ?? "AI Polish failed.");
     } catch (e: any) {
       alert("AI Polish failed: " + e.message);
     } finally {

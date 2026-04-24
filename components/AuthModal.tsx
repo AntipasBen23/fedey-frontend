@@ -143,7 +143,7 @@ export default function AuthModal({
           setView("verify");
           return;
         }
-        throw new Error(data.error);
+        throw new Error(data?.error?.message ?? data?.error ?? "Something went wrong.");
       }
       login(data.user);
       onSuccess?.();
@@ -189,7 +189,7 @@ export default function AuthModal({
           setView("verify");
           return;
         }
-        throw new Error(data.error);
+        throw new Error(data?.error?.message ?? data?.error ?? "Something went wrong.");
       }
       setPendingUserId(data.userId);
       setView("verify");
@@ -212,7 +212,7 @@ export default function AuthModal({
         body: JSON.stringify({ userId: pendingUserId, code: code.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error?.message ?? data?.error ?? "Something went wrong.");
       login(data.user);
       onSuccess?.();
       onClose();
@@ -271,7 +271,7 @@ export default function AuthModal({
         body: JSON.stringify({ idToken: response.credential, rememberMe }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error?.message ?? data?.error ?? "Something went wrong.");
       login(data.user);
       onSuccess?.();
       onClose();

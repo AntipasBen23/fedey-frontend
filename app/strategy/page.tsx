@@ -91,7 +91,7 @@ export default function StrategyPage() {
           
           if (!syncRes.ok) {
             const errData = await syncRes.json();
-            console.error("[AUTH] Sync failed:", errData.error);
+            console.error("[AUTH] Sync failed:", errData?.error?.message ?? errData?.error);
           } else {
             console.log("[AUTH] Sync successful");
           }

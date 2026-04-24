@@ -140,7 +140,7 @@ export default function CalendarGeneratePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to approve calendar");
+        throw new Error(errorData?.error?.message ?? errorData?.error ?? "Failed to approve calendar.");
       }
 
       // Mark onboarding as completed in backend + local context

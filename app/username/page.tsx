@@ -53,7 +53,7 @@ export default function UsernamePage() {
         body: JSON.stringify({ username: username.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to set username.");
+      if (!res.ok) throw new Error(data?.error?.message ?? data?.error ?? "Failed to set username.");
       updateUser({ username: data.username });
       // Route based on onboarding step
       const step = user?.lastOnboardingStep;

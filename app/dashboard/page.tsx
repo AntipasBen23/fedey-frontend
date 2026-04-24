@@ -97,7 +97,7 @@ export default function DashboardPage() {
     try {
       const res = await fetch(`${API_URL}/v1/analytics/sync`, { method: "POST", credentials: "include" });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Sync failed");
+      if (!res.ok) throw new Error(result?.error?.message ?? result?.error ?? "Sync failed.");
       // Reload dashboard to get fresh analytics
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
       const fresh = await fetch(`${apiUrl}/v1/dashboard`, { credentials: "include" });
@@ -125,7 +125,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ upgradeCode }),
       });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Upgrade failed");
+      if (!res.ok) throw new Error(result?.error?.message ?? result?.error ?? "Upgrade failed.");
       setShowUpgradeModal(false);
       window.location.reload();
     } catch (e: any) {
@@ -167,7 +167,7 @@ export default function DashboardPage() {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP ${res.status}`);
+        throw new Error(errData?.error?.message ?? errData?.error ?? `HTTP ${res.status}`);
       }
       const data = await res.json();
       setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], imageUrls: data.imageUrls } }));
@@ -194,7 +194,7 @@ export default function DashboardPage() {
         credentials: "include",
         body: JSON.stringify({ visualPrompts: prompts }),
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      if (!res.ok) { const e = await res.json(); throw new Error(e?.error?.message ?? e?.error ?? "Failed."); }
       const data = await res.json();
       const urls: string[] = (data.images || []).map((img: any) => img.url);
       setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], imageUrls: urls } }));
@@ -218,7 +218,7 @@ export default function DashboardPage() {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP ${res.status}`);
+        throw new Error(errData?.error?.message ?? errData?.error ?? `HTTP ${res.status}`);
       }
       const data = await res.json();
       setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], videoUrl: data.videoUrl } }));
@@ -242,7 +242,7 @@ export default function DashboardPage() {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || errData.detail || `HTTP ${res.status}`);
+        throw new Error(errData?.error?.message ?? errData?.error ?? errData?.detail ?? `HTTP ${res.status}`);
       }
       const taskData = await res.json();
       setVideoTasks(p => ({ ...p, [post.id]: taskData }));
@@ -409,7 +409,7 @@ export default function DashboardPage() {
       });
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to update post");
+        throw new Error(errData?.error?.message ?? errData?.error ?? "Failed to update post.");
       }
       setShowEditModal(false);
       window.location.reload();
