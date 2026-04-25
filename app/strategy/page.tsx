@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useAuth } from "@/context/AuthContext";
 import { useDialog } from "@/context/DialogContext";
 
@@ -27,7 +27,6 @@ export default function StrategyPage() {
   const [strategy, setStrategy] = useState<StrategyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [showRefinementUI, setShowRefinementUI] = useState(false);
   const [refinementFeedback, setRefinementFeedback] = useState("");
@@ -76,31 +75,7 @@ export default function StrategyPage() {
         const data = await response.json();
         setStrategy(data);
 
-        // Handoff OAuth token to backend if session exists
-        if (session?.accessToken) {
-          setIsSyncing(true);
-          console.log("[AUTH] Handing off token for platform:", platform);
-          const syncRes = await fetch(`${API_URL}/v1/auth/callback`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              accessToken: session.accessToken,
-              platform,
-              accountType,
-            }),
-          });
-          
-          if (!syncRes.ok) {
-            const errData = await syncRes.json();
-            console.error("[AUTH] Sync failed:", errData?.error?.message ?? errData?.error);
-          } else {
-            console.log("[AUTH] Sync successful");
-          }
-          setIsSyncing(false);
-        } else {
-          console.warn("[AUTH] No accessToken found in session yet");
-        }
+        // Token handoff is handled by the standalone effect below
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -110,6 +85,32 @@ export default function StrategyPage() {
 
     fetchStrategy();
   }, [session, user?.jobDescription, user?.platformContext]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Standalone token sync — fires whenever the NextAuth session token changes
+  // (including after a Reconnect flow). Idempotent: backend upserts on conflict.
+  useEffect(() => {
+    if (!session?.accessToken) return;
+    let platform = session?.platform || "twitter";
+    let accountType = "new";
+    if (user?.platformContext) {
+      try {
+        const ctx = JSON.parse(user.platformContext);
+        platform = ctx.platform || platform;
+        accountType = ctx.accountType || "new";
+      } catch {}
+    }
+    fetch(`${API_URL}/v1/auth/callback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        platform,
+        accountType,
+      }),
+    }).catch(() => {});
+  }, [session?.accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDisconnect = async () => {
     const ok = await confirm(

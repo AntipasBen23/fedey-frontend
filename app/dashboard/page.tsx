@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useDialog } from "@/context/DialogContext";
@@ -1137,7 +1137,33 @@ export default function DashboardPage() {
                 )}
              </div>
 
-             <button 
+             <button
+               onClick={() => signIn("twitter", { callbackUrl: "/strategy" })}
+               style={{
+                 width: '100%',
+                 padding: '1rem',
+                 background: 'transparent',
+                 border: '2px solid #1da1f2',
+                 color: '#1da1f2',
+                 borderRadius: '16px',
+                 fontWeight: 800,
+                 cursor: 'pointer',
+                 transition: 'all 0.2s ease',
+                 marginBottom: '0.75rem',
+               }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.background = '#1da1f2';
+                 e.currentTarget.style.color = 'white';
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.background = 'transparent';
+                 e.currentTarget.style.color = '#1da1f2';
+               }}
+             >
+               Reconnect Twitter 🔄
+             </button>
+
+             <button
                onClick={() => disconnectAccount(session?.platform || "twitter")}
                style={{
                  width: '100%',
