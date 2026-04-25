@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useAuth } from "@/context/AuthContext";
+import { useDialog } from "@/context/DialogContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
@@ -17,7 +18,8 @@ type StrategyDetail = {
 export default function StrategyPage() {
   const router = useRouter();
   const { data: session } = useSession() as any;
-  const { user, isLoggedIn, ready, updateUser } = useAuth();
+  const { user, isLoggedIn, ready, updateUser, logout } = useAuth() as any;
+  const { toast, confirm } = useDialog();
 
   useEffect(() => {
     if (ready && !isLoggedIn) router.replace("/");
@@ -110,21 +112,25 @@ export default function StrategyPage() {
   }, [session, user?.jobDescription, user?.platformContext]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDisconnect = async () => {
-    if (!confirm("Are you sure you want to disconnect your account? This will wipe your tokens.")) return;
+    const ok = await confirm(
+      "This will permanently delete all your posts, analytics, and strategy data. You will be logged out immediately.",
+      { title: "Disconnect Furci?", confirmLabel: "Yes, disconnect", cancelLabel: "Cancel", danger: true }
+    );
+    if (!ok) return;
 
     setIsDisconnecting(true);
     try {
       const platform = session?.platform || "twitter";
-      await fetch(`${API_URL}/v1/auth/disconnect`, {
+      const res = await fetch(`${API_URL}/v1/auth/disconnect`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ platform }),
       });
-
-      await signOut({ callbackUrl: "/connect" });
+      if (!res.ok) throw new Error("Failed to disconnect");
+      logout(true);
     } catch (err) {
-      alert("Failed to disconnect correctly. Please try again.");
+      toast("Failed to disconnect correctly. Please try again.", "error");
     } finally {
       setIsDisconnecting(false);
     }
@@ -155,7 +161,7 @@ export default function StrategyPage() {
       setShowRefinementUI(false);
       setRefinementFeedback("");
     } catch (err: any) {
-      alert(err.message);
+      toast(err.message, "error");
     } finally {
       setIsRevising(false);
     }

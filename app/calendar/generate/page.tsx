@@ -8,6 +8,7 @@ import SuccessModal from "@/components/SuccessModal";
 import SchedulingHub from "@/components/SchedulingHub";
 import ErrorModal from "@/components/ErrorModal";
 import ScriptModal from "@/components/ScriptModal";
+import { useDialog } from "@/context/DialogContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
 
@@ -25,6 +26,7 @@ type CalendarItem = {
 };
 
 export default function CalendarGeneratePage() {
+  const { toast } = useDialog();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isFresh = searchParams.get("fresh") === "1";
@@ -116,7 +118,7 @@ export default function CalendarGeneratePage() {
       setCalendar(data.calendar);
       setRevisionFeedback("");
     } catch (err: any) {
-      alert(err.message);
+      toast(err.message, "error");
     } finally {
       setRevising(false);
     }

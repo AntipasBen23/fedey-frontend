@@ -7,6 +7,7 @@ import SessionWrapper from "./components/SessionWrapper";
 import { AuthProvider } from "@/context/AuthContext";
 import InactivityGuard from "@/components/InactivityGuard";
 import PageTracker from "@/components/PageTracker";
+import { DialogProvider } from "@/context/DialogContext";
 
 export const metadata: Metadata = {
   title: "Furci.ai",
@@ -24,12 +25,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <SessionWrapper>
           <AuthProvider>
-            <AutopilotProvider>
-              <InactivityGuard />
-              <Suspense><PageTracker /></Suspense>
-              <Header />
-              {children}
-            </AutopilotProvider>
+            <DialogProvider>
+              <AutopilotProvider>
+                <InactivityGuard />
+                <Suspense><PageTracker /></Suspense>
+                <Header />
+                {children}
+              </AutopilotProvider>
+            </DialogProvider>
           </AuthProvider>
         </SessionWrapper>
       </body>

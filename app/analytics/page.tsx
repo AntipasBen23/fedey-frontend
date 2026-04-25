@@ -13,6 +13,7 @@ import {
   Area
 } from "recharts";
 import { TrendingUp, BarChart2, Zap, RefreshCw, ArrowLeft } from "lucide-react";
+import { useDialog } from "@/context/DialogContext";
 import Link from "next/link";
 import PeakHourHeatmap from "@/components/PeakHourHeatmap";
 
@@ -35,6 +36,7 @@ const chartData = [
 ];
 
 export default function AnalyticsPage() {
+  const { toast } = useDialog();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -64,9 +66,9 @@ export default function AnalyticsPage() {
       const response = await fetch(`${apiUrl}/v1/analytics/sync`, { method: 'POST', credentials: "include" });
       if (!response.ok) throw new Error("Sync failed");
       await fetchAnalytics();
-      alert("Intelligence Sync Complete! Your impact score has been updated.");
+      toast("Intelligence Sync Complete! Your impact score has been updated.", "success");
     } catch (err) {
-      alert("Error syncing analytics");
+      toast("Error syncing analytics", "error");
     } finally {
       setIsSyncing(false);
     }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MessageSquare, Ghost, Check, X, RefreshCw, Zap } from "lucide-react";
+import { useDialog } from "@/context/DialogContext";
 
 type EngagementEvent = {
   id: number;
@@ -16,6 +17,7 @@ type EngagementEvent = {
 };
 
 export default function EngagementFeed() {
+  const { toast } = useDialog();
   const [events, setEvents] = useState<EngagementEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
@@ -56,7 +58,7 @@ export default function EngagementFeed() {
         setGhostMode(!ghostMode);
       }
     } catch (e) {
-      alert("Failed to toggle Ghost Mode");
+      toast("Failed to toggle Ghost Mode", "error");
     } finally {
       setToggling(false);
     }
@@ -68,10 +70,10 @@ export default function EngagementFeed() {
       if (res.ok) {
         setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "sent" } : e));
       } else {
-        alert("Failed to send reply");
+        toast("Failed to send reply", "error");
       }
     } catch (e) {
-      alert("Error sending reply");
+      toast("Error sending reply", "error");
     }
   };
 

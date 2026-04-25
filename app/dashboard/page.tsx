@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useDialog } from "@/context/DialogContext";
 import TrendingWidget from "@/components/TrendingWidget";
 import ReactionModal from "@/components/ReactionModal";
 import EditPostModal from "@/components/EditPostModal";
@@ -64,6 +65,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { data: session } = useSession() as any;
   const { isLoggedIn, ready, user, logout } = useAuth() as any;
+  const { toast, confirm } = useDialog();
 
   // Auth guard — redirect to home if not logged in
   useEffect(() => {
@@ -103,7 +105,7 @@ export default function DashboardPage() {
       const fresh = await fetch(`${apiUrl}/v1/dashboard`, { credentials: "include" });
       if (fresh.ok) setData(await fresh.json());
     } catch (e: any) {
-      alert("Sync failed: " + e.message);
+      toast("Sync failed: " + e.message, "error");
     } finally {
       setSyncing(false);
     }
@@ -129,7 +131,7 @@ export default function DashboardPage() {
       setShowUpgradeModal(false);
       window.location.reload();
     } catch (e: any) {
-      alert("Upgrade failed: " + e.message);
+      toast("Upgrade failed: " + e.message, "error");
     } finally {
       setUpgrading(false);
     }
@@ -172,7 +174,7 @@ export default function DashboardPage() {
       const data = await res.json();
       setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], imageUrls: data.imageUrls } }));
     } catch (e: any) {
-      alert("Carousel design failed: " + e.message);
+      toast("Carousel design failed: " + e.message, "error");
     } finally {
       setMediaLoading(p => ({ ...p, [post.id]: false }));
     }
@@ -200,7 +202,7 @@ export default function DashboardPage() {
       setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], imageUrls: urls } }));
       await saveMediaToPost(post.id, undefined, urls);
     } catch (e: any) {
-      alert("Image generation failed: " + e.message);
+      toast("Image generation failed: " + e.message, "error");
     } finally {
       setMediaLoading(p => ({ ...p, [post.id]: false }));
     }
@@ -224,7 +226,7 @@ export default function DashboardPage() {
       setPostMedia(p => ({ ...p, [post.id]: { ...p[post.id], videoUrl: data.videoUrl } }));
       await saveMediaToPost(post.id, data.videoUrl);
     } catch (e: any) {
-      alert("Slide video failed: " + e.message);
+      toast("Slide video failed: " + e.message, "error");
     } finally {
       setMediaLoading(p => ({ ...p, [post.id]: false }));
     }
@@ -248,7 +250,7 @@ export default function DashboardPage() {
       setVideoTasks(p => ({ ...p, [post.id]: taskData }));
       pollVideoForPost(post.id, taskData.taskId);
     } catch (e: any) {
-      alert("Video generation failed: " + e.message);
+      toast("Video generation failed: " + e.message, "error");
     } finally {
       setMediaLoading(p => ({ ...p, [post.id]: false }));
     }
@@ -314,16 +316,18 @@ export default function DashboardPage() {
       });
       setAutopilot(!autopilot);
     } catch (err) {
-      alert("Failed to toggle autopilot");
+      toast("Failed to toggle autopilot", "error");
     } finally {
       setIsToggling(false);
     }
   };
 
   const disconnectAccount = async (platform: string) => {
-    if (!window.confirm(`⚠️ Are you sure you want to disconnect Furci? This will permanently delete all your posts, analytics, and strategy data. You will be logged out immediately.`)) {
-      return;
-    }
+    const ok = await confirm(
+      "This will permanently delete all your posts, analytics, and strategy data. You will be logged out immediately.",
+      { title: "Disconnect Furci?", confirmLabel: "Yes, disconnect", cancelLabel: "Cancel", danger: true }
+    );
+    if (!ok) return;
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.furciai.com";
@@ -336,10 +340,9 @@ export default function DashboardPage() {
 
       if (!response.ok) throw new Error("Failed to disconnect");
 
-      // Server has wiped all data and expired cookies — treat as full account deletion
       logout(true);
     } catch (err) {
-      alert("Error disconnecting account. Please try again.");
+      toast("Error disconnecting account. Please try again.", "error");
     }
   };
 
@@ -370,7 +373,7 @@ export default function DashboardPage() {
       const json = await response.json();
       setTrendReaction(json.reaction);
     } catch (err) {
-      alert("Error generating trend reaction");
+      toast("Error generating trend reaction", "error");
     } finally {
       setLoadingReaction(false);
     }
@@ -389,11 +392,11 @@ export default function DashboardPage() {
         }),
       });
       if (!response.ok) throw new Error("Failed to schedule");
-      alert("Reaction scheduled! Heading to your queue...");
+      toast("Reaction scheduled! Heading to your queue...", "success");
       setShowReactionModal(false);
       window.location.reload(); // Refresh to see the new item in queue
     } catch (err) {
-      alert("Error scheduling reaction");
+      toast("Error scheduling reaction", "error");
     }
   };
 
@@ -415,7 +418,7 @@ export default function DashboardPage() {
       setShowEditModal(false);
       window.location.reload();
     } catch (err: any) {
-      alert("Error updating post: " + err.message);
+      toast("Error updating post: " + err.message, "error");
     }
   };
 
@@ -430,7 +433,7 @@ export default function DashboardPage() {
       setShowEditModal(false);
       window.location.reload();
     } catch (err) {
-      alert("Error deleting post");
+      toast("Error deleting post", "error");
     }
   };
 

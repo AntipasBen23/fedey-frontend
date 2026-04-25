@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useDialog } from "@/context/DialogContext";
 
 type EditPostModalProps = {
   isOpen: boolean;
@@ -17,6 +18,7 @@ type EditPostModalProps = {
 };
 
 export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete, initialMode }: EditPostModalProps) {
+  const { confirm } = useDialog();
   const [content, setContent] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
 
@@ -145,8 +147,9 @@ export default function EditPostModal({ isOpen, onClose, post, onSave, onDelete,
                 Save Changes 💾
             </button>
             <button 
-                onClick={() => {
-                    if(confirm("Permanently remove this post?")) onDelete(post.id);
+                onClick={async () => {
+                    const ok = await confirm("Permanently remove this post?", { confirmLabel: "Delete", danger: true });
+                    if (ok) onDelete(post.id);
                 }}
                 style={{ 
                     flex: 1,

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Zap, Clock, Send, Sparkles, Check } from "lucide-react";
+import { useDialog } from "@/context/DialogContext";
 
 interface CustomPostModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface CustomPostModalProps {
 }
 
 export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedPlatforms }: CustomPostModalProps) {
+  const { toast } = useDialog();
   const [content, setContent] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(connectedPlatforms);
   const [timingMode, setTimingMode] = useState<"now" | "smart" | "specific">("smart");
@@ -38,7 +40,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
       if (res.ok) setContent(data.polishedContent);
       else throw new Error(data?.error?.message ?? data?.error ?? "AI Polish failed.");
     } catch (e: any) {
-      alert("AI Polish failed: " + e.message);
+      toast("AI Polish failed: " + e.message, "error");
     } finally {
       setIsPolishing(false);
     }
@@ -47,7 +49,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
   const handleSubmit = async () => {
     if (!content.trim()) return;
     if (selectedPlatforms.length === 0) {
-      alert("Please select at least one platform.");
+      toast("Please select at least one platform.", "info");
       return;
     }
 
@@ -72,7 +74,7 @@ export default function CustomPostModal({ isOpen, onClose, onSuccess, connectedP
       onClose();
       setContent("");
     } catch (e: any) {
-      alert(e.message);
+      toast(e.message, "error");
     } finally {
       setIsSubmitting(false);
     }
