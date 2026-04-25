@@ -509,7 +509,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.5 }}>
-              Invite Furci AI to your daily standup. It will brief your team on content performance, flag what needs attention, and surface your wins — no prep needed.
+              Invite Furci AI to your daily standup. It will brief your team on content performance, flag what needs attention, and surface your wins. No prep needed.
             </p>
           </div>
         </div>
