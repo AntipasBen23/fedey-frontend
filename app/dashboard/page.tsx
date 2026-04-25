@@ -474,6 +474,55 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Standup Mode — Coming Soon ────────────────────────────────── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
+        borderRadius: '16px',
+        padding: '1.1rem 1.5rem',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '1rem',
+        flexWrap: 'wrap',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
+            background: 'rgba(99,152,255,0.15)', border: '1px solid rgba(99,152,255,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+          }}>
+            🎙️
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.2rem' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f1f5f9' }}>
+                Furci AI Standup Mode
+              </span>
+              <span style={{
+                fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
+                background: 'rgba(99,152,255,0.2)', border: '1px solid rgba(99,152,255,0.35)',
+                color: '#93c5fd', borderRadius: '4px', padding: '0.15rem 0.5rem',
+                textTransform: 'uppercase',
+              }}>
+                Coming Soon
+              </span>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.5 }}>
+              Invite Furci AI to your daily standup. It will brief your team on content performance, flag what needs attention, and surface your wins — no prep needed.
+            </p>
+          </div>
+        </div>
+        <button disabled style={{
+          flexShrink: 0, padding: '0.5rem 1.2rem', borderRadius: '8px',
+          fontSize: '0.8rem', fontWeight: 700, cursor: 'not-allowed',
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+          color: '#64748b', whiteSpace: 'nowrap',
+        }}>
+          Notify me
+        </button>
+      </div>
+
       {/* ── Analytics Bar ─────────────────────────────────────────────── */}
       {(() => {
         const a = data.analytics;
