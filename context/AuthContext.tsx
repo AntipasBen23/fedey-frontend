@@ -134,7 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [user, refreshSession]);
 
-  // Heartbeat every 3 seconds — detect if admin deleted this account while user is active
+  // Heartbeat every 10 seconds — detect if admin deleted this account while user is active.
+  // On a non-deletion 401 (e.g. expired token), silently refresh instead of spamming errors.
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(async () => {
@@ -142,18 +143,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch(`${API_URL}/v1/user/me`, { credentials: "include" });
         if (res.status === 401) {
           const data = await res.json().catch(() => ({}));
-          // Explicitly check for the deleted flag from our middleware
           if (data?.deleted === true) {
-            console.warn("[AUTH] Account deleted. Redirecting...");
             logout(true);
+          } else {
+            // Token expired — refresh silently so the session stays alive
+            await refreshSession();
           }
         }
-      } catch (e) {
+      } catch {
         // Silent fail on network issues
       }
-    }, 3000);
+    }, 10000);
     return () => clearInterval(interval);
-  }, [user, logout]);
+  }, [user, logout, refreshSession]);
 
   // Global fetch interceptor — auto-logout if backend says account was deleted
   useEffect(() => {
