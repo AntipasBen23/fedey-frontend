@@ -60,6 +60,14 @@ function resolveRedirect(user: { lastOnboardingStep?: string }, fallback: string
   return fallback;
 }
 
+function friendlyError(e: unknown): string {
+  if (e instanceof TypeError) {
+    return "Unable to reach the server. Please check your internet connection and try again.";
+  }
+  if (e instanceof Error) return e.message;
+  return "Something went wrong. Please try again.";
+}
+
 export default function AuthModal({
   isOpen,
   onClose,
@@ -153,8 +161,8 @@ export default function AuthModal({
       } else {
         router.push(resolveRedirect(data.user, redirectTo));
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
@@ -193,8 +201,8 @@ export default function AuthModal({
       }
       setPendingUserId(data.userId);
       setView("verify");
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
@@ -221,8 +229,8 @@ export default function AuthModal({
       } else {
         router.push(resolveRedirect(data.user, redirectTo));
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
@@ -237,8 +245,10 @@ export default function AuthModal({
         body: JSON.stringify({ userId: pendingUserId }),
       });
       setError("A new code has been sent to your email.");
-    } catch {
-      setError("Could not resend code. Please try again.");
+    } catch (e) {
+      setError(e instanceof TypeError
+        ? "Unable to reach the server. Please check your connection and try again."
+        : "Could not resend the code. Please try again.");
     }
   };
 
@@ -253,8 +263,8 @@ export default function AuthModal({
         body: JSON.stringify({ email: forgotEmail }),
       });
       setView("reset-sent");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (e) {
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
@@ -280,8 +290,8 @@ export default function AuthModal({
       } else {
         router.push(resolveRedirect(data.user, redirectTo));
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
