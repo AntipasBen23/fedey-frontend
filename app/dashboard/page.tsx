@@ -63,7 +63,7 @@ type DashboardData = {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session } = useSession() as any;
-  const { isLoggedIn, ready, user } = useAuth() as any;
+  const { isLoggedIn, ready, user, logout } = useAuth() as any;
 
   // Auth guard — redirect to home if not logged in
   useEffect(() => {
@@ -321,7 +321,7 @@ export default function DashboardPage() {
   };
 
   const disconnectAccount = async (platform: string) => {
-    if (!window.confirm(`⚠️ Are you sure you want to disconnect Furci from ${platform.toUpperCase()}? This will wipe your tokens and stop all scheduled posts.`)) {
+    if (!window.confirm(`⚠️ Are you sure you want to disconnect Furci? This will permanently delete all your posts, analytics, and strategy data. You will be logged out immediately.`)) {
       return;
     }
 
@@ -335,10 +335,11 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) throw new Error("Failed to disconnect");
-      
-      router.push("/");
+
+      // Server has wiped all data and expired cookies — treat as full account deletion
+      logout(true);
     } catch (err) {
-      alert("Error disconnecting account");
+      alert("Error disconnecting account. Please try again.");
     }
   };
 
