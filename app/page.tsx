@@ -27,8 +27,7 @@ function getHintStep(): string {
   return match ? decodeURIComponent(match.split("=")[1]) : "";
 }
 
-// ─── Swap this URL when the video is ready ────────────────────────────────────
-const EXPLAINER_VIDEO_URL = "https://www.youtube.com/embed/YOUR_VIDEO_ID";
+const EXPLAINER_VIDEO_URL = "/furciai-intro.mp4";
 
 export default function HomePage() {
   const { isLoggedIn, user, ready } = useAuth();
@@ -195,11 +194,11 @@ export default function HomePage() {
               boxShadow: "0 30px 80px rgba(0,0,0,0.5)",
             }}
           >
-            <iframe
-              src={EXPLAINER_VIDEO_URL + "?autoplay=1"}
-              allow="autoplay; fullscreen"
-              allowFullScreen
-              style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+            <video
+              src={EXPLAINER_VIDEO_URL}
+              controls
+              autoPlay
+              style={{ width: "100%", height: "100%", display: "block", background: "#000" }}
             />
             <button
               onClick={() => setShowVideo(false)}
