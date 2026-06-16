@@ -27,6 +27,9 @@ function getHintStep(): string {
   return match ? decodeURIComponent(match.split("=")[1]) : "";
 }
 
+// ─── Swap this URL when the video is ready ────────────────────────────────────
+const EXPLAINER_VIDEO_URL = "https://www.youtube.com/embed/YOUR_VIDEO_ID";
+
 export default function HomePage() {
   const { isLoggedIn, user, ready } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
@@ -34,6 +37,7 @@ export default function HomePage() {
   const [wordIndex, setWordIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [hintStep, setHintStep] = useState("");
+  const [showVideo, setShowVideo] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -127,11 +131,25 @@ export default function HomePage() {
           </button>
         ) : (
           // Brand new visitor
-          <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
-            Hire me
-          </button>
+          <>
+            <button className="btn-pulse" style={btnStyle} onClick={() => setShowAuth(true)}>
+              Hire me
+            </button>
+            <p className={manrope.className} style={{
+              fontSize: "0.9rem", color: "#94a3b8", margin: "1rem 0 0",
+              letterSpacing: "0.01em", fontWeight: 400,
+            }}>
+              Watch explanatory video{" "}
+              <span
+                onClick={() => setShowVideo(true)}
+                style={{ color: "var(--primary-strong)", fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}
+              >
+                here
+              </span>
+            </p>
+          </>
         )}
-        {!hintStep && (
+        {hintStep && !hintDone && (
           <p className={manrope.className} style={{
             fontSize: "0.88rem", color: "#94a3b8", margin: "1rem 0 0",
             letterSpacing: "0.01em", fontWeight: 400,
@@ -158,6 +176,45 @@ export default function HomePage() {
         initialView="login"
         redirectTo={hintRedirectTo}
       />
+
+      {/* ── Explainer Video Modal ── */}
+      {showVideo && (
+        <div
+          onClick={() => setShowVideo(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
+            zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "1rem",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: "relative", width: "100%", maxWidth: "860px",
+              aspectRatio: "16/9", borderRadius: "16px", overflow: "hidden",
+              boxShadow: "0 30px 80px rgba(0,0,0,0.5)",
+            }}
+          >
+            <iframe
+              src={EXPLAINER_VIDEO_URL + "?autoplay=1"}
+              allow="autoplay; fullscreen"
+              allowFullScreen
+              style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+            />
+            <button
+              onClick={() => setShowVideo(false)}
+              style={{
+                position: "absolute", top: "0.75rem", right: "0.75rem",
+                background: "rgba(0,0,0,0.6)", border: "none", borderRadius: "50%",
+                width: "36px", height: "36px", color: "white", fontSize: "1.1rem",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </>,
     wordIndex, visible
   );
